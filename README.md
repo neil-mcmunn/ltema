@@ -20,7 +20,13 @@ LTEMA streamlines the process of collecting ground cover observations for BC Par
 - pre-populates a revisted site with static measurements
 
 <br>
-##### Project Team:
+##### Project Team (2015):
+Neil McMunn <br>
+Nathan Staples <br>
+Robert Williams <br>
+
+<br>
+##### Special Thanks to the original team (2014)
 Nick Gulajec <br>
 Blair White <br>
 Rory Drysdale <br>
