@@ -220,10 +220,10 @@ function savePhoto(photo){
 		var db = Ti.Database.open('ltemaDB');
 			
 		//Query - Retrieve site survery, year, park
-		var rows = db.execute('SELECT year, protocol_name, park_name \
-							FROM site_survey s, protocol p, park prk \
-							WHERE s.protocol_id = p.protocol_id \
-							AND s.park_id = prk.park_id \
+		var rows = db.execute('SELECT year, protocol_name, park_name 
+							FROM site_survey s, protocol p, park prk 
+							WHERE s.protocol_id = p.protocol_id 
+							AND s.park_id = prk.park_id 
 							AND site_id = ?', siteID);
 							
 		//Name the directory	
