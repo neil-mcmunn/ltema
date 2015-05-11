@@ -1,0 +1,127 @@
+".container": {
+	backgroundColor:"white"
+},
+".error": {
+	font: {fontSize: 18},
+	color: "red"
+},
+"Label": {
+	font: {fontSize: 20}
+},
+"TextField": {
+	font: {fontSize: 20}
+},
+"Button": {
+	font: {fontSize: 20}
+},
+
+
+"#observationTypeLbl": {
+	left: 40,
+	top: 40
+},
+"#pickType": {
+	left: 220,
+	right: 40,
+	top: 40
+},
+"#pickTypeError": {
+	left: 225,
+	top: 70
+},
+
+"#observationLbl": {
+	left: 40,
+	top: 100
+},
+"#observationSearch": {
+	left: 220,
+	right: 40,
+	top: 93
+},
+"#observation": {
+	left: 220,
+	right: 40,
+	top: 100,
+	borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED
+},
+"#observationError": {
+	left: 225,
+	top: 138
+},
+
+"#observationOtherQuickPickLbl": {
+	left: 40,
+	top: 100
+},
+"#observationOtherQuickPick": {
+	left: 220,
+	right: 40,
+	top: 100,
+	borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED
+},
+
+"#percentLbl": {
+	left: 40,
+	top: 160
+},
+"#percent": {
+	left: 220,
+	right: 40,
+	top: 160,
+	borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
+	keyboardType:Titanium.UI.KEYBOARD_NUMBER_PAD
+},
+"#percentError": {
+	left: 225,
+	top: 190
+},
+
+"#commentLbl": {
+	left: 40,
+	top: 220
+},
+"#comments": {
+	left: 220,
+	right: 40,
+	top: 220,
+	borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED
+},
+"#photoBtn": {
+	left: 40,
+	top: 280,
+},
+"#photoHint": {
+	left: 220,
+	right: 40,
+	top: 287,
+	color: 'Gray',
+	font: {fontSize: 18}
+},
+"#quadratThumbnail": {
+	width: 64,
+	height: 64,
+	left: 220,
+	top: 280,
+	borderRadius: 10
+},
+"#thumbnailHintText": {
+	left: 316,
+	top: 287,
+	color: '#8D8D8D'
+},
+
+"#footerLine": {
+	height: 1,
+	top: 360,
+	left: 5,
+	right: 5,
+	borderWidth: 1,
+	borderColor:'#aaa'
+},
+"#info": {
+	left: 80,
+	right: 80,
+	top: 390,
+	font: {fontSize: 18}
+}

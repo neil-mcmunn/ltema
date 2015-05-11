@@ -1,0 +1,63 @@
+".container" : {
+	backgroundColor:"white"
+},
+
+".error": {
+	font: {fontSize: 18},
+	color: "Gray"
+},
+
+"Label": {
+	font: {fontSize: 20}
+},
+"Button": {
+	font: {fontSize: 20},
+},
+
+//HeaderView
+"#headerView": {
+	height: 80
+},
+"#addObservation": {
+	bottom: 0,
+	left: 20,
+	height: 60,
+	width: 200
+},
+
+// FooterView
+"#footerView": {
+	height:200
+},
+"#percentLbl": {
+	right: 140,
+	top: 10,
+	height: 60,
+	verticalAlign: 2
+},
+"#percent": {
+	right: 75,
+	top: 10,
+	height: 60,
+	verticalAlign: 2
+},
+"#percentSymbol": {
+	right: 55,
+	top: 10,
+	height: 60,
+	verticalAlign: 2
+},
+"#done": {
+	right: 55,
+	top:100,
+	height: 60,
+	width: 80,
+	verticalAlign: 2
+},
+"#doneError": {
+	right: 140,
+	top: 80,
+	height: 60,
+	font: {fontSize: 18},
+	verticalAlign: 2
+}

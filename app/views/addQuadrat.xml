@@ -1,0 +1,40 @@
+<Alloy>
+	<Window id="addQuadratWin" class="container" title="Add Quadrat">
+		<RightNavButton>
+			<Button id="doneAddTransect" title="Done" onClick="doneBtn"/>
+		</RightNavButton>
+		
+		<ScrollView id="formView">
+			<Label id="quadratNumberLbl" text="Quadrat Number:" />
+			<Label id="numberLbl" />
+			
+			<Label id="stakeLbl" text="Stake Orientation:" />
+			<TabbedBar id="pickStake" />
+			<Label id="stakeError" class="error" visible="false" text="* Please confirm the stake orientation"/>       
+			<TextField id="stakeDeviation" visible="false" hintText="Stake Orientation"/>
+			<Label id="stakeOtherError" class="error" visible="false" text="* Stake orientation must be specified"/>
+			
+			<Label id="distanceLbl" text="Quadrat Distance:" />
+			<TabbedBar id="pickDistance" />
+			<Label id="distanceError" class="error" visible="false" text="* Please confirm the quadrat distance"/>           
+			<TextField id="distanceDeviation" visible="false" hintText="Quadrat Distance"/>
+			<Label id="distanceOtherError" class="error" visible="false" text="* Quadrat distance must be specified"/>  
+			
+			<Label id="commentLbl" text="Comments:" />
+			<TextField id="comments" hintText="(optional)"/>
+			
+			<Button id="photoBtn" title="Take Photo" onClick="takePhoto" />
+			<ImageView id="quadratThumbnail" onClick="previewPhoto" visible="false"/>
+			<Label id="photoError" class="error" visible="false" text="* Please take a photo"/>
+			<Label id="thumbnailHintText" class="error" visible="false" text="Click thumbnail to preview photo"/>
+			
+			<Button id="locationBtn" title="Capture Location" onClick="getLocation" />
+			<Label id="location" class="error" visible="false" />
+			<Label id="locationError" class="error" visible="false" />
+			
+			<View id="footerLine" />
+			<Label id="info" />
+				
+		</ScrollView>
+	</Window>
+</Alloy>

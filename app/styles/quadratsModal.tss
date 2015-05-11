@@ -1,0 +1,128 @@
+".container": {
+	backgroundColor:"white"
+},
+".error": {
+	font: {fontSize: 18},
+	color: "red"
+},
+"Label": {
+	font: {fontSize: 20}
+},
+"TextField": {
+	font: {fontSize: 20}
+},
+"Button": {
+	font: {fontSize: 20}
+},
+
+"#quadratNameLbl":{
+	left: 40,
+	top: 40
+},
+"#nameLbl": {
+	left: 220,
+	top: 40,
+},
+
+"#stakeLbl": {
+	left: 40,
+	top: 100
+},
+"#pickStake": {
+	left: 220,
+	right: 40,
+	top: 100
+},
+"#stakeError": {
+	left: 225,
+	top: 130
+},
+"#stakeDeviation": {
+	left: 220,
+	right: 40,
+	top: 160,
+	borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED
+},
+"#stakeOtherError": {
+	left: 225,
+	top: 190
+},
+
+"#distanceLbl": {
+	left: 40,
+	top: 160
+},
+"#pickDistance": {
+	left: 220,
+	right: 40,
+	top: 160
+},
+"#distanceError": {
+	left: 225,
+	top: 190
+},
+"#distanceDeviation": {
+	left: 220,
+	right: 40,
+	top: 220,
+	borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
+	keyboardType:Titanium.UI.KEYBOARD_NUMBER_PAD
+},
+"#distanceOtherError": {
+	left: 225,
+	top: 250
+},
+"#commentLbl": {
+	left: 40,
+	top: 220
+},
+"#comments": {
+	left: 220,
+	right: 40,
+	top:220,
+	borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED
+},
+"#dateRecordedLbl": {
+	left: 40,
+	top: 280
+},
+"#dateRecorded": {
+	left: 220,
+	right: 40,
+	top:280
+},
+"#photoBtn": {
+	left: 40,
+	top: 340
+},
+"#quadratThumbnail": {
+	width: 64,
+	height: 64,
+	left: 220,
+	top: 340,
+	borderRadius: 10
+},
+"#thumbnailHintText": {
+	left: 316,
+	top: 351,
+	color: '#8D8D8D'
+},
+"#photoError": {
+	left: 225,
+	top: 345,
+	color: 'red'
+},
+"#footerLine": {
+	height: 1,
+	top: 420,
+	left: 5,
+	right: 5,
+	borderWidth: 1,
+	borderColor:'#aaa',
+},
+"#info": {
+	left: 80,
+	right: 80,
+	top: 450,
+	font: {fontSize: 18}
+}

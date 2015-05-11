@@ -1,0 +1,52 @@
+".container": {
+	backgroundColor:"white"
+},
+
+"Label": {
+	font: {fontSize: 20}
+},
+
+"#groundCoverLbl": {
+	left: 120,
+	top: 150,
+	height: 30,
+	verticalAlign: 1
+},
+"#groundCover": {
+	left: 275,
+	right: 155,
+	top: 150,
+	height: 30,
+	verticalAlign: 1
+},
+
+"#commentsLbl": {
+	left: 120,
+	top: 210,
+	height: 30,
+	verticalAlign: 1
+},
+"#comments": {
+	left: 275,
+	top: 210,
+	height: 30,
+	verticalAlign: 1
+},
+"#quadratObservationThumbnail": {
+	width: 64,
+	height: 64,
+	left: 275,
+	top: 270,
+	borderRadius: 10
+},
+"#photoError": {
+	left: 225,
+	top: 275,
+	color: 'red'
+},
+"#thumbnailHintText": {
+	left: 371,
+	top: 286,
+	color: '#8D8D8D'
+}
+

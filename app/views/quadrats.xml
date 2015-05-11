@@ -1,0 +1,18 @@
+<Alloy>
+	<Window class="container" title="Quadrats" id="quadratsWin">
+		<RightNavButton>
+			<Button id="editQuadrat" title="Edit" onClick="editBtn"/>
+		</RightNavButton>
+		
+		<TableView class="table" id="tbl">
+			<HeaderView id="mainHeader">
+				<View id="headerView">
+					<Button id="addQuadrat" title="Add Quadrat" onClick="addBtn"/>
+					<Label id="addQuadratError" class="error" visible="false" text="*Total Coverage is less than 100%"/>
+				</View>
+			</HeaderView>
+			<!--Placeholder row for testing screens-->
+			<TableViewRow title="Row 1" id="row1"></TableViewRow>
+		</TableView>
+	</Window>
+</Alloy>

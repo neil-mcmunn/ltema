@@ -1,0 +1,27 @@
+<Alloy>
+	<NavigationWindow id="modalNav">
+		<Window class="container" id="modalWin">
+			
+			<LeftNavButton>
+				<Button id="cancelBtn" title="Cancel" onClick="cancelBtnClick" />
+			</LeftNavButton>
+			
+			<RightNavButton>
+				<Button id="doneBtn" title="Done" onClick="doneBtnClick" />
+			</RightNavButton>
+			
+			<ScrollView>	
+				<Label id="groundCoverLbl" text="Foliar Cover:" />
+				<Label id="groundCover" />
+				
+				<Label id="commentsLbl" text="Comments:" />
+				<Label id="comments" />
+				
+				<ImageView id="quadratObservationThumbnail" onClick="previewPhoto" visible="false"/>
+				<Label id="photoError" class="error" visible="false" />
+				<Label id="thumbnailHintText" class="error" visible="false" text="Click thumbnail to preview photo"/>
+				
+			</ScrollView>
+		</Window>
+	</NavigationWindow>
+</Alloy>

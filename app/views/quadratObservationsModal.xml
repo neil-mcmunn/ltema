@@ -1,0 +1,24 @@
+<Alloy>
+	<NavigationWindow id="modalNav">
+		<Window class="container" id="modalWin">
+			
+			<LeftNavButton>
+				<Button id="cancelBtn" title="Cancel" onClick="cancelBtnClick" />
+			</LeftNavButton>
+			
+			<RightNavButton>
+				<Button id="doneBtn" title="Done" onClick="doneBtnClick" />
+			</RightNavButton>
+			
+			<ScrollView>	
+				<Label id="groundCoverLbl" text="Foliar Cover:" />
+				<TextField id="groundCover" />
+				<Label id="percentSymbolLabel" />
+				<Label id="groundCoverError" class="error" visible="false" />
+				
+				<Label id="userInstructions" />
+			</ScrollView>
+			
+		</Window>
+	</NavigationWindow>
+</Alloy>

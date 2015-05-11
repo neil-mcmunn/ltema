@@ -1,0 +1,27 @@
+".container" : {
+	backgroundColor:"white"
+},
+"Label": {
+	font: {fontSize: 20}
+},
+"Button": {
+	font: {fontSize: 20}
+},
+
+//HeaderView
+"#headerView": {
+	height: 80
+},
+"#addPlot": {
+	bottom: 0,
+	left: 20,
+	height: 60,
+	width: 100
+},
+"#addPlotError":{
+	bottom: 0,
+	left: 140,
+	height: 60,
+	color: '#8D8D8D',
+	font: {fontSize: 18}
+}

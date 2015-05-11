@@ -1,0 +1,25 @@
+<Alloy>
+	<Window class="container" title="Quadrat Observations" id="quadratObservationsWin">
+		<RightNavButton>
+			<Button id="editObservation" title="Edit" onClick="editBtn"/>
+		</RightNavButton>
+		
+		<TableView class="table" id="tbl">
+			<HeaderView id="mainHeader">
+				<View id="headerView">
+					<Button id="addObservation" title="Add Quadrat Observation" />
+				</View>
+			</HeaderView>
+			
+			<FooterView id="tblFooter">
+				<View id="footerView">
+					<Label id="percentLbl" text="Total Percent Coverage: "/>
+					<Label id="percent" text="squirrel!"/>
+					<Label id="percentSymbol" text="%" />
+					<Button id="done" title="Done" onClick="doneBtn" />
+					<Label id="doneError" class="error" />
+				</View>
+			</FooterView>
+		</TableView>
+	</Window>
+</Alloy>
