@@ -160,7 +160,7 @@ function doneBtn(e){
 			var mediaID = results.fieldByName('mediaID');
 			
 			//Insert Query - add row to transect table
-			db.execute(	'INSERT INTO transect (transect_name,surveyor,other_surveyors,plot_distance,stake_orientation,utm_zone,utm_easting,utm_northing,comments,site_id,media_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)', 
+			db.execute(	'INSERT INTO transect (transect_name,surveyor,other_surveyors,plot_distance,stake_orientation,utm_zone,utm_easting,utm_northing,comments,site_id,media_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)', \ 
 						$.tsctName.value, $.srvyName.value, $.otherSrvyName.value, $.plotDist.value, pickStakeLabels[$.pickStake.index].title, utmZone, utmEasting, utmNorthing, $.comments.value, siteID, mediaID);
 						
 		}catch(e){
@@ -207,10 +207,10 @@ function savePhoto(photo){
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Query - Retrieve site survery, year, park
-		var rows = db.execute('SELECT s.year, p.protocol_name, prk.park_name
-						FROM site_survey s, protocol p, park prk
-						WHERE s.protocol_id = p.protocol_id
-						AND s.park_id = prk.park_id
+		var rows = db.execute('SELECT s.year, p.protocol_name, prk.park_name \
+						FROM site_survey s, protocol p, park prk \
+						WHERE s.protocol_id = p.protocol_id \
+						AND s.park_id = prk.park_id \
 						AND site_id = ?', siteID);
 		
 		//Get requested data from each row in table

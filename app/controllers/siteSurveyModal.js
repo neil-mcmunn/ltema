@@ -12,11 +12,11 @@ try {
 	var db = Ti.Database.open('ltemaDB');
 	
 	var row = db.execute(
-		'SELECT site_id, year, protocol_name, park_name, biome_name, exported
-		FROM site_survey s, protocol p, park prk, biome bio
-		WHERE p.biome_id = bio.biome_id
-		AND s.protocol_id = p.protocol_id
-		AND s.park_id = prk.park_id
+		'SELECT site_id, year, protocol_name, park_name, biome_name, exported \
+		FROM site_survey s, protocol p, park prk, biome bio \
+		WHERE p.biome_id = bio.biome_id \
+		AND s.protocol_id = p.protocol_id \
+		AND s.park_id = prk.park_id \
 		AND site_id = ?', siteID);
 						
 	var siteYear = row.fieldByName('year');
@@ -26,8 +26,8 @@ try {
 	var exported = row.fieldByName('exported');
 	
 	var transectsResult = db.execute (
-		'SELECT transect_id, transect_name, utm_easting, utm_northing, media_id
-		FROM transect
+		'SELECT transect_id, transect_name, utm_easting, utm_northing, media_id \
+		FROM transect \
 		WHERE site_id = ?', siteID);
 	
 	var surveyTransects = [];

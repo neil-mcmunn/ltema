@@ -31,8 +31,8 @@ function populateTable() {
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Query - Observations of a plot
-		var rows = db.execute('SELECT observation_id, observation, ground_cover, comments, media_id
-						FROM plot_observation
+		var rows = db.execute('SELECT observation_id, observation, ground_cover, comments, media_id \
+						FROM plot_observation \
 						WHERE plot_id = ?', $.tbl.plotID); 
 		
 		while (rows.isValidRow()) {
@@ -100,11 +100,11 @@ var plotName ="";
 try {
 	var db = Ti.Database.open('ltemaDB');
 	
-	var resultRow = db.execute (	'SELECT pa.park_name, ta.transect_name, pl.plot_name
-								FROM park pa, transect ta, site_survey ss, plot pl
-								WHERE ss.site_id = ta.site_id
-								AND pa.park_id = ss.park_id
-								AND pl.transect_id = ta.transect_id
+	var resultRow = db.execute (	'SELECT pa.park_name, ta.transect_name, pl.plot_name \
+								FROM park pa, transect ta, site_survey ss, plot pl \
+								WHERE ss.site_id = ta.site_id \
+								AND pa.park_id = ss.park_id \
+								AND pl.transect_id = ta.transect_id \
 								AND pl.plot_id = ?', plotID);
 	parkName = resultRow.fieldByName('park_name');
 	transectName = resultRow.fieldByName('transect_name');
@@ -180,16 +180,16 @@ $.tbl.addEventListener('delete', function(e) {
 		var db = Ti.Database.open('ltemaDB');
 		
 		// Get the site id
-		var result = db.execute('SELECT site_id FROM transect
+		var result = db.execute('SELECT site_id FROM transect \
 								WHERE transect_id = ?', transectID);
 		
 		var siteID = result.fieldByName('site_id');
 		
 		// Get the directory name
-		var rows = db.execute('SELECT year, protocol_name, park_name
-							FROM site_survey s, protocol p, park prk
-							WHERE s.protocol_id = p.protocol_id
-							AND s.park_id = prk.park_id
+		var rows = db.execute('SELECT year, protocol_name, park_name \
+							FROM site_survey s, protocol p, park prk \
+							WHERE s.protocol_id = p.protocol_id \
+							AND s.park_id = prk.park_id \
 							AND site_id = ?', siteID);
 							
 		//Name the directory	
@@ -200,8 +200,8 @@ $.tbl.addEventListener('delete', function(e) {
 		var folder = year + ' - ' + protocolName + ' - ' + parkName;
 		
 		//delete associated media files
-		var observationFiles = db.execute('SELECT med.media_name FROM media med, plot_observation pob
-										WHERE med.media_id = pob.media_id
+		var observationFiles = db.execute('SELECT med.media_name FROM media med, plot_observation pob \
+										WHERE med.media_id = pob.media_id \
 										AND pob.observation_id = ?', observationID);
 		
 		while(observationFiles.isValidRow()) {

@@ -11,8 +11,8 @@ var title = args.title;
 //Query the database, assign returned ground cover to TextField
 try {
 	var db = Ti.Database.open('ltemaDB');
-	var resultRow = db.execute(	'SELECT ground_cover, count
-						FROM plot_observation
+	var resultRow = db.execute(	'SELECT ground_cover, count \
+						FROM plot_observation \
 						WHERE observation_id = ?', observationID);
 	var groundCover = resultRow.fieldByName('ground_cover');
 	var count = resultRow.fieldByName('count');
@@ -84,8 +84,8 @@ function doneBtnClick(){
 	}
 	try {
 		var db = Ti.Database.open('ltemaDB');
-		db.execute( 'UPDATE plot_observation
-					SET ground_cover = ?
+		db.execute( 'UPDATE plot_observation \
+					SET ground_cover = ? \
 					WHERE observation_id = ?', $.groundCover.value,observationID);		
 	} catch (e){
 		var errorMessage = e.message;
