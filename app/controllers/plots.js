@@ -21,10 +21,10 @@ var transectName ="";
 try {
 	var db = Ti.Database.open('ltemaDB');
 	
-	var resultRow = db.execute (	'SELECT p.park_name, t.transect_name \
-								FROM park p, transect t, site_survey s \
-								WHERE s.site_id = t.site_id \
-								AND p.park_id = s.park_id \
+	var resultRow = db.execute (	'SELECT p.park_name, t.transect_name
+								FROM park p, transect t, site_survey s
+								WHERE s.site_id = t.site_id
+								AND p.park_id = s.park_id
 								AND t.transect_id = ?' , transectID);
 	parkName = resultRow.fieldByName('park_name');
 	transectName = resultRow.fieldByName('transect_name');
@@ -102,10 +102,10 @@ $.tbl.addEventListener('delete', function(e) {
 		var db = Ti.Database.open('ltemaDB');
 
 		//GET FOLDER NAME - Retrieve site survery, year, park
-		var rows = db.execute('SELECT year, protocol_name, park_name \
-							FROM site_survey s, protocol p, park prk \
-							WHERE s.protocol_id = p.protocol_id \
-							AND s.park_id = prk.park_id \
+		var rows = db.execute('SELECT year, protocol_name, park_name
+							FROM site_survey s, protocol p, park prk
+							WHERE s.protocol_id = p.protocol_id
+							AND s.park_id = prk.park_id
 							AND site_id = ?', siteID);
 							
 		//Name the directory	
@@ -116,17 +116,17 @@ $.tbl.addEventListener('delete', function(e) {
 		var folder = year + ' - ' + protocolName + ' - ' + parkName;
 		
 		//delete associated media files
-		var plotFiles = db.execute('SELECT media_name \
-												FROM media m, plot p \
-												WHERE m.media_id = p.media_id \
+		var plotFiles = db.execute('SELECT media_name
+												FROM media m, plot p
+												WHERE m.media_id = p.media_id
 												AND p.plot_id = ? ', currentPlotID);
 		
 		var fileName = plotFiles.fieldByName('media_name');
 		deleteImage(fileName, folder);
 		
-		var plotObservationFiles = db.execute('SELECT media_name \
-												FROM media m, plot_observation po \
-												WHERE m.media_id = po.media_id \
+		var plotObservationFiles = db.execute('SELECT media_name
+												FROM media m, plot_observation po
+												WHERE m.media_id = po.media_id
 												AND po.plot_id = ? ', currentPlotID);
 		
 		while (plotObservationFiles.isValidRow()) {
@@ -174,8 +174,8 @@ function populateTable() {
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Query - Retrieve existing plots from database
-		var rows = db.execute('SELECT plot_id, plot_name, utm_zone, utm_easting, utm_northing, media_id \
-							FROM plot \
+		var rows = db.execute('SELECT plot_id, plot_name, utm_zone, utm_easting, utm_northing, media_id
+							FROM plot
 							WHERE transect_id = ?', $.tbl.transectID);
 		
 		//Get requested data from each row in table
@@ -187,8 +187,8 @@ function populateTable() {
 			var utmNorthing = rows.fieldByName('utm_northing');
 			var mediaID = rows.fieldByName('media_id');
 			
-			var groundCoverRows = db.execute('SELECT sum(ground_cover) \
-											FROM plot_observation \
+			var groundCoverRows = db.execute('SELECT sum(ground_cover)
+											FROM plot_observation
 											WHERE plot_id = ?', plotID);
 							
 			var totalGroundCover = groundCoverRows.fieldByName('sum(ground_cover)');

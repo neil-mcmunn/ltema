@@ -42,13 +42,13 @@ function doneSelectBtn() {
 try {
 	var db = Ti.Database.open('ltemaDB');
 	
-	var rows = db.execute('SELECT svy.site_id, prk.park_name, svy.year, pro.protocol_name \
-		FROM site_survey svy, park prk, protocol pro, transect tst, plot plt, plot_observation pob \
-		WHERE svy.park_id = prk.park_id AND \
-		svy.protocol_id = pro.protocol_id AND \
-		svy.site_id = tst.site_id AND \
-		tst.transect_id = plt.transect_id AND \
-		plt.plot_id = pob.plot_id \
+	var rows = db.execute('SELECT svy.site_id, prk.park_name, svy.year, pro.protocol_name
+		FROM site_survey svy, park prk, protocol pro, transect tst, plot plt, plot_observation pob
+		WHERE svy.park_id = prk.park_id AND
+		svy.protocol_id = pro.protocol_id AND
+		svy.site_id = tst.site_id AND
+		tst.transect_id = plt.transect_id AND
+		plt.plot_id = pob.plot_id
 		GROUP BY svy.site_id');
 	
 	// Create a picker row for each site survey that can be exported
@@ -103,11 +103,11 @@ function makeCSV() {
 		var db = Ti.Database.open('ltemaDB');
 		
 		// Get the transects for the site
-		var transects = db.execute('SELECT prk.park_name, tct.transect_id, tct.transect_name, tct.surveyor, med.media_name AS transect_photo \
-			FROM transect tct, media med, park prk, site_survey svy \
-			WHERE tct.media_id = med.media_id AND \
-			prk.park_id = svy.park_id AND \
-			svy.site_id = tct.site_id AND \
+		var transects = db.execute('SELECT prk.park_name, tct.transect_id, tct.transect_name, tct.surveyor, med.media_name AS transect_photo
+			FROM transect tct, media med, park prk, site_survey svy
+			WHERE tct.media_id = med.media_id AND
+			prk.park_id = svy.park_id AND
+			svy.site_id = tct.site_id AND
 			tct.site_id = ?', siteID);
 		
 		var results = [];
@@ -129,10 +129,10 @@ function makeCSV() {
 
 		// Get the plots for the transects		
 		var tids = '(' + transectIDs + ')';
-		var plots = db.execute('SELECT plt.plot_id, plt.plot_name, plt.utm_zone, plt.utm_easting, plt.transect_id, \
-			plt.utm_northing, plt.stake_deviation, plt.distance_deviation, plt.utc, med.media_name AS plot_photo\
-			FROM plot plt, media med \
-			WHERE plt.media_id = med.media_id AND \
+		var plots = db.execute('SELECT plt.plot_id, plt.plot_name, plt.utm_zone, plt.utm_easting, plt.transect_id,
+			plt.utm_northing, plt.stake_deviation, plt.distance_deviation, plt.utc, med.media_name AS plot_photo
+			FROM plot plt, media med
+			WHERE plt.media_id = med.media_id AND
 			plt.transect_id IN ' + tids);
 		
 		fieldCount = plots.fieldCount();
@@ -160,10 +160,10 @@ function makeCSV() {
 		
 		// Get the plot observations for the plots
 		var pids = '(' + plotIDs + ')';
-		var plotObservations = db.execute('SELECT pob.observation_id, pob.species_code, pob."count", pob.comments, pob.plot_id, pob.ground_cover, med.media_name AS observation_photo \
-			FROM plot_observation pob \
-			LEFT JOIN media med \
-			ON pob.media_id = med.media_id AND \
+		var plotObservations = db.execute('SELECT pob.observation_id, pob.species_code, pob."count", pob.comments, pob.plot_id, pob.ground_cover, med.media_name AS observation_photo
+			FROM plot_observation pob
+			LEFT JOIN media med
+			ON pob.media_id = med.media_id AND
 			pob.plot_id IN '+ pids);
 		
 		fieldCount = plotObservations.fieldCount();	

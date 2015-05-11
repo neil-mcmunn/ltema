@@ -12,8 +12,8 @@ var siteID;
 try{
 	var db = Ti.Database.open('ltemaDB');
 	
-	var rows = db.execute('SELECT tct.site_id FROM transect tct, plot plt \
-							WHERE tct.transect_id = plt.transect_id \
+	var rows = db.execute('SELECT tct.site_id FROM transect tct, plot plt
+							WHERE tct.transect_id = plt.transect_id
 							AND plt.plot_id = ?', plotID);
 	
 	siteID = rows.fieldByName('site_id');
@@ -114,15 +114,15 @@ function doneBtn(e){
 		// Check if observation is a scientific name or english
 		try {
 			var db = Ti.Database.open('taxonomy');
-			var rsScientific = db.execute('SELECT s.species_code, g.genus_name || " " || s.species_name AS scientific_name \
-								FROM species s, genus g \
-								WHERE s.genus_id = g.genus_id \
-								AND UPPER(scientific_name) = UPPER(?) \
+			var rsScientific = db.execute('SELECT s.species_code, g.genus_name || " " || s.species_name AS scientific_name
+								FROM species s, genus g
+								WHERE s.genus_id = g.genus_id
+								AND UPPER(scientific_name) = UPPER(?)
 								LIMIT 1', observation);
 			
-			var rsEnglish = db.execute('SELECT species_code, english_name \
-										FROM species \
-										WHERE UPPER(english_name) = UPPER(?) \
+			var rsEnglish = db.execute('SELECT species_code, english_name
+										FROM species
+										WHERE UPPER(english_name) = UPPER(?)
 										LIMIT 1', observation);
 						
 			if (rsScientific.isValidRow()) {
@@ -235,10 +235,10 @@ function savePhoto(photo){
 		var db = Ti.Database.open('ltemaDB');
 			
 		//Query - Retrieve site survery, year, park
-		var rows = db.execute('SELECT year, protocol_name, park_name \
-							FROM site_survey s, protocol p, park prk \
-							WHERE s.protocol_id = p.protocol_id \
-							AND s.park_id = prk.park_id \
+		var rows = db.execute('SELECT year, protocol_name, park_name
+							FROM site_survey s, protocol p, park prk
+							WHERE s.protocol_id = p.protocol_id
+							AND s.park_id = prk.park_id
 							AND site_id = ?', siteID);
 							
 		//Name the directory	
@@ -495,9 +495,9 @@ function auto_complete(search_term) {
 			var rsEnglish = db.execute('SELECT DISTINCT english_name ' + 'FROM species ' + 'WHERE UPPER(english_name) LIKE UPPER(?)', search_term + '%');
 			totalRowCount += rsEnglish.getRowCount();
 			
-			var rsScientific = db.execute('SELECT s.species_code, g.genus_name || " " || s.species_name AS scientific_name \
-								FROM species s, genus g \
-								WHERE s.genus_id = g.genus_id \
+			var rsScientific = db.execute('SELECT s.species_code, g.genus_name || " " || s.species_name AS scientific_name
+								FROM species s, genus g
+								WHERE s.genus_id = g.genus_id
 								AND UPPER(scientific_name) LIKE UPPER(?)', search_term + '%');
 			totalRowCount += rsScientific.getRowCount();
 			

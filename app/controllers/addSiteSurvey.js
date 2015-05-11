@@ -56,9 +56,9 @@ $.pickBiome.addEventListener('click', function(e) {
 	//populate new list based on new biome selected
 	try {
 		var db = Ti.Database.open('ltemaDB');
-		var protocolResultRows = db.execute('SELECT protocol_name \
-											FROM protocol p, biome b \
-											WHERE p.biome_id = b.biome_id \
+		var protocolResultRows = db.execute('SELECT protocol_name
+											FROM protocol p, biome b
+											WHERE p.biome_id = b.biome_id
 											AND  b.biome_name =?', pickBiomeLabels[e.index].title);
 		while (protocolResultRows.isValidRow()) {
 			var protocolName = protocolResultRows.fieldByName('protocol_name');
@@ -161,8 +161,8 @@ function doneBtn(e){
 			var parkID = parkResult.fieldByName('park_id');
 			
 			// Check if this site has been previously surveyed
-			var previousSurveys = db.execute('SELECT site_id FROM site_survey \
-											WHERE protocol_id = ? \
+			var previousSurveys = db.execute('SELECT site_id FROM site_survey
+											WHERE protocol_id = ?
 											AND park_id = ?', protocolID, parkID);
 			
 			// Get the most recently entered survey
@@ -197,8 +197,8 @@ function doneBtn(e){
 					var tComments = transects.fieldByName('comments');
 					var transectID = transects.fieldByName('transect_id');
 					
-					db.execute('INSERT INTO transect (transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
-						utm_zone, utm_easting, utm_northing, comments, site_id) \
+					db.execute('INSERT INTO transect (transect_name, surveyor, other_surveyors, plot_distance, stake_orientation,
+						utm_zone, utm_easting, utm_northing, comments, site_id)
 						VALUES (?,?,?,?,?,?,?,?,?,?)', transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone, 
 						utmEasting, utmNorthing, tComments, siteID);
 					
@@ -221,7 +221,7 @@ function doneBtn(e){
 						var comments = plots.fieldByName('comments');
 						var plotID = plots.fieldByName('plot_id');
 						
-						db.execute('INSERT INTO plot (plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation, \
+						db.execute('INSERT INTO plot (plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation,
 							transect_id, comments) VALUES (?,?,?,?,?,?,?,?,?)', plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
 							utc, stakeDeviation, distanceDeviation, newTransectID, comments);
 						
@@ -239,7 +239,7 @@ function doneBtn(e){
 							var count = observations.fieldByName('count');
 							var observationComments = observations.fieldByName('comments');
 						
-							db.execute('INSERT INTO plot_observation (observation, ground_cover, count, comments, plot_id) \
+							db.execute('INSERT INTO plot_observation (observation, ground_cover, count, comments, plot_id)
 								VALUES (?,?,?,?,?)', observation, groundCover, count, observationComments, newPlotID);
 							
 							observations.next();

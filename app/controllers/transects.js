@@ -22,9 +22,9 @@ function populateTable() {
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Query - Retrieve existing sites from database
-		var rows = db.execute('SELECT transect_id, transect_name, surveyor, \
-						utm_zone, utm_easting, utm_northing, media_id \
-						FROM transect \
+		var rows = db.execute('SELECT transect_id, transect_name, surveyor,
+						utm_zone, utm_easting, utm_northing, media_id
+						FROM transect
 						WHERE site_id = ?', $.tbl.siteID); 
 		
 		//get requested data from each row in table
@@ -150,10 +150,10 @@ $.tbl.addEventListener('delete', function(e) {
 		var db = Ti.Database.open('ltemaDB');
 		
 		//GET FOLDER NAME - Retrieve site survery, year, park
-		var rows = db.execute('SELECT year, protocol_name, park_name \
-							FROM site_survey s, protocol p, park prk \
-							WHERE s.protocol_id = p.protocol_id \
-							AND s.park_id = prk.park_id \
+		var rows = db.execute('SELECT year, protocol_name, park_name
+							FROM site_survey s, protocol p, park prk
+							WHERE s.protocol_id = p.protocol_id
+							AND s.park_id = prk.park_id
 							AND site_id = ?', siteID);
 							
 		//Name the directory	
@@ -164,8 +164,8 @@ $.tbl.addEventListener('delete', function(e) {
 		var folder = year + ' - ' + protocolName + ' - ' + parkName;
 		
 		// find any associated transect pictures and delete them
-		var transectFiles = db.execute('SELECT med.media_name FROM media med, transect tct \
-								WHERE med.media_id = tct.media_id \
+		var transectFiles = db.execute('SELECT med.media_name FROM media med, transect tct
+								WHERE med.media_id = tct.media_id
 								AND tct.transect_id = ?', currentTransectID);
 		
 		while (transectFiles.isValidRow()) {
@@ -174,8 +174,8 @@ $.tbl.addEventListener('delete', function(e) {
 			transectFiles.next();
 		}
 		
-		var plotFiles = db.execute('SELECT plt.plot_id, med.media_name FROM media med, plot plt \
-									WHERE med.media_id = plt.media_id \
+		var plotFiles = db.execute('SELECT plt.plot_id, med.media_name FROM media med, plot plt
+									WHERE med.media_id = plt.media_id
 									AND plt.transect_id = ?', currentTransectID);
 		
 		var plotIDs = [];
@@ -187,8 +187,8 @@ $.tbl.addEventListener('delete', function(e) {
 		}
 		
 		var pids = '(' + plotIDs + ')';
-		var observationFiles = db.execute('SELECT med.media_name FROM media med, plot_observation pob \
-										WHERE med.media_id = pob.media_id \
+		var observationFiles = db.execute('SELECT med.media_name FROM media med, plot_observation pob
+										WHERE med.media_id = pob.media_id
 										AND pob.plot_id IN' + pids);
 		
 		while (observationFiles.isValidRow()) {

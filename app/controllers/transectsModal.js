@@ -22,8 +22,8 @@ $.stakeBar.labels = stakeBarLabels;
 try {
 	var db = Ti.Database.open('ltemaDB');
 	
-	var resultRow = db.execute(	'SELECT transect_id, transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, comments, site_id, media_id \
-							FROM transect t \
+	var resultRow = db.execute(	'SELECT transect_id, transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, comments, site_id, media_id
+							FROM transect t
 							WHERE transect_id = ?', transectID);
 	
 	var transectName = resultRow.fieldByName('transect_name');
@@ -54,17 +54,17 @@ try {
 
 	}else{	
 	//get the media name
-	var mediaRow = db.execute('SELECT media_name \
-							FROM media \
+	var mediaRow = db.execute('SELECT media_name
+							FROM media
 							WHERE media_id = ?', mediaID);
 	
 	var mediaName = mediaRow.fieldByName('media_name');	
 	
 	//GET FOLDER NAME - Retrieve site survery, year, park
-	var rows = db.execute('SELECT year, protocol_name, park_name \
-							FROM site_survey s, protocol p, park prk \
-							WHERE s.protocol_id = p.protocol_id \
-							AND s.park_id = prk.park_id \
+	var rows = db.execute('SELECT year, protocol_name, park_name
+							FROM site_survey s, protocol p, park prk
+							WHERE s.protocol_id = p.protocol_id
+							AND s.park_id = prk.park_id
 							AND site_id = ?', siteID);
 							
    //get the name of the directory	
@@ -327,10 +327,10 @@ function savePhoto(photo){
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Query - Retrieve site survery, year, park
-		var rows = db.execute('SELECT s.year, p.protocol_name, prk.park_name \
-						FROM site_survey s, protocol p, park prk \
-						WHERE s.protocol_id = p.protocol_id \
-						AND s.park_id = prk.park_id \
+		var rows = db.execute('SELECT s.year, p.protocol_name, prk.park_name
+						FROM site_survey s, protocol p, park prk
+						WHERE s.protocol_id = p.protocol_id
+						AND s.park_id = prk.park_id
 						AND site_id = ?', siteID);
 		
 		//Get requested data from each row in table

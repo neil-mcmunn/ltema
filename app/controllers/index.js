@@ -25,9 +25,9 @@ function populateTable() {
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Query - Retrieve existing sites from database
-		var rows = db.execute('SELECT site_id, year, protocol_name, park_name \
-						FROM site_survey s, protocol p, park prk \
-						WHERE s.protocol_id = p.protocol_id \
+		var rows = db.execute('SELECT site_id, year, protocol_name, park_name
+						FROM site_survey s, protocol p, park prk
+						WHERE s.protocol_id = p.protocol_id
 						AND s.park_id = prk.park_id ');
 		
 		//Get requested data from each row in table

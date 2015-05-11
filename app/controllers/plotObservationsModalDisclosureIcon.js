@@ -14,8 +14,8 @@ var siteID = args.siteID;
 //Query the database, assign returned ground cover to TextField
 try {
 	var db = Ti.Database.open('ltemaDB');
-	var resultRow = db.execute(	'SELECT ground_cover, count \
-						FROM plot_observation \
+	var resultRow = db.execute(	'SELECT ground_cover, count
+						FROM plot_observation
 						WHERE observation_id = ?', observationID);
 	var groundCover = resultRow.fieldByName('ground_cover');
 	var count = resultRow.fieldByName('count');
@@ -30,8 +30,8 @@ try {
 	if(mediaID != null){
 
 	//get the media name
-	var mediaRow = db.execute('SELECT media_name \
-							FROM media \
+	var mediaRow = db.execute('SELECT media_name
+							FROM media
 							WHERE media_id = ?', mediaID);
 	
 	var mediaName = mediaRow.fieldByName('media_name');
@@ -39,10 +39,10 @@ try {
 	mediaRow.close();
 	
 	//GET FOLDER NAME - Retrieve site survery, year, park
-	var rows = db.execute('SELECT year, protocol_name, park_name \
-							FROM site_survey s, protocol p, park prk \
-							WHERE s.protocol_id = p.protocol_id \
-							AND s.park_id = prk.park_id \
+	var rows = db.execute('SELECT year, protocol_name, park_name
+							FROM site_survey s, protocol p, park prk
+							WHERE s.protocol_id = p.protocol_id
+							AND s.park_id = prk.park_id
 							AND site_id = ?', siteID);
 							
    //get the name of the directory	
