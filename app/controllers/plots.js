@@ -42,7 +42,7 @@ var titleLabel = Titanium.UI.createLabel({
 	top:10,
 	text: labelText,
 	textAlign:'center',
-	font:{fontSize:20,fontWeight:'bold'},
+	font:{fontSize:20,fontWeight:'bold'}
 });
 
 // Associate label to title

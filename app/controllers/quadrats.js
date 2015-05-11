@@ -1,5 +1,5 @@
 /*
- *  List screen to view, add, or delete plots
+ *  List screen to view, add, or delete quadrats
  * 
  * expected args: transectID, siteID 
  */
@@ -42,16 +42,16 @@ var titleLabel = Titanium.UI.createLabel({
 	top:10,
 	text: labelText,
 	textAlign:'center',
-	font:{fontSize:20,fontWeight:'bold'},
+	font:{fontSize:20,fontWeight:'bold'}
 });
 
 // Associate label to title
-$.plotsWin.setTitleControl(titleLabel);
+$.quadratsWin.setTitleControl(titleLabel);
 
 
 /* Event Listeners */
 
-Ti.App.addEventListener("app:refreshPlots", function(e) {
+Ti.App.addEventListener("app:refreshQuadrats", function(e) {
 	populateTable();
 	toggleAddBtn();
 });
@@ -63,9 +63,9 @@ $.tbl.addEventListener('click', function(e){
 		return;
 	}
 	
-	//check if media exists -if no photo has been taken (re-visited plot)
+	//check if media exists -if no photo has been taken (re-visited quadrat)
 	if(e.rowData.mediaID == null){
-		var modal = Alloy.createController("plotsModal", {plotID:e.rowData.plotID, title:e.rowData.title, siteID:siteID, plotName:e.rowData.plotName}).getView();
+		var modal = Alloy.createController("quadratsModal", {quadratID:e.rowData.quadratID, title:e.rowData.title, siteID:siteID, quadratName:e.rowData.quadratName}).getView();
 		modal.open({
 			modal : true,
 			modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
@@ -76,7 +76,7 @@ $.tbl.addEventListener('click', function(e){
 	
 	//info button clicked, display modal
 	if(e.source.toString() == '[object TiUIButton]') {
-		var modal = Alloy.createController("plotsModal", {plotID:e.rowData.plotID, title:e.rowData.title, siteID:siteID, plotName:e.rowData.plotName}).getView();
+		var modal = Alloy.createController("quadratsModal", {quadratID:e.rowData.quadratID, title:e.rowData.title, siteID:siteID, quadratName:e.rowData.quadratName}).getView();
 		modal.open({
 			modal : true,
 			modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
@@ -85,8 +85,8 @@ $.tbl.addEventListener('click', function(e){
 		});
 	//row clicked, get transect view
 	}else{  
-		//open plot observations
-		var observations = Alloy.createController("plotObservations", {plotID:e.rowData.plotID, siteID:siteID}).getView();
+		//open quadrat observations
+		var observations = Alloy.createController("quadratObservations", {quadratID:e.rowData.quadratID, siteID:siteID}).getView();
 		var nav = Alloy.Globals.navMenu;
 		nav.openWindow(observations);   
 	}
@@ -95,8 +95,8 @@ $.tbl.addEventListener('click', function(e){
 
 //Delete - event listener
 $.tbl.addEventListener('delete', function(e) { 
-	//get the plot_id of the current row to be deleted
-	var currentPlotID = e.rowData.plotID;
+	//get the quadrat_id of the current row to be deleted
+	var currentQuadratID = e.rowData.quadratID;
 	try{
 		//open database
 		var db = Ti.Database.open('ltemaDB');
@@ -116,27 +116,27 @@ $.tbl.addEventListener('delete', function(e) {
 		var folder = year + ' - ' + protocolName + ' - ' + parkName;
 		
 		//delete associated media files
-		var plotFiles = db.execute('SELECT media_name \
-												FROM media m, plot p \
+		var quadratFiles = db.execute('SELECT media_name \
+												FROM media m, quadrat p \
 												WHERE m.media_id = p.media_id \
-												AND p.plot_id = ? ', currentPlotID);
+												AND p.quadrat_id = ? ', currentQuadratID);
 		
-		var fileName = plotFiles.fieldByName('media_name');
+		var fileName = quadratFiles.fieldByName('media_name');
 		deleteImage(fileName, folder);
 		
-		var plotObservationFiles = db.execute('SELECT media_name \
-												FROM media m, plot_observation po \
+		var quadratObservationFiles = db.execute('SELECT media_name \
+												FROM media m, quadrat_observation po \
 												WHERE m.media_id = po.media_id \
-												AND po.plot_id = ? ', currentPlotID);
+												AND po.quadrat_id = ? ', currentQuadratID);
 		
-		while (plotObservationFiles.isValidRow()) {
-			var fileName = plotObservationFiles.fieldByName('media_name');
+		while (quadratObservationFiles.isValidRow()) {
+			var fileName = quadratObservationFiles.fieldByName('media_name');
 			deleteImage(fileName, folder);
-			plotObservationFiles.next();
+			quadratObservationFiles.next();
 		}
 		
 		//delete current row from the database
-		db.execute('DELETE FROM plot WHERE plot_id = ?', currentPlotID);
+		db.execute('DELETE FROM quadrat WHERE quadrat_id = ?', currentQuadratID);
 		
 		// Make the last row editable
 		if ($.tbl.data[0]) {
@@ -154,8 +154,8 @@ $.tbl.addEventListener('delete', function(e) {
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
 		rows.close();
-		plotFiles.close();
-		plotObservationFiles.close();
+		quadratFiles.close();
+		quadratObservationFiles.close();
 		db.close();
 		toggleEditBtn();
 	}
@@ -173,23 +173,23 @@ function populateTable() {
 		//open database
 		var db = Ti.Database.open('ltemaDB');
 		
-		//Query - Retrieve existing plots from database
-		var rows = db.execute('SELECT plot_id, plot_name, utm_zone, utm_easting, utm_northing, media_id \
-							FROM plot \
+		//Query - Retrieve existing quadrats from database
+		var rows = db.execute('SELECT quadrat_id, quadrat_name, utm_zone, utm_easting, utm_northing, media_id \
+							FROM quadrat \
 							WHERE transect_id = ?', $.tbl.transectID);
 		
 		//Get requested data from each row in table
 		while (rows.isValidRow()) {	
-			var plotID = rows.fieldByName('plot_id');
-			var plotName = rows.fieldByName('plot_name');
+			var quadratID = rows.fieldByName('quadrat_id');
+			var quadratName = rows.fieldByName('quadrat_name');
 			var utmZone = rows.fieldByName('utm_zone');
 			var utmEasting = rows.fieldByName('utm_easting');
 			var utmNorthing = rows.fieldByName('utm_northing');
 			var mediaID = rows.fieldByName('media_id');
 			
 			var groundCoverRows = db.execute('SELECT sum(ground_cover) \
-											FROM plot_observation \
-											WHERE plot_id = ?', plotID);
+											FROM quadrat_observation \
+											WHERE quadrat_id = ?', quadratID);
 							
 			var totalGroundCover = groundCoverRows.fieldByName('sum(ground_cover)');
 			
@@ -197,15 +197,15 @@ function populateTable() {
 				totalGroundCover = 0;
 			}
 			
-			//create the title for each plot row - name and utm info
-			var plotDesc = plotName + ' - UTM Z:' + 
+			//create the title for each quadrat row - name and utm info
+			var quadratDesc = quadratName + ' - UTM Z:' + 
 					utmZone + ' E:' + utmEasting + ' N:' + utmNorthing; 
 			
 			//create a new row
 				var newRow = Ti.UI.createTableViewRow({
-					title : plotDesc,
-					plotName : plotName,
-					plotID : plotID,
+					title : quadratDesc,
+					quadratName : quadratName,
+					quadratID : quadratID,
 					mediaID : mediaID,
 					height: 60,
 					font: {fontSize: 20},
@@ -276,7 +276,7 @@ function editBtn(e){
 		$.tbl.editing = true;
 		e.source.title = "Done";
 		//disable the add button during edit mode
-		$.addPlot.enabled = false;
+		$.addQuadrat.enabled = false;
 		
 	} else { 
 		$.tbl.editing = false;
@@ -285,49 +285,49 @@ function editBtn(e){
 	}
 }
 
-//ADD BUTTON - add a new plot
+//ADD BUTTON - add a new quadrat
 function addBtn(){
 	//disable add button until screen is returned to focus.  Issue #28
-	$.addPlot.enabled = false;
+	$.addQuadrat.enabled = false;
 		
-	//Navigation to addPlot
-	var addPlot = Alloy.createController("addPlot", {transectID: $.tbl.transectID}).getView();
+	//Navigation to addQuadrat
+	var addQuadrat = Alloy.createController("addQuadrat", {transectID: $.tbl.transectID}).getView();
 	var nav = Alloy.Globals.navMenu;
-	nav.openWindow(addPlot);
+	nav.openWindow(addQuadrat);
 }		
 
 //ADD BUTTON TOGGLE
 function toggleAddBtn(){
-	var incompletePlotCount = 0;
+	var incompleteQuadratCount = 0;
 	var exceedTotalCoverageMax = false;
 	//check if any rows exists
 	if(showTotalRowNumber() > 0){
-		//loop via plot list and check total ground cover
+		//loop via quadrat list and check total ground cover
 		for(var i=0; i < $.tbl.data[0].rows.length; i++) {
 	        if($.tbl.data[0].rows[i].totalGroundCover < 100){
-	        	//disable add plot button
-	        	incompletePlotCount += 1;	
+	        	//disable add quadrat button
+	        	incompleteQuadratCount += 1;	
 				//$.tbl.data[0].rows[i].color = "red";
 			//check if the total coverage exceeds 400%
 	        }else if($.tbl.data[0].rows[i].totalGroundCover > 400){
-	        	//disable add plot button
+	        	//disable add quadrat button
 	        	exceedTotalCoverageMax = true;
 	        }
 	    }
 	 }  
-	 //Check the number of incomplete Plot Count 
-	    if(incompletePlotCount > 0){
-	    	//disable add plot button
-	    	$.addPlot.enabled = false;
-			$.addPlotError.visible = true;
+	 //Check the number of incomplete Quadrat Count 
+	    if(incompleteQuadratCount > 0){
+	    	//disable add quadrat button
+	    	$.addQuadrat.enabled = false;
+			$.addQuadratError.visible = true;
 		}else if(exceedTotalCoverageMax == true){
-			$.addPlot.enabled = false;
-			$.addPlotError.text = "*Total Ground Coverage exceeds 400%";
-			$.addPlotError.visible = true;
+			$.addQuadrat.enabled = false;
+			$.addQuadratError.text = "*Total Ground Coverage exceeds 400%";
+			$.addQuadratError.visible = true;
 	    }else{
-	    	//enable add plot button
-	        $.addPlot.enabled = true;
-			$.addPlotError.visible = false;
+	    	//enable add quadrat button
+	        $.addQuadrat.enabled = true;
+			$.addQuadratError.visible = false;
 	    }
 	
 }
@@ -339,18 +339,18 @@ function toggleEditBtn(){
 	//if no rows exist
 	if(numRows <= 0){
 		//disable Edit Button
-		$.editPlot.enabled = false;
-		$.editPlot.title = "Edit";
-		$.addPlot.enabled = true;
+		$.editQuadrat.enabled = false;
+		$.editQuadrat.title = "Edit";
+		$.addQuadrat.enabled = true;
 		$.tbl.editing = false;
-		$.addPlotError.visible = false;
+		$.addQuadratError.visible = false;
 	}else{
 		//enable Edit Button
-		$.editPlot.enabled = true;
+		$.editQuadrat.enabled = true;
 	}
 }
 
-//Function to get total number of rows (plots)
+//Function to get total number of rows (quadrats)
 function showTotalRowNumber(){
 	// Variable to get all section
 	var allSection = $.tbl.data;
