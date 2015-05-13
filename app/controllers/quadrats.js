@@ -8,6 +8,7 @@ var args = arguments[0];
 var transectID = args.transectID;
 $.tbl.transectID = transectID;
 var siteID = args.siteID;
+var protocolName = 'Mobile organisms';
 
 populateTable();
 toggleAddBtn();
@@ -53,7 +54,7 @@ $.quadratsWin.setTitleControl(titleLabel);
 
 Ti.App.addEventListener("app:refreshQuadrats", function(e) {
 	populateTable();
-	toggleAddBtn();
+	//toggleAddBtn();
 });
 
 // Table row click event
@@ -102,32 +103,30 @@ $.tbl.addEventListener('delete', function(e) {
 		var db = Ti.Database.open('ltemaDB');
 
 		//GET FOLDER NAME - Retrieve site survery, year, park
-		var rows = db.execute('SELECT year, protocol_name, park_name \
-							FROM site_survey s, protocol p, park prk \
-							WHERE s.protocol_id = p.protocol_id \
-							AND s.park_id = prk.park_id \
+		var rows = db.execute('SELECT year, park_name \
+							FROM site_survey s, park prk \
+							WHERE s.park_id = prk.park_id \
 							AND site_id = ?', siteID);
 							
 		//Name the directory	
 		var year = rows.fieldByName('year');
-		var protocolName = rows.fieldByName('protocol_name');
-		var parkName = rows.fieldByName('park_name');
+				var parkName = rows.fieldByName('park_name');
 		
 		var folder = year + ' - ' + protocolName + ' - ' + parkName;
 		
 		//delete associated media files
 		var quadratFiles = db.execute('SELECT media_name \
-												FROM media m, quadrat p \
-												WHERE m.media_id = p.media_id \
-												AND p.quadrat_id = ? ', currentQuadratID);
+												FROM media m, quadrat q \
+												WHERE m.media_id = q.media_id \
+												AND q.quadrat_id = ? ', currentQuadratID);
 		
 		var fileName = quadratFiles.fieldByName('media_name');
 		deleteImage(fileName, folder);
 		
 		var quadratObservationFiles = db.execute('SELECT media_name \
-												FROM media m, quadrat_observation po \
-												WHERE m.media_id = po.media_id \
-												AND po.quadrat_id = ? ', currentQuadratID);
+												FROM media m, quadrat_observation qo \
+												WHERE m.media_id = qo.media_id \
+												AND qo.quadrat_id = ? ', currentQuadratID);
 		
 		while (quadratObservationFiles.isValidRow()) {
 			var fileName = quadratObservationFiles.fieldByName('media_name');
@@ -174,7 +173,7 @@ function populateTable() {
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Query - Retrieve existing quadrats from database
-		var rows = db.execute('SELECT quadrat_id, quadrat_name, utm_zone, utm_easting, utm_northing, media_id \
+		var rows = db.execute('SELECT quadrat_id, quadrat_name, quadrat_zone, media_id \
 							FROM quadrat \
 							WHERE transect_id = ?', $.tbl.transectID);
 		
@@ -182,24 +181,11 @@ function populateTable() {
 		while (rows.isValidRow()) {	
 			var quadratID = rows.fieldByName('quadrat_id');
 			var quadratName = rows.fieldByName('quadrat_name');
-			var utmZone = rows.fieldByName('utm_zone');
-			var utmEasting = rows.fieldByName('utm_easting');
-			var utmNorthing = rows.fieldByName('utm_northing');
+			var quadratZone = rows.fieldByName('quadrat_zone');
 			var mediaID = rows.fieldByName('media_id');
-			
-			var groundCoverRows = db.execute('SELECT sum(ground_cover) \
-											FROM quadrat_observation \
-											WHERE quadrat_id = ?', quadratID);
-							
-			var totalGroundCover = groundCoverRows.fieldByName('sum(ground_cover)');
-			
-			if (totalGroundCover == null) {
-				totalGroundCover = 0;
-			}
-			
+
 			//create the title for each quadrat row - name and utm info
-			var quadratDesc = quadratName + ' - UTM Z:' + 
-					utmZone + ' E:' + utmEasting + ' N:' + utmNorthing; 
+			var quadratDesc = quadratName + ' - ' + quadratZone;
 			
 			//create a new row
 				var newRow = Ti.UI.createTableViewRow({
@@ -209,18 +195,9 @@ function populateTable() {
 					mediaID : mediaID,
 					height: 60,
 					font: {fontSize: 20},
-					totalGroundCover: totalGroundCover,
 					editable: false
 				});
-				
-			//add the total ground cover label
-				var groundCoverLabel = Ti.UI.createLabel({
-					text: totalGroundCover + '%',
-					right: 55,
-					font: {fontSize: 20}
-				});
-				newRow.add(groundCoverLabel);
-				
+
 				//Select icon to be displayed (info or edit)
 				if(mediaID != null){
 					//create and add info icon for the row
@@ -240,13 +217,7 @@ function populateTable() {
 					});
 				}
 				newRow.add(infoButton);
-				
-				/*
-				//change label colour if total ground cover is less than 100%
-				if (totalGroundCover < 100) {
-					 newRow.color = "red";
-				}
-				*/
+
 				//Add row to the table view
 				$.tbl.appendRow(newRow);
 			
@@ -281,7 +252,7 @@ function editBtn(e){
 	} else { 
 		$.tbl.editing = false;
 		e.source.title = "Edit";
-		toggleAddBtn();
+		//toggleAddBtn();
 	}
 }
 
@@ -297,7 +268,7 @@ function addBtn(){
 }		
 
 //ADD BUTTON TOGGLE
-function toggleAddBtn(){
+/*function toggleAddBtn(){
 	var incompleteQuadratCount = 0;
 	var exceedTotalCoverageMax = false;
 	//check if any rows exists
@@ -330,7 +301,7 @@ function toggleAddBtn(){
 			$.addQuadratError.visible = false;
 	    }
 	
-}
+}*/
 
 //Enable or Disable the Edit button
 function toggleEditBtn(){

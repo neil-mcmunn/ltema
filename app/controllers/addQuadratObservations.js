@@ -6,6 +6,8 @@
 
 var args = arguments[0];
 var quadratID = args.quadratID;
+var protocolName = 'Mobile organisms';
+var quadratZone;
 
 // Get the siteID
 var siteID;
@@ -26,8 +28,8 @@ try{
 }
 
 // Set Common Other label and flag
-$.observationOtherQuickPick.labels = [{title:"Bare Soil"}, {title:"Rock"}, {title:"Litter"}, {title:"Biocrust"}, {title:"Scat"}, {title:"(other)"}];
-var observationOtherFlag = false;
+//$.observationOtherQuickPick.labels = [{title:"Bare Soil"}, {title:"Rock"}, {title:"Litter"}, {title:"Biocrust"}, {title:"Scat"}, {title:"(other)"}];
+//var observationOtherFlag = false;
 
 // Nav Bar Title
 var labelText = 'New Quadrat Observation';
@@ -57,107 +59,62 @@ function doneBtn(e){
     // Check for errors on page
     var errorOnPage = false;
 
-    // Check for errors
-    if ($.pickType.index == null) {
-        $.pickTypeError.visible = true;
-        errorOnPage = true;
-        if (($.observationSearch.value == "") || ($.observationSearch.value == null) && ($.observation.value == "") || ($.observation.value == null)){
-            $.observationError.visible = true;
-            errorOnPage = true;
-        }
-    }
-
-    if ($.pickType.index == 0) {
-        if (($.observationSearch.value == "") || ($.observationSearch.value == null) || ($.observationSearch.getValue().trim().length <= 0)){
-            $.observationError.visible = true;
-            errorOnPage = true;
-        }
-    }
-
-    if ($.pickType.index == 1) {
-        if (($.observation.value == "") || ($.observation.value == null) || ($.observation.getValue().trim().length <= 0)){
-            $.observationError.visible = true;
-            errorOnPage = true;
-        }
-    }
-
-    if ($.percent.value == "") {
-        $.percentError.visible = true;
-        errorOnPage = true;
-    }
-
-    if ($.percentError.visible) {
-        errorOnPage = true;
-    }
-
     if (errorOnPage) {
         e.source.enabled = true;
         $.observationSearch.blur();
         $.observation.blur();
-        $.percent.blur();
         $.comments.blur();
         return;
     }
 
-    // Check observation type and set count and observation
+    // Check observation and set count and observation
     var count;
     var observation;
-    var percentCoverage = $.percent.value;
     var comments;
     var speciesCode;
+    var speciesOther = ''; //default empty
 
-    if ($.pickType.index == 0) {
-        // Plant is selected
-        count = 1;
-        comments = $.comments.value;
-        observation = $.observationSearch.value;
-        // Check if observation is a scientific name or english
-        try {
-            var db = Ti.Database.open('taxonomy');
-            var rsScientific = db.execute('SELECT s.species_code, g.genus_name || " " || s.species_name AS scientific_name \
-								FROM species s, genus g \
-								WHERE s.genus_id = g.genus_id \
-								AND UPPER(scientific_name) = UPPER(?) \
-								LIMIT 1', observation);
+    comments = $.comments.value;
+    observation = $.observationSearch.value;
+    // Check if observation is a scientific name or english
+    try {
+        var db = Ti.Database.open('taxonomy');
+        var rsScientific = db.execute('SELECT non_sessile_code, scientific_name \
+                            FROM non_sessile \
+                            WHERE UPPER(scientific_name) = UPPER(?) \
+                            LIMIT 1', observation);
 
-            var rsEnglish = db.execute('SELECT species_code, english_name \
-										FROM species \
-										WHERE UPPER(english_name) = UPPER(?) \
-										LIMIT 1', observation);
+        var rsCommon = db.execute('SELECT non_sessile_code, common_name \
+                                    FROM non_sessile \
+                                    WHERE UPPER(common_name) = UPPER(?) \
+                                    LIMIT 1', observation);
 
-            if (rsScientific.isValidRow()) {
-                scientificName = rsScientific.fieldByName('scientific_name');
+        if (rsScientific.isValidRow()) {
+            scientificName = rsScientific.fieldByName('scientific_name');
 
-                if (scientificName != null) {
-                    speciesCode = rsScientific.fieldByName('species_code');
-                }
-                rsScientific.close();
-            } else if (rsEnglish.isValidRow()) {
-                englishName = rsEnglish.fieldByName('english_name');
-                if (englishName != null) {
-                    speciesCode = rsEnglish.fieldByName('species_code');
-                }
-                rsEnglish.close();
-            } else {
-                speciesCode = $.observationSearch.value;
+            if (scientificName != null) {
+                speciesCode = rsScientific.fieldByName('non_sessile_code');
             }
+            rsScientific.close();
+        } else if (rsCommon.isValidRow()) {
+            commonName = rsCommon.fieldByName('common_name');
+            if (commonName != null) {
+                speciesCode = rsCommon.fieldByName('non_sessile_code');
+            }
+            rsCommon.close();
+        } else {
+            // species not found, use 'other' field
+            speciesCode = $.observationSearch.value;
+            speciesOther = $.observationSearch.value;
+        }
 
-        } catch(e) {
-            var errorMessage = e.message;
-            Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-        } finally {
-            db.close();
-        }
-    } else {
-        // Other is selected
-        observation = $.observation.value;
-        count = 0;
-        speciesCode = null;
-        comments = $.observation.value;
-        if ($.comments.value != "") {
-            comments += " - Comment: " + $.comments.value;
-        }
+    } catch(e) {
+        var errorMessage = e.message;
+        Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+    } finally {
+        db.close();
     }
+
 
     // Name and save photo if taken
     var mediaID = null;
@@ -191,8 +148,8 @@ function doneBtn(e){
         //Connect to database
         var db = Ti.Database.open('ltemaDB');
 
-        db.execute('INSERT INTO quadrat_observation (observation, ground_cover, count, comments, quadrat_id, media_id, species_code) \
-				VALUES (?,?,?,?,?,?,?)', observation, percentCoverage, count, comments, quadratID, mediaID, speciesCode);
+        db.execute('INSERT INTO quadrat_observation (observation, count, comments, quadrat_id, media_id, non_sessile_code, non_sessile_other) \
+				VALUES (?,?,?,?,?,?,?)', observation, count, comments, quadratID, mediaID, speciesCode, speciesOther);
 
     }catch(e){
         var errorMessage = e.message;
@@ -209,7 +166,7 @@ function doneBtn(e){
 function takePhoto(){
     //call camera module and set thumbnail
     var pic = require('camera');
-    pic.getPhoto(function(myPhoto, UTMEasting, UTMNorthing, n_UTMZone) {
+    pic.getPhoto(function(myPhoto, QZone) {
         //Set thumbnail
         $.photoHint.visible = false;
         $.quadratThumbnail.visible = true;
@@ -222,9 +179,7 @@ function takePhoto(){
 
         //set variables with values
         photo = myPhoto;
-        utmEasting = UTMEasting;
-        utmNorthing = UTMNorthing;
-        utmZone = n_UTMZone;
+        quadratZone = QZone;
     });
 }
 
@@ -235,15 +190,13 @@ function savePhoto(photo){
         var db = Ti.Database.open('ltemaDB');
 
         //Query - Retrieve site survery, year, park
-        var rows = db.execute('SELECT year, protocol_name, park_name \
-							FROM site_survey s, protocol p, park prk \
-							WHERE s.protocol_id = p.protocol_id \
-							AND s.park_id = prk.park_id \
+        var rows = db.execute('SELECT year, park_name \
+							FROM site_survey s, park prk \
+							WHERE s.park_id = prk.park_id \
 							AND site_id = ?', siteID);
 
         //Name the directory	
         var year = rows.fieldByName('year');
-        var protocolName = rows.fieldByName('protocol_name');
         var parkName = rows.fieldByName('park_name');
         var dir = year + ' - ' + protocolName + ' - ' + parkName;
     } catch(e) {
@@ -296,52 +249,6 @@ function previewPhoto(){
 
 // Event listeners
 
-$.pickType.addEventListener('click', function(e) {
-    $.pickTypeError.visible = false;
-    if ( (observationOtherFlag === false) && ($.pickType.index === 0) ) {  //plant
-        $.observation.visible = false;
-        $.observation.value = "";
-        $.observationOtherQuickPickLbl.visible = false;
-        $.observationOtherQuickPick.index = -1;
-        $.observationLbl.visible = true;
-        $.observationSearch.visible = true;
-        $.percentLbl.text = "Foliar Coverage:";
-    }
-    if ( (observationOtherFlag === true) && ($.pickType.index === 0) ) {  //plant
-        $.observationLbl.visible = false;
-        $.observation.visible = false;
-        $.observation.value = "";
-        $.observationOtherQuickPickLbl.visible = false;
-        $.observationOtherQuickPick.visible = false;
-        $.observationOtherQuickPick.index = -1;
-        $.observationLbl.top -= 60;
-        $.observation.top -= 60;
-        $.observationError.top -= 60;
-        $.percentLbl.top -= 60;
-        $.percent.top -= 60;
-        $.percentError.top -= 60;
-        $.commentLbl.top -= 60;
-        $.comments.top -= 60;
-        $.photoBtn.top -= 60;
-        $.photoHint.top -= 60;
-        $.quadratThumbnail.top -= 60;
-        $.thumbnailHintText.top -= 60;
-        $.footerLine.top -= 60;
-        $.info.top -= 60;
-        $.observationLbl.visible = true;
-        $.observationSearch.visible = true;
-        observationOtherFlag = false;
-    }
-    if ($.pickType.index === 1) {  //other
-        $.observationLbl.visible = false;
-        $.observationSearch.visible = false;
-        $.observationSearch.value = "";
-        $.observationOtherQuickPickLbl.visible = true;
-        $.observationOtherQuickPick.visible = true;
-        //$.observation.visible = true;
-        $.percentLbl.text = "Coverage:";
-    }
-});
 
 $.observationOtherQuickPick.addEventListener('click', function(e) {
     $.observationError.visible = false;
@@ -350,9 +257,6 @@ $.observationOtherQuickPick.addEventListener('click', function(e) {
         $.observationLbl.top += 60;
         $.observation.top += 60;
         $.observationError.top += 60;
-        $.percentLbl.top += 60;
-        $.percent.top += 60;
-        $.percentError.top += 60;
         $.commentLbl.top += 60;
         $.comments.top += 60;
         $.photoBtn.top += 60;
@@ -374,9 +278,6 @@ $.observationOtherQuickPick.addEventListener('click', function(e) {
             $.observationLbl.top -= 60;
             $.observation.top -= 60;
             $.observationError.top -= 60;
-            $.percentLbl.top -= 60;
-            $.percent.top -= 60;
-            $.percentError.top -= 60;
             $.commentLbl.top -= 60;
             $.comments.top -= 60;
             $.photoBtn.top -= 60;
@@ -403,22 +304,6 @@ $.observation.addEventListener('change', function(e) {
         $.observationError.visible = true;
     } else {
         $.observationError.visible = false;
-    }
-});
-
-$.percent.addEventListener('change', function(e) {
-    var theField = $.percent.value;
-    var match = /^((0{0,2}\.[1,2,5]0?)|(0?\d{1,2})|(0?100))$/;
-
-    if ($.percent.value == "") {
-        $.percentError.visible = true;
-        $.percentError.text = "* Please enter percent coverage";
-        return;
-    } else if (!theField.match(match)) {
-        $.percentError.text = "* Not a valid ground cover percentage";
-        $.percentError.visible = true;
-    } else {
-        $.percentError.visible = false;
     }
 });
 
@@ -480,25 +365,15 @@ function auto_complete(search_term) {
             var db = Ti.Database.open('taxonomy');
 
             //Retrieve matching taxonomy information from database the database
-            var rsPhylum = db.execute('SELECT phylum_name FROM phylum WHERE UPPER(phylum_name) LIKE UPPER(?)', search_term + '%');
-            totalRowCount += rsPhylum.getRowCount();
 
-            var rsOrder = db.execute('SELECT order_name FROM "order" WHERE UPPER(order_name) LIKE UPPER(?)', search_term + '%');
-            totalRowCount += rsOrder.getRowCount();
+            var rsCommon = db.execute('SELECT DISTINCT common_name, \
+                                        FROM non_sessile \
+                                        WHERE UPPER(common_name) LIKE UPPER(?)', search_term + '%');
 
-            var rsFamily = db.execute('SELECT family_name FROM family WHERE UPPER(family_name) LIKE UPPER(?)', search_term + '%');
-            totalRowCount += rsFamily.getRowCount();
-
-            var rsGenus = db.execute('SELECT genus_name FROM genus WHERE UPPER(genus_name) LIKE UPPER(?)', search_term + '%');
-            totalRowCount += rsGenus.getRowCount();
-
-            var rsEnglish = db.execute('SELECT DISTINCT english_name ' + 'FROM species ' + 'WHERE UPPER(english_name) LIKE UPPER(?)', search_term + '%');
-            totalRowCount += rsEnglish.getRowCount();
-
-            var rsScientific = db.execute('SELECT s.species_code, g.genus_name || " " || s.species_name AS scientific_name \
-								FROM species s, genus g \
-								WHERE s.genus_id = g.genus_id \
-								AND UPPER(scientific_name) LIKE UPPER(?)', search_term + '%');
+            var rsScientific = db.execute('SELECT DISTINCT scientific_name \
+                                        FROM non_sessile \
+                                        WHERE UPPER(scientific_name) LIKE UPPER(?)', search_term + '%');
+            totalRowCount += rsCommon.getRowCount();
             totalRowCount += rsScientific.getRowCount();
 
             //check if any results are returned
@@ -507,124 +382,28 @@ function auto_complete(search_term) {
             } else {
                 win.open();
 
-                // Add phylum name to results
-                if (rsPhylum.getRowCount() > 0) {
-                    var pnSection = Ti.UI.createTableViewSection({
-                        headerTitle: "Phylum Name"
-                    });
-
-                    autocomplete_table.appendSection(pnSection);
-
-                    while (rsPhylum.isValidRow()) {
-                        var phylumName = rsPhylum.fieldByName('phylum_name');
-
-                        //create a new row
-                        var pnRow = Ti.UI.createTableViewRow({
-                            title : phylumName,
-                            indentionLevel: 1
-                        });
-
-                        //Add row to the table view
-                        autocomplete_table.appendRow(pnRow);
-                        rsPhylum.next();
-                    }
-                    rsPhylum.close();
-                }
-
-                // Add order name to results
-                if (rsOrder.getRowCount() > 0) {
-                    var onSection = Ti.UI.createTableViewSection({
-                        headerTitle: "Order Name"
-                    });
-
-                    autocomplete_table.appendSection(onSection);
-
-                    while (rsOrder.isValidRow()) {
-                        var orderName = rsOrder.fieldByName('order_name');
-
-                        //create a new row
-                        var onRow = Ti.UI.createTableViewRow({
-                            title : orderName,
-                            indentionLevel: 1
-                        });
-
-                        //Add row to the table view
-                        autocomplete_table.appendRow(onRow);
-                        rsOrder.next();
-                    }
-                    rsOrder.close();
-                }
-
-                // Add family name to results
-                if (rsFamily.getRowCount() > 0) {
-                    var fnSection = Ti.UI.createTableViewSection({
-                        headerTitle: "Family Name"
-                    });
-
-                    autocomplete_table.appendSection(fnSection);
-
-                    while (rsFamily.isValidRow()) {
-                        var familyName = rsFamily.fieldByName('family_name');
-
-                        //create a new row
-                        var fnRow = Ti.UI.createTableViewRow({
-                            title : familyName,
-                            indentionLevel: 1
-                        });
-
-                        //Add row to the table view
-                        autocomplete_table.appendRow(fnRow);
-                        rsFamily.next();
-                    }
-                    rsFamily.close();
-                }
-
-                // Add genus name to results
-                if (rsGenus.getRowCount() > 0) {
-                    var gnSection = Ti.UI.createTableViewSection({
-                        headerTitle: "Genus Name"
-                    });
-
-                    autocomplete_table.appendSection(gnSection);
-
-                    while (rsGenus.isValidRow()) {
-                        var genusName = rsGenus.fieldByName('genus_name');
-
-                        //create a new row
-                        var gnRow = Ti.UI.createTableViewRow({
-                            title : genusName,
-                            indentionLevel: 1
-                        });
-
-                        //Add row to the table view
-                        autocomplete_table.appendRow(gnRow);
-                        rsGenus.next();
-                    }
-                    rsGenus.close();
-                }
-
                 // Add english name to results
-                if (rsEnglish.getRowCount() > 0) {
-                    var enSection = Ti.UI.createTableViewSection({
-                        headerTitle: "English Name"
+                if (rsCommon.getRowCount() > 0) {
+                    var commonSection = Ti.UI.createTableViewSection({
+                        headerTitle: "Common Name"
                     });
 
-                    autocomplete_table.appendSection(enSection);
+                    autocomplete_table.appendSection(commonSection);
 
-                    while (rsEnglish.isValidRow()) {
-                        var englishName = rsEnglish.fieldByName('english_name');
+                    while (rsCommon.isValidRow()) {
+                        var commonName = rsCommon.fieldByName('common_name');
 
                         //create a new row
                         var enRow = Ti.UI.createTableViewRow({
-                            title : englishName,
+                            title : commonName,
                             indentionLevel: 1
                         });
 
                         //Add row to the table view
                         autocomplete_table.appendRow(enRow);
-                        rsEnglish.next();
+                        rsCommon.next();
                     }
-                    rsEnglish.close();
+                    rsCommon.close();
                 }
 
                 // Add scientific name to results
@@ -662,7 +441,7 @@ function auto_complete(search_term) {
 
 //Event Listener - when user types in the search bar
 $.observationSearch.addEventListener('change', function(e) {
-    var match = /^[A-Za-z]/;  //santatize search input by reqauiring a letter
+    var match = /^[A-Za-z]/;  //sanitize search input by requiring a letter
     if ((e.source.value.length < 2) || (!e.source.value.match(match))) {
         //clear the table view results
         autocomplete_table.setData([]);

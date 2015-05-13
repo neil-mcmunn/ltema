@@ -1,12 +1,14 @@
 /*
  *  List screen to view, add, or delete plots
+ *  05/13/15: Added Quadrats to list, when non-sessile protocol selected
  * 
- * expected args: siteID, parkName
+ * expected args: siteID, parkName, protocolName
  */
 
 var args = arguments[0];
 $.tbl.siteID = args.siteID;
 var parkName = args.parkName;
+var protocolName = args.protocolName;
 
 populateTable();
 
@@ -21,28 +23,53 @@ function populateTable() {
 		//Open Database
 		var db = Ti.Database.open('ltemaDB');
 		
-		//Query - Retrieve existing sites from database
+		//Query - Retrieve existing sites from database, and their associated protocols
 		var rows = db.execute('SELECT transect_id, transect_name, surveyor, \
 						utm_zone, utm_easting, utm_northing, media_id \
 						FROM transect \
-						WHERE site_id = ?', $.tbl.siteID); 
-		
+						WHERE site_id = ?', $.tbl.siteID);
+
+
 		//get requested data from each row in table
 		var id_counter = 0;
 		while (rows.isValidRow()) {
 			id_counter++;
-			var transectID = rows.fieldByName('transect_id');	
+			var transectID = rows.fieldByName('transect_id');
 			var transectName = rows.fieldByName('transect_name');
 			var surveyor = rows.fieldByName('surveyor');
 			var utmZone = rows.fieldByName('utm_zone');
 			var utmEasting = rows.fieldByName('utm_easting');
 			var utmNorthing = rows.fieldByName('utm_northing');
 			var mediaID = rows.fieldByName('media_id');
-			
-			//create a string to display from each entry
-			var transectDesc =  transectName + ' - UTM Z:' + 
-					utmZone + ' E:' + utmEasting + ' N:' + utmNorthing; 
-			
+
+			// Base string to display on selected protocol for each entry
+			var transectDesc;
+
+			switch (protocolName) {
+				case 'Alpine':
+					transectDesc = transectName + ' - UTM Z:' +
+					utmZone + ' E:' + utmEasting + ' N:' + utmNorthing;
+					break;
+				case 'Grassland':
+					transectDesc = transectName + ' - UTM Z:' +
+					utmZone + ' E:' + utmEasting + ' N:' + utmNorthing;
+					break;
+				case 'Sessile organisms':
+					// not sure what other info to put in this msg yet
+					transectDesc = transectName + ' - ' + protocol;
+					break;
+				case 'Mobile organisms':
+					// not sure what other info to put in this msg yet
+					transectDesc = transectName + ' - ' + protocol;
+					break;
+				case 'Sea stars':
+					// not sure what other info to put in this msg yet
+					transectDesc = transectName + ' - ' + protocol;
+					break;
+				default:
+
+			}
+
 			//Create a new row
 				var newRow = Ti.UI.createTableViewRow({
 					title : transectDesc,
@@ -95,7 +122,7 @@ var titleLabel = Titanium.UI.createLabel({
 	top:10,
 	text:parkName,
 	textAlign:'center',
-	font:{fontSize:20,fontWeight:'bold'},
+	font:{fontSize:20,fontWeight:'bold'}
 });
 
 // associate label to title
@@ -114,7 +141,7 @@ $.tbl.addEventListener('click', function(e){
 	//check if media exists -if no photo has been taken (re-visited transect)
 	if(e.rowData.mediaID == null){
 		//alert("No Photo Found!");
-		var modal = Alloy.createController("transectsModal", {transectID:e.rowData.transectID, title:e.rowData.title}).getView();
+		var modal = Alloy.createController("transectsModal", {transectID:e.rowData.transectID, title:e.rowData.title, protocolName:e.rowData.protocolName}).getView();
 		modal.open({
 			modal : true,
 			modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
@@ -124,7 +151,7 @@ $.tbl.addEventListener('click', function(e){
 	}else{
 		//info icon clicked, get modal
 		if(e.source.toString() == '[object TiUIButton]') {
-			var modal = Alloy.createController("transectsModal", {transectID:e.rowData.transectID, title:e.rowData.title}).getView();
+			var modal = Alloy.createController("transectsModal", {transectID:e.rowData.transectID, title:e.rowData.title, protocolName:e.rowData.protocolName}).getView();
 			modal.open({
 				modal : true,
 				modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
@@ -132,10 +159,18 @@ $.tbl.addEventListener('click', function(e){
 				navBarHidden : false
 			});
 		//row clicked, get transect view
-		} else {
+		} else if (protocolName == 'Alpine' || protocolName == 'Grassland') {
 			var plots = Alloy.createController("plots", {transectID:e.rowData.transectID, siteID:$.tbl.siteID}).getView();
 			var nav = Alloy.Globals.navMenu;
 			nav.openWindow(plots);
+		} else if (protocolName == 'Mobile organisms') {
+			var quadrats = Alloy.createController("quadrats", {transectID:e.rowData.transectID, siteID:$.tbl.siteID}).getView();
+			var nav = Alloy.Globals.navMenu;
+			nav.openWindow(quadrats);
+		} else if (protocolName == 'Sessile organisms') {
+			// open sessile controller
+		} else if (protocolName == 'Sea stars') {
+			// open sea stars controller
 		}
 	}
 });
@@ -149,16 +184,14 @@ $.tbl.addEventListener('delete', function(e) {
 		//open database
 		var db = Ti.Database.open('ltemaDB');
 		
-		//GET FOLDER NAME - Retrieve site survery, year, park
-		var rows = db.execute('SELECT year, protocol_name, park_name \
-							FROM site_survey s, protocol p, park prk \
-							WHERE s.protocol_id = p.protocol_id \
-							AND s.park_id = prk.park_id \
+		//GET FOLDER NAME - Retrieve site survey, year, park
+		var rows = db.execute('SELECT year, park_name \
+							FROM site_survey s, park prk \
+							WHERE s.park_id = prk.park_id \
 							AND site_id = ?', siteID);
 							
 		//Name the directory	
 		var year = rows.fieldByName('year');
-		var protocolName = rows.fieldByName('protocol_name');
 		var parkName = rows.fieldByName('park_name');
 		
 		var folder = year + ' - ' + protocolName + ' - ' + parkName;
@@ -173,17 +206,34 @@ $.tbl.addEventListener('delete', function(e) {
 			deleteImage(fileName, folder);
 			transectFiles.next();
 		}
-		
-		var plotFiles = db.execute('SELECT plt.plot_id, med.media_name FROM media med, plot plt \
+
+		//delete images associated with plots
+		if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+			var plotFiles = db.execute('SELECT plt.plot_id, med.media_name \
+									FROM media med, plot plt \
 									WHERE med.media_id = plt.media_id \
 									AND plt.transect_id = ?', currentTransectID);
-		
-		var plotIDs = [];
-		while (plotFiles.isValidRow()) {
-			plotIDs.push(plotFiles.fieldByName('plot_id'));
-			var fileName = plotFiles.fieldByName('media_name');
-			deleteImage(fileName, folder);
-			plotFiles.next();
+
+			var plotIDs = [];
+			while (plotFiles.isValidRow()) {
+				plotIDs.push(plotFiles.fieldByName('plot_id'));
+				var fileName = plotFiles.fieldByName('media_name');
+				deleteImage(fileName, folder);
+				plotFiles.next();
+			}
+		//delete images associated with quadrats
+		} else if (protocolName == "Mobile organisms") {
+			var quadratFiles = db.execute('SELECT q.quadrat_id, m.media_name \
+									FROM media m, quadrat q\
+									WHERE m.media_id = q.media_id \
+									AND q.transect_id = ?', currentTransectID);
+			var quadratIDs = [];
+			while (quadratFiles.isValidRow()) {
+				quadratIDs.push(quadratFiles.fieldByName('quadrat_id'));
+				var fileName = plotFiles.fieldByName('media_name');
+				deleteImage(fileName, folder);
+				quadratFiles.next();
+			}
 		}
 		
 		var pids = '(' + plotIDs + ')';
@@ -204,7 +254,12 @@ $.tbl.addEventListener('delete', function(e) {
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally { 
 		transectFiles.close();
-		plotFiles.close();
+		if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+			plotFiles.close();
+		}
+		if (protocolName == "Mobile organisms") {
+			quadratFiles.close();
+		}
 		observationFiles.close();
 		db.close();
 	}
@@ -278,7 +333,7 @@ function addBtn(){
 	$.addTransect.enabled = false;
 	
 	
-	var addTransect = Alloy.createController("addTransect", {siteID: $.tbl.siteID}).getView();
+	var addTransect = Alloy.createController("addTransect", {siteID: $.tbl.siteID, protocolName: $.tbl.protocolName}).getView();
 	var nav = Alloy.Globals.navMenu;
 	nav.openWindow(addTransect);
 }

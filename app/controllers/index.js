@@ -140,7 +140,7 @@ $.tbl.addEventListener('click', function(e) {
 		});
 	//row clicked, get transect view
 	} else {
-		var transects = Alloy.createController("transects", {siteID:e.rowData.siteID, parkName:e.rowData.parkName}).getView();
+		var transects = Alloy.createController("transects", {siteID:e.rowData.siteID, parkName:e.rowData.parkName, protocolName:e.rowData.protocolName}).getView();
 		$.navGroupWin.openWindow(transects);
 	}
 });

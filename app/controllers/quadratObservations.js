@@ -3,7 +3,6 @@
  *
  * Expected Args: quadratID, siteID
  *
- * Ground coverage must be at least 100% for the quadrat to be considered complete
  */
 
 var args = arguments[0];
@@ -11,7 +10,6 @@ var quadratID = args.quadratID;
 $.tbl.quadratID = quadratID;
 var siteID = args.siteID;
 
-var totalQuadratPercentage = 0;
 var transectID;
 
 populateTable();
@@ -23,7 +21,6 @@ function populateTable() {
     //Clear the table if there is anything in it
     var rd = [];
     $.tbl.data = rd;
-    totalQuadratPercentage = 0;
 
     // Query the quadrat observation table, build the TableView
     try {
@@ -38,27 +35,17 @@ function populateTable() {
         while (rows.isValidRow()) {
             var observationID = rows.fieldByName('observation_id');
             var observation = rows.fieldByName('observation');
-            var groundCover = rows.fieldByName('ground_cover');
             var comments = rows.fieldByName('comments');  //comments and mediaID are retrieved to pass to modal
             var mediaID = rows.fieldByName('media_id');
             //Create a new row
             var newRow = Ti.UI.createTableViewRow({
                 title : observation,
                 observationID : observationID,
-                groundCover : groundCover,
                 comments: comments,
                 mediaID: mediaID,
                 height: 60,
                 font: {fontSize: 20}
             });
-
-            //add the ground cover label
-            var groundCoverLabel = Ti.UI.createLabel({
-                text: groundCover + '%',
-                right: 55,
-                font: {fontSize: 20}
-            });
-            newRow.add(groundCoverLabel);
 
             //add an info icon to the row
             var infoButton = Ti.UI.createButton({
@@ -68,9 +55,6 @@ function populateTable() {
                 width: 60
             });
             newRow.add(infoButton);
-
-            //update total
-            totalQuadratPercentage += groundCover;
 
             //Add row to the table view
             $.tbl.appendRow(newRow);
@@ -83,7 +67,6 @@ function populateTable() {
     } finally {
         rows.close();
         db.close();
-        $.percent.text = totalQuadratPercentage;
         toggleEditBtn();
         toggleDoneBtn();
     }
@@ -214,10 +197,6 @@ $.tbl.addEventListener('delete', function(e) {
 
         db.execute('DELETE FROM quadrat_observation WHERE observation_id = ?', observationID);
 
-        // Update the coverage total
-        totalQuadratPercentage -= e.rowData.groundCover;
-        $.percent.text = totalQuadratPercentage;
-
         //check if Edit button should be enabled/disabled - if no rows exist
         toggleEditBtn();
         toggleDoneBtn();
@@ -299,7 +278,7 @@ function showTotalRowNumber(){
 }
 
 function toggleDoneBtn(){
-    if (totalQuadratPercentage < 100) {
+    /*if (totalQuadratPercentage < 100) {
         $.done.enabled = false;
         $.doneError.text = "Ground cover must be at least 100%";
         $.doneError.visible = true;
@@ -315,7 +294,9 @@ function toggleDoneBtn(){
         $.doneError.visible = false;
         //disable the add observation button
         $.addObservation.enabled = true;
-    }
+    }*/
+
+    $.addObservation.enabled = true;
 }
 
 // Navigate back to quadrats

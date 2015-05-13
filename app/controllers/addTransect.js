@@ -1,11 +1,12 @@
 /*
  * Transect creation screen with validation
  * 
- * expected args: siteID
+ * expected args: siteID, protocolName
  */
 
 var args = arguments[0];
 var siteID = args.siteID;
+var protocolName = args.protocolName;
 
 // Initialize Variables
 var photo;
@@ -93,7 +94,9 @@ function doneBtn(e){
 	// check that the following (required) fields are not empty
 	Ti.App.fireEvent('transectChange');
 	Ti.App.fireEvent('surveyorChange');
-	Ti.App.fireEvent('plotDistanceChange');
+	if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+		Ti.App.fireEvent('plotDistanceChange');
+	}
 	
 	//check photo exists and a stake orientation has been selected
 	var errorFlag = false;
@@ -138,7 +141,9 @@ function doneBtn(e){
 		$.tsctName.blur();
 		$.srvyName.blur();
 		$.otherSrvyName.blur();
-		$.plotDist.blur();
+		if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+			$.plotDist.blur();
+		}
 		$.comments.blur();
 		return;
 	} else {
@@ -207,16 +212,14 @@ function savePhoto(photo){
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Query - Retrieve site survery, year, park
-		var rows = db.execute('SELECT s.year, p.protocol_name, prk.park_name \
-						FROM site_survey s, protocol p, park prk \
-						WHERE s.protocol_id = p.protocol_id \
-						AND s.park_id = prk.park_id \
+		var rows = db.execute('SELECT s.year, prk.park_name \
+						FROM site_survey s, park prk \
+						WHERE s.park_id = prk.park_id \
 						AND site_id = ?', siteID);
 		
 		//Get requested data from each row in table
 		
 		var year = rows.fieldByName('year');
-		var protocolName = rows.fieldByName('protocol_name');
 		var parkName = rows.fieldByName('park_name');
 	} catch(e) {
 		var errorMessage = e.message;
@@ -353,11 +356,15 @@ Ti.App.addEventListener('otherSurveyorChange', function(e) {
 });
 
 //Plot Distance
-$.plotDist.addEventListener('change', function(e) {
-	// Replace bad input (non-numbers) on plotDistance TextField
-	e.source.value = e.source.value.replace(/[^0-9]+/,"");
-	Ti.App.fireEvent('plotDistanceChange');
-});
+if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+
+	$.plotDist.addEventListener('change', function (e) {
+		// Replace bad input (non-numbers) on plotDistance TextField
+		e.source.value = e.source.value.replace(/[^0-9]+/, "");
+		Ti.App.fireEvent('plotDistanceChange');
+	});
+}
+
 Ti.App.addEventListener('plotDistanceChange', function(e) {
 	if ($.plotDist.value < 2) {
 		$.plotDistanceError.visible = true;
