@@ -9,6 +9,7 @@ var quadratID = args.quadratID;
 var quadratTitle = args.title;
 var siteID = args.siteID;
 var quadratName = args.quadratName;
+var protocolName = 'Mobile organisms';
 
 //initialize variables
 var photo;
@@ -29,21 +30,18 @@ $.modalWin.setTitleControl(titleLabel);
 try{
     var db = Ti.Database.open('ltemaDB');
 
-    var results = db.execute('SELECT quadrat_name, utm_zone, utm_northing, utm_easting, utc, stake_deviation, distance_deviation, transect_id, media_id, comments \
+    var results = db.execute('SELECT quadrat_name, quadrat_zone, random_drop, q.transect_id, q.media_id AS media_id, q.comments AS comments, s.year AS year \
 	 						 FROM quadrat \
 	 						 WHERE quadrat_id = ?', quadratID);
 
 
-    //var quadratName = results.fieldByName('quadrat_name');
-    //var utmZone = results.fieldByName('utm_zone');
-    //var utmNorthing = results.fieldByName('utm_northing');
-    //var utmEasting = results.fieldByName('utm_easting');
-    var utc = results.fieldByName('utc');
-    var stakeOrientation = results.fieldByName('stake_deviation');
-    var quadratDistance = results.fieldByName('distance_deviation');
-    //var transectID = results.fieldByName('transect_id');			
+    var quadratName = results.fieldByName('quadrat_name');
+    var quadratZone = results.fieldByName('quadrat_zone');
+    var randomDrop = results.fieldByName('random_drop');
+    var transectID = results.fieldByName('transect_id');
     var mediaID = results.fieldByName('media_id');
     var comments = results.fieldByName('comments');
+    var year = results.fieldByName('year');
 
     //if media does not exist
     if(mediaID == null){
@@ -70,16 +68,14 @@ try{
 
         var mediaName = mediaRow.fieldByName('media_name');
 
-        //GET FOLDER NAME - Retrieve site survery, year, park
-        var rows = db.execute('SELECT year, protocol_name, park_name \
-							FROM site_survey s, protocol p, park prk \
-							WHERE s.protocol_id = p.protocol_id \
-							AND s.park_id = prk.park_id \
+        //GET FOLDER NAME - Retrieve site survey, year, park
+        var rows = db.execute('SELECT year,, park_name \
+							FROM site_survey s, park prk \
+							WHERE s.park_id = prk.park_id \
 							AND site_id = ?', siteID);
 
         //get the name of the directory	
         var year = rows.fieldByName('year');
-        var protocolName = rows.fieldByName('protocol_name');
         var parkName = rows.fieldByName('park_name');
 
         var folderName = year + ' - ' + protocolName + ' - ' + parkName;
@@ -115,39 +111,17 @@ try{
     db.close();
 }
 
-//ORIGINAL stakeOrientation & quadratDistance Values****
-var orginal_stakeOrientation = stakeOrientation;
-var original_quadratDistance = quadratDistance;
-
 //Set Quadrat Name
 $.nameLbl.text = quadratName;
 
-//get the date the quadrat was initially recored
-var UTC = Number(utc);
-var d = new Date(UTC);
-var nd = d.toUTCString();
-
-$.dateRecorded.text = nd;
-
-//Set Tabbed Bar Labels & disable selection
-var stakeOrientationTabbedBar = [{title:stakeOrientation, enabled:false}, {title:"Other", enabled:false}];
-var quadratDistanceTabbedBar = [{title:quadratDistance, enabled:false}, {title:"Other", enabled:false}];
-
-$.pickStake.labels = stakeOrientationTabbedBar;
-$.pickDistance.labels = quadratDistanceTabbedBar;
-
-// Set stake deviation and quadrat distance labels to default selection and disable
-$.pickStake.index = 0;
-$.pickDistance.index = 0;
+//year the quadrat was most recently recorded
+$.dateRecorded.text = year;
 
 //Assign Values to editable fields
 $.comments.value = comments;
 
 //Disable editing text fields
 $.comments.editable = false;
-
-var stakeOther = false;
-var distanceOther = false;
 
 // BACK BUTTON - navigate back to quadrat list screen
 function backBtn(){
@@ -169,79 +143,20 @@ function editBtn(e){
         $.modalWin.editing = true;
         e.source.title = "Done";
 
-        //Enable editing
-        stakeOrientationTabbedBar[0].enabled = true;
-        stakeOrientationTabbedBar[1].enabled = true;
-        quadratDistanceTabbedBar[0].enabled = true;
-        quadratDistanceTabbedBar[1].enabled = true;
-        $.pickStake.labels = stakeOrientationTabbedBar;
-        $.pickDistance.labels = quadratDistanceTabbedBar;
-        $.comments.editable = true;
-        $.stakeDeviation.editable = true;
-        $.distanceDeviation.editable = true;
-
         //disable the button button during edit mode
         $.backBtn.enabled = false;
         $.photoBtn.enabled = true;
 
     } else { //if the title says "Done"
         var errorOnPage = false;
-        if(stakeOther == true){
-            if($.stakeError.visible == true || $.stakeOtherError.visible == true){
-                errorOnPage = true;
-            }
-        }
 
-        if(distanceOther == true){
-            if($.distanceError.visible == true || $.distanceOtherError.visible == true){
-                errorOnPage = true;
-            }
-        }
-
-        if ($.pickStake.index == 1) {
-            if ($.stakeDeviation.value === "") {
-                $.stakeOtherError.visible = true;
-                errorOnPage = true;
-            }
-            stakeOrientation = $.stakeDeviation.value;
-        }else{
-            stakeOrientation = orginal_stakeOrientation;
-        }
-
-        if ($.pickDistance.index == 1) {
-            if ($.distanceDeviation.value === "") {
-                $.distanceOtherError.visible = true;
-                errorOnPage = true;
-            }
-            quadratDistance = $.distanceDeviation.value;
-        }else{
-            quadratDistance = original_quadratDistance;
-        }
-        /*
-         if (photo == null){
-         $.photoError.visible = true;
-         $.photoError.text = "* Please take a photo";
-         errorOnPage = true;
-         }
-         */
         if(errorOnPage){
             return;
         }else{
             $.modalWin.editing = false;
             e.source.title = "Edit";
             $.backBtn.enabled = true;
-
-            //Disable editing
-            stakeOrientationTabbedBar[0].enabled = false;
-            stakeOrientationTabbedBar[1].enabled = false;
-            quadratDistanceTabbedBar[0].enabled = false;
-            quadratDistanceTabbedBar[1].enabled = false;
-            $.pickStake.labels = stakeOrientationTabbedBar;
-            $.pickDistance.labels = quadratDistanceTabbedBar;
             $.comments.editable = false;
-            $.stakeDeviation.editable = false;
-            $.distanceDeviation.editable = false;
-
             $.photoBtn.enabled = false;
 
             saveEdit(e);
@@ -274,12 +189,12 @@ function saveEdit(e){
             var mediaID = results.fieldByName('mediaID');
 
             //Insert Query - update row in quadrat table
-            db.execute(	'UPDATE OR FAIL quadrat SET stake_deviation = ?, distance_deviation = ?, media_id = ?, comments = ? WHERE quadrat_id = ?',
-						stakeOrientation, quadratDistance, mediaID, comments, quadratID);
+            db.execute(	'UPDATE OR FAIL quadrat SET media_id = ?, comments = ? WHERE quadrat_id = ?',
+						mediaID, comments, quadratID);
         }else{
             //Insert Query - update row in quadrat table
-            db.execute(	'UPDATE OR FAIL quadrat SET stake_deviation = ?, distance_deviation = ?, comments = ? WHERE quadrat_id = ?',
-						stakeOrientation, quadratDistance, comments, quadratID);
+            db.execute(	'UPDATE OR FAIL quadrat SET comments = ? WHERE quadrat_id = ?',
+						comments, quadratID);
         }
     }catch(e){
         Ti.API.error(e.toString());
@@ -393,123 +308,3 @@ function previewPhoto(){
 }
 
 /* Event Listeners */
-
-// Show and hide the deviation text field depending on what is selected
-$.pickStake.addEventListener('click', function(e) {
-    //remove any text from this field
-    $.stakeDeviation.value = "";
-    //$.stakeDeviation.value = null;
-
-    $.stakeError.visible = false;
-    $.stakeOtherError.visible = false;
-    if (stakeOther === false && e.source.labels[e.index].title === "Other") {
-        $.distanceLbl.top += 60;
-        $.pickDistance.top += 60;
-        $.distanceError.top += 60;
-        $.distanceDeviation.top += 60;
-        $.distanceOtherError.top +=60;
-        $.commentLbl.top += 60;
-        $.comments.top += 60;
-        $.dateRecordedLbl.top += 60;
-        $.dateRecorded.top += 60;
-        $.photoBtn.top += 60;
-        $.quadratThumbnail.top += 60;
-        $.photoError.top += 60;
-        $.thumbnailHintText.top += 60;
-        $.footerLine.top += 60;
-        $.info.top += 60;
-        $.stakeDeviation.visible = true;
-        $.stakeDeviation.focus();
-        stakeOther = true;
-    }
-    if (stakeOther === true && e.source.labels[e.index].title !== "Other") {
-        $.distanceLbl.top -= 60;
-        $.pickDistance.top -= 60;
-        $.distanceError.top -= 60;
-        $.distanceDeviation.top -= 60;
-        $.distanceOtherError.top -=60;
-        $.commentLbl.top -= 60;
-        $.comments.top -= 60;
-        $.dateRecordedLbl.top -= 60;
-        $.dateRecorded.top -= 60;
-        $.photoBtn.top -= 60;
-        $.quadratThumbnail.top -= 60;
-        $.photoError.top -= 60;
-        $.thumbnailHintText.top -= 60;
-        $.footerLine.top -= 60;
-        $.info.top -= 60;
-        $.stakeDeviation.visible = false;
-        $.stakeDeviation.blur();
-        stakeOther = false;
-    }
-});
-
-// Show and hide the deviation text field depending on what is selected
-$.pickDistance.addEventListener('click', function(e) {
-    //remove any text from this field
-    $.distanceDeviation.value = "";
-    //$.distanceDeviation.value = null;
-
-    $.distanceError.visible = false;
-    $.distanceOtherError.visible = false;
-    if (distanceOther === false && e.source.labels[e.index].title === "Other") {
-        $.commentLbl.top += 60;
-        $.comments.top += 60;
-        $.dateRecordedLbl.top += 60;
-        $.dateRecorded.top += 60;
-        $.photoBtn.top += 60;
-        $.quadratThumbnail.top += 60;
-        $.thumbnailHintText.top += 60;
-        $.photoError.top += 60;
-        $.footerLine.top += 60;
-        $.info.top += 60;
-        $.distanceDeviation.visible = true;
-        $.distanceDeviation.focus();
-        distanceOther = true;
-    }
-    if (distanceOther === true && e.source.labels[e.index].title !== "Other") {
-        $.commentLbl.top -= 60;
-        $.comments.top -= 60;
-        $.dateRecordedLbl.top -= 60;
-        $.dateRecorded.top -= 60;
-        $.photoBtn.top -= 60;
-        $.quadratThumbnail.top -= 60;
-        $.thumbnailHintText.top -= 60;
-        $.photoError.top -= 60;
-        $.footerLine.top -= 60;
-        $.info.top -= 60;
-        $.distanceDeviation.visible = false;
-        $.distanceDeviation.blur();
-        distanceOther = false;
-    }
-});
-
-// Stake Orientation
-$.stakeDeviation.addEventListener('change', function(e) {
-    if (e.value.length < 4) {
-        $.stakeOtherError.visible = true;
-        $.stakeOtherError.text = "* Stake orientation must be a minimum of 4 characters";
-    } else {
-        $.stakeOtherError.visible = false;
-    }
-});
-
-//Quadrat Distance
-$.distanceDeviation.addEventListener('change', function(e) {
-    // Replace bad input (non-numbers) on quadratDistance TextField
-    e.source.value = e.source.value.replace(/[^0-9]+/,"");
-    Ti.App.fireEvent('distanceDeviationChange');
-});
-Ti.App.addEventListener('distanceDeviationChange', function(e) {
-    if (e.value === "") {
-        $.distanceOtherError.visible = true;
-    } else if ($.distanceDeviation.value < 2) {
-        $.distanceOtherError.visible = true;
-        $.distanceOtherError.text = "* Quadrat distance should be at least 2 meters";
-    } else if ($.distanceDeviation.value > 30) {
-        $.distanceOtherError.visible = true;
-        $.distanceOtherError.text = "* Quadrat distance should be at most 30 meters";
-    } else {
-        $.distanceOtherError.visible = false;
-    }
-});

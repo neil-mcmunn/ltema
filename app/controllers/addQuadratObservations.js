@@ -7,7 +7,6 @@
 var args = arguments[0];
 var quadratID = args.quadratID;
 var protocolName = 'Mobile organisms';
-var quadratZone;
 
 // Get the siteID
 var siteID;

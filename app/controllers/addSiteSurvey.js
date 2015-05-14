@@ -199,7 +199,7 @@ function doneBtn(e){
 					
 					db.execute('INSERT INTO transect (transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
 						utm_zone, utm_easting, utm_northing, comments, site_id) \
-						VALUES (?,?,?,?,?,?,?,?,?,?)', transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone, \ 
+						VALUES (?,?,?,?,?,?,?,?,?,?)', transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
 						utmEasting, utmNorthing, tComments, siteID);
 					
 					// Get the transect_id for the last row inserted	
@@ -222,7 +222,7 @@ function doneBtn(e){
 						var plotID = plots.fieldByName('plot_id');
 						
 						db.execute('INSERT INTO plot (plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation, \
-							transect_id, comments) VALUES (?,?,?,?,?,?,?,?,?)', plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing, \
+							transect_id, comments) VALUES (?,?,?,?,?,?,?,?,?)', plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
 							utc, stakeDeviation, distanceDeviation, newTransectID, comments);
 						
 						// Get the plot_id for the last row inserted

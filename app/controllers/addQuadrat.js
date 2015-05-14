@@ -12,12 +12,10 @@ try {
     var db = Ti.Database.open('ltemaDB');
     var results = db.execute('SELECT quadrat_id FROM quadrat WHERE transect_id = ?', transectID);
     var quadratNumber = results.rowCount + 1;
-    $.numberLbl.text = "P"+quadratNumber;
+    $.numberLbl.text = "Q"+quadratNumber;
 
-    var results = db.execute('SELECT site_id, stake_orientation, quadrat_distance FROM transect WHERE transect_id = ?', transectID);
+    var results = db.execute('SELECT site_id FROM transect WHERE transect_id = ?', transectID);
     var siteID = results.fieldByName('site_id');
-    var stakeOrientation = results.fieldByName('stake_orientation');
-    var quadratDistance = results.fieldByName('quadrat_distance');
 } catch(e) {
     var errorMessage = e.message;
     Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
@@ -25,12 +23,6 @@ try {
     results.close();
     db.close();
 }
-
-// Set the stake deviation and quadrat distance labels
-$.pickStake.labels = [{title:stakeOrientation}, {title:"Other"}];
-$.pickDistance.labels = [{title:quadratDistance}, {title:"Other"}];
-var stakeOther = false;
-var distanceOther = false;
 
 // Nav Bar Title
 var labelText = 'New Quadrat';
@@ -50,26 +42,8 @@ $.info.text = instructions;
 
 // Initialize Variables
 var photo;
-var utmEasting;
-var utmNorthing;
-var utmZone;
-
-var current_latitude;
-var current_longitude;
-var current_accuracy;
-
-//Start continuous location capture - based on distance filter
-var gps = require('location');
-gps.location(function(latitude, longitude, accuracy, error) {
-    if(error == true){
-        //returns an error
-    }else{
-        //updated lat & long
-        current_latitude = latitude;
-        current_longitude = longitude;
-        current_accuracy = accuracy;
-    }
-});
+var quadratZone;
+var randomDrop;
 
 /* Dialog Boxes */
 
@@ -108,44 +82,11 @@ function doneBtn(e){
         Ti.API.info("No photo");
     }
 
-    if ($.pickStake.index == null) {
-        $.stakeError.visible = true;
-        errorOnPage = true;
-        Ti.API.info("No stake orientation");
-    }
-
-    if ($.pickDistance.index == null) {
-        $.distanceError.visible = true;
-        errorOnPage = true;
-        Ti.API.info("No quadrat distance");
-    }
-
-    if ($.pickStake.index == 1) {
-        if ($.stakeDeviation.value === "") {
-            $.stakeOtherError.visible = true;
-            errorOnPage = true;
-        }
-        stakeOrientation = $.stakeDeviation.value;
-    }
-
-    if ($.pickDistance.index == 1) {
-        if ($.distanceDeviation.value === "") {
-            $.distanceOtherError.visible = true;
-            errorOnPage = true;
-        }
-        quadratDistance = $.distanceDeviation.value;
-    }
-
-    if ($.distanceOtherError.visible || $.stakeOtherError.visible) {
-        errorOnPage = true;
-    }
-
-    if(utmZone == null){
+    if(quadratZone == null){
         $.locationError.text = '* Please capture current location';
         $.locationError.visible = true;
         errorOnPage = true;
     }
-
 
     if (errorOnPage) {
         e.source.enabled = true;
@@ -170,8 +111,8 @@ function doneBtn(e){
         var mediaID = results.fieldByName('mediaID');
 
         //Insert Query - add row to quadrat table
-        db.execute(	'INSERT INTO quadrat (quadrat_name,utm_zone,utm_easting,utm_northing,utc,stake_deviation,distance_deviation,comments,transect_id,media_id) VALUES (?,?,?,?,?,?,?,?,?,?)',
-            $.numberLbl.text, utmZone, utmEasting, utmNorthing, utc, stakeOrientation, quadratDistance, comments, transectID, mediaID);
+        db.execute(	'INSERT INTO quadrat (quadrat_name,quadrat_zone,random_drop,comments,transect_id,media_id) VALUES (?,?,?,?,?,?,?,?,?,?)',
+            $.numberLbl.text, quadratZone, randomDrop, comments, transectID, mediaID);
 
     }catch(e){
         var errorMessage = e.message;
@@ -219,7 +160,7 @@ function savePhoto(photo){
         //Connect to database
         var db = Ti.Database.open('ltemaDB');
 
-        //Query - Retrieve site survery, year, park
+        //Query - Retrieve site survey, year, park
         var rows = db.execute('SELECT year, protocol_name, park_name \
 							FROM site_survey s, protocol p, park prk \
 							WHERE s.protocol_id = p.protocol_id \
@@ -244,7 +185,7 @@ function savePhoto(photo){
 
     //name the photo  (timestamp - utc in ms)
     var timestamp = new Date().getTime();
-    var filename = "P" + timestamp;
+    var filename = "Q" + timestamp;
 
     try {
         // Create image Directory for site
@@ -291,7 +232,7 @@ function insertPreviousQuadratRows(db) {  //expected parameter: an open database
         var uniquesResult = db.execute ('SELECT observation FROM quadrat_observation WHERE quadrat_id = ?', quadratID);
         while (uniquesResult.isValidRow()) {
             var newObs = uniquesResult.fieldByName('observation');
-            //seach for matches
+            //search for matches
             var found = false;
             for (k=0; k < uniqueQuadratObservationTitles.length; k++) {
                 if (newObs === uniqueQuadratObservationTitles[k]) {
@@ -331,14 +272,15 @@ function insertPreviousQuadratRows(db) {  //expected parameter: an open database
 
         //generate a new row in this quadrat for each validQuadratObservationIDs
         for (var j=0; j < validQuadratObservationIDs.length; j++) {
-            titleResult = db.execute ('SELECT observation, comments, count, species_code FROM quadrat_observation WHERE observation_id = ?', validQuadratObservationIDs[j]);
-            var theTitle = titleResult.fieldByName('observation');
+            titleResult = db.execute ('SELECT observation, comments, count, non_sessile_code FROM quadrat_observation WHERE observation_id = ?',
+                validQuadratObservationIDs[j]);
+            var speciesName = titleResult.fieldByName('observation');
             var count = titleResult.fieldByName('count');
             var comments = titleResult.fieldByName('comments');
-            var speciesCode = titleResult.fieldByName('species_code');
+            var speciesCode = titleResult.fieldByName('non_sessile_code');
             //create new observation_id in this quadrat
-            db.execute( 'INSERT INTO quadrat_observation (observation, ground_cover, count, comments, species_code, quadrat_id) VALUES (?,?,?,?,?,?)',
-                theTitle, 0, count, comments, speciesCode, quadratID);
+            db.execute( 'INSERT INTO quadrat_observation (observation, count, comments, non_sessile_code, quadrat_id) VALUES (?,?,?,?,?,?)',
+                speciesName, count, comments, speciesCode, quadratID);
             titleResult.close();
         }
     } catch (e) {
@@ -393,123 +335,6 @@ function getLocation(){
 
 /* Event Listeners */
 
-// Show and hide the deviation text field depending on what is selected
-$.pickStake.addEventListener('click', function(e) {
-    $.stakeError.visible = false;
-    $.stakeOtherError.visible = false;
-    if (stakeOther === false && e.source.labels[e.index].title === "Other") {
-        $.distanceLbl.top += 60;
-        $.pickDistance.top += 60;
-        $.distanceError.top += 60;
-        $.distanceDeviation.top += 60;
-        $.distanceOtherError.top +=60;
-        $.commentLbl.top += 60;
-        $.comments.top += 60;
-        $.photoBtn.top += 60;
-        $.quadratThumbnail.top += 60;
-        $.photoError.top += 60;
-        $.thumbnailHintText.top += 60;
-        $.locationBtn.top += 60;
-        $.location.top += 60;
-        $.locationError.top += 60;
-        $.footerLine.top += 60;
-        $.info.top += 60;
-        $.stakeDeviation.visible = true;
-        $.stakeDeviation.focus();
-        stakeOther = true;
-    }
-    if (stakeOther === true && e.source.labels[e.index].title !== "Other") {
-        $.distanceLbl.top -= 60;
-        $.pickDistance.top -= 60;
-        $.distanceError.top -= 60;
-        $.distanceDeviation.top -= 60;
-        $.distanceOtherError.top -=60;
-        $.commentLbl.top -= 60;
-        $.comments.top -= 60;
-        $.photoBtn.top -= 60;
-        $.quadratThumbnail.top -= 60;
-        $.thumbnailHintText.top -= 60;
-        $.photoError.top -= 60;
-        $.locationBtn.top -= 60;
-        $.location.top -= 60;
-        $.locationError.top -= 60;
-        $.footerLine.top -= 60;
-        $.info.top -= 60;
-        $.stakeDeviation.visible = false;
-        $.stakeDeviation.blur();
-        stakeOther = false;
-        $.stakeDeviation.value = "";
-    }
-});
-
-// Show and hide the deviation text field depending on what is selected
-$.pickDistance.addEventListener('click', function(e) {
-    $.distanceError.visible = false;
-    $.distanceOtherError.visible = false;
-    if (distanceOther === false && e.source.labels[e.index].title === "Other") {
-        $.commentLbl.top += 60;
-        $.comments.top += 60;
-        $.photoBtn.top += 60;
-        $.quadratThumbnail.top += 60;
-        $.photoError.top += 60;
-        $.thumbnailHintText.top += 60;
-        $.locationBtn.top += 60;
-        $.location.top += 60;
-        $.locationError.top += 60;
-        $.footerLine.top += 60;
-        $.info.top += 60;
-        $.distanceDeviation.visible = true;
-        $.distanceDeviation.focus();
-        distanceOther = true;
-    }
-    if (distanceOther === true && e.source.labels[e.index].title !== "Other") {
-        $.commentLbl.top -= 60;
-        $.comments.top -= 60;
-        $.photoBtn.top -= 60;
-        $.quadratThumbnail.top -= 60;
-        $.photoError.top -= 60;
-        $.thumbnailHintText.top -= 60;
-        $.locationBtn.top -= 60;
-        $.location.top -= 60;
-        $.locationError.top -= 60;
-        $.footerLine.top -= 60;
-        $.info.top -= 60;
-        $.distanceDeviation.visible = false;
-        $.distanceDeviation.blur();
-        distanceOther = false;
-        $.distanceDeviation.value = "";
-    }
-});
-
-// Stake Orientation
-$.stakeDeviation.addEventListener('change', function(e) {
-    if (e.value.length < 4) {
-        $.stakeOtherError.visible = true;
-        $.stakeOtherError.text = "* Stake orientation must be a minimum of 4 characters";
-    } else {
-        $.stakeOtherError.visible = false;
-    }
-});
-
-//Quadrat Distance
-$.distanceDeviation.addEventListener('change', function(e) {
-    // Replace bad input (non-numbers) on quadratDistance TextField
-    e.source.value = e.source.value.replace(/[^0-9]+/,"");
-    Ti.App.fireEvent('distanceDeviationChange');
-});
-Ti.App.addEventListener('distanceDeviationChange', function(e) {
-    if (e.value === "") {
-        $.distanceOtherError.visible = true;
-    } else if ($.distanceDeviation.value < 2) {
-        $.distanceOtherError.visible = true;
-        $.distanceOtherError.text = "* Quadrat distance should be at least 2 meters";
-    } else if ($.distanceDeviation.value > 30) {
-        $.distanceOtherError.visible = true;
-        $.distanceOtherError.text = "* Quadrat distance should be at most 30 meters";
-    } else {
-        $.distanceOtherError.visible = false;
-    }
-});
 
 //Event Listener - help info for enabling location services
 gpsDialog.addEventListener('click', function(e) {

@@ -274,11 +274,11 @@ function saveEdit(e){
 			var mediaID = results.fieldByName('mediaID');
 		
 			//Insert Query - update row in plot table
-			db.execute(	'UPDATE OR FAIL plot SET stake_deviation = ?, distance_deviation = ?, media_id = ?, comments = ? WHERE plot_id = ?', \
+			db.execute(	'UPDATE OR FAIL plot SET stake_deviation = ?, distance_deviation = ?, media_id = ?, comments = ? WHERE plot_id = ?',
 						stakeOrientation, plotDistance, mediaID, comments, plotID);
 		}else{
 			//Insert Query - update row in plot table
-			db.execute(	'UPDATE OR FAIL plot SET stake_deviation = ?, distance_deviation = ?, comments = ? WHERE plot_id = ?', \
+			db.execute(	'UPDATE OR FAIL plot SET stake_deviation = ?, distance_deviation = ?, comments = ? WHERE plot_id = ?',
 						stakeOrientation, plotDistance, comments, plotID);
 		}		
 	}catch(e){
