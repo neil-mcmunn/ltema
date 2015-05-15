@@ -337,7 +337,7 @@ function insertPreviousPlotRows(db) {  //expected parameter: an open database co
 			var comments = titleResult.fieldByName('comments');
 			var speciesCode = titleResult.fieldByName('species_code');
 			//create new observation_id in this plot
-			db.execute( 'INSERT INTO plot_observation (observation, ground_cover, count, comments, species_code, plot_id) VALUES (?,?,?,?,?,?)', \
+			db.execute( 'INSERT INTO plot_observation (observation, ground_cover, count, comments, species_code, plot_id) VALUES (?,?,?,?,?,?)',
 						theTitle, 0, count, comments, speciesCode, plotID);
 			titleResult.close();
 		}

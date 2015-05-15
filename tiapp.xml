@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ti:app xmlns:ti="http://ti.appcelerator.org">
-    <id>ca.bc.gov.env.ltema</id>
+    <id>com.ltema</id>
     <name>LTEMA</name>
     <version>1.0</version>
     <publisher>BC Parks</publisher>
     <url>http://www.gov.bc.ca/env/</url>
     <description>BC Parks Long-Term Ecological Monitoring Application</description>
     <copyright>2014 by BC Parks</copyright>
-    <icon>appIcon@2x.png</icon>
+    <icon>appicon@2x.png</icon>
     <fullscreen>false</fullscreen>
     <navbar-hidden>false</navbar-hidden>
     <analytics>true</analytics>
