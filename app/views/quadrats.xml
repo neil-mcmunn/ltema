@@ -8,7 +8,6 @@
 			<HeaderView id="mainHeader">
 				<View id="headerView">
 					<Button id="addQuadrat" title="Add Quadrat" onClick="addBtn"/>
-					<Label id="addQuadratError" class="error" visible="false" text="*Total Coverage is less than 100%"/>
 				</View>
 			</HeaderView>
 			<!--Placeholder row for testing screens-->

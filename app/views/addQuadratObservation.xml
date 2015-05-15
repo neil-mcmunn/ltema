@@ -5,26 +5,15 @@
 		</RightNavButton>
 		
 		<ScrollView id="formView">
-			<Label id="observationTypeLbl" text="Observation Type:" />
-			<TabbedBar id="pickType">         
-				<Labels>
-					<Label text="plant">Plant</Label>
-					<Label text="other">Other</Label>
-				</Labels>         
-			</TabbedBar>
-			<Label id="pickTypeError" class="error" visible="false" text="* Please select observation type" />
-			
-			<Label id="observationOtherQuickPickLbl" text="Common Other:" visible="false" />
-			<TabbedBar id="observationOtherQuickPick" visible="false" />
-			
+
 			<Label id="observationLbl" text="Observation:" />
 			<TextField id="observation" visible="false" hintText="Enter other observation"/>
 			<SearchBar id="observationSearch" />
 			<Label id="observationError" class="error" visible="false" text="* Please enter observation" />
 			
-			<Label id="percentLbl" text="Percent Coverage:" />
-			<TextField id="percent" hintText="(see instructions below)" />
-			<Label id="percentError" class="error" visible="false" text="* Please enter percent coverage" />
+			<Label id="countLbl" text="Count:" />
+			<TextField id="count" hintText="(see instructions below)" />
+			<Label id="countError" class="error" visible="false" text="* Please enter count" />
 			
 			<Label id="commentLbl" text="Comments:" />
 			<TextField id="comments" hintText="(optional)" />
