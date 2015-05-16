@@ -25,7 +25,8 @@ function populateTable() {
 		
 		//Query - Retrieve existing sites from database, and their associated protocols
 		var rows = db.execute('SELECT transect_id, transect_name, surveyor, \
-						utm_zone, utm_easting, utm_northing, media_id \
+						utm_zone, utm_easting, utm_northing, media_id, \
+						intertidal_utm_top, intertidal_utm_mid, is_boundary \
 						FROM transect \
 						WHERE site_id = ?', $.tbl.siteID);
 
@@ -41,34 +42,21 @@ function populateTable() {
 			var utmEasting = rows.fieldByName('utm_easting');
 			var utmNorthing = rows.fieldByName('utm_northing');
 			var mediaID = rows.fieldByName('media_id');
+			var intertidalUTMTop = rows.fieldByName('intertidal_utm_top');
+			var intertidalUTMMid = rows.fieldByName('intertidal_utm_mid');
+			var isBoundary = rows.fieldByName('is_boundary');
 
 			// Base string to display on selected protocol for each entry
 			var transectDesc;
 
-			switch (protocolName) {
-				case 'Alpine':
-					transectDesc = transectName + ' - UTM Z:' +
-					utmZone + ' E:' + utmEasting + ' N:' + utmNorthing;
-					break;
-				case 'Grassland':
-					transectDesc = transectName + ' - UTM Z:' +
-					utmZone + ' E:' + utmEasting + ' N:' + utmNorthing;
-					break;
-				case 'Sessile organisms':
-					// not sure what other info to put in this msg yet
-					transectDesc = transectName + ' - ' + protocol;
-					break;
-				case 'Mobile organisms':
-					// not sure what other info to put in this msg yet
-					transectDesc = transectName + ' - ' + protocol;
-					break;
-				case 'Sea stars':
-					// not sure what other info to put in this msg yet
-					transectDesc = transectName + ' - ' + protocol;
-					break;
-				default:
-
+			if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+				transectDesc = transectName + ' - UTM Z:' +
+				utmZone + ' E:' + utmEasting + ' N:' + utmNorthing;
+			} else if (protocolName == 'Sessile organisms' || protocolName == 'Mobile organisms' ||	protocolName == 'Sea stars') {
+				// not sure what other info to put in this msg yet
+				transectDesc = transectName + ' - ' + protocolName;
 			}
+
 
 			//Create a new row
 				var newRow = Ti.UI.createTableViewRow({

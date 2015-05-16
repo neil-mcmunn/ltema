@@ -18,6 +18,10 @@ var current_latitude;
 var current_longitude;
 var current_accuracy;
 
+var utmTop;
+var utmMid;
+var isBoundary;
+
 // Create Stake Orientation TabbedBar labels
 var pickStakeLabels = [
 	{title:"Top Left / Bottom Right", enabled:false},
