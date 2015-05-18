@@ -8,7 +8,8 @@
 var args = arguments[0];
 $.tbl.siteID = args.siteID;
 var parkName = args.parkName;
-var protocolName = args.protocolName;
+//var protocolName = args.protocolName;
+var protocolName = "Mobile organisms";
 
 populateTable();
 
@@ -209,6 +210,12 @@ $.tbl.addEventListener('delete', function(e) {
 				deleteImage(fileName, folder);
 				plotFiles.next();
 			}
+
+			var pids = '(' + plotIDs + ')';
+			var observationFiles = db.execute('SELECT med.media_name FROM media med, plot_observation pob \
+										WHERE med.media_id = pob.media_id \
+										AND pob.plot_id IN' + pids);
+
 		//delete images associated with quadrats
 		} else if (protocolName == "Mobile organisms") {
 			var quadratFiles = db.execute('SELECT q.quadrat_id, m.media_name \
@@ -222,13 +229,13 @@ $.tbl.addEventListener('delete', function(e) {
 				deleteImage(fileName, folder);
 				quadratFiles.next();
 			}
+
+			var pids = '(' + quadratIDs + ')';
+			var observationFiles = db.execute('SELECT med.media_name FROM media med, quadrat_observation qob \
+										WHERE med.media_id = qob.media_id \
+										AND qob.quadrat_id IN' + pids);
 		}
-		
-		var pids = '(' + plotIDs + ')';
-		var observationFiles = db.execute('SELECT med.media_name FROM media med, plot_observation pob \
-										WHERE med.media_id = pob.media_id \
-										AND pob.plot_id IN' + pids);
-		
+
 		while (observationFiles.isValidRow()) {
 			var fileName = observationFiles.fieldByName('media_name');
 			deleteImage(fileName, folder);
