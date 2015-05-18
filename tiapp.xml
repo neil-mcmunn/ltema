@@ -37,7 +37,6 @@
                 <false/>
                 <key>UIStatusBarStyle</key>
                 <string>UIStatusBarStyleDefault</string>
-                <key>NSLocationAlwaysUsageDescription</key>
             </dict>
         </plist>
     </ios>
