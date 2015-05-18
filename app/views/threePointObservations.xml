@@ -1,13 +1,13 @@
 <Alloy>
-    <Window class="container" title="Quadrat Observations" id="quadratObservationsWin">
+    <Window class="container" title="Three Point Observations" id="threePointObservationsWin">
         <RightNavButton>
-            <Button id="editObservation" title="Edit" onClick="editBtn"/>
+            <Button id="editThreePointObservation" title="Edit" onClick="editBtn"/>
         </RightNavButton>
 
         <TableView class="table" id="tbl">
             <HeaderView id="mainHeader">
                 <View id="headerView">
-                    <Button id="addObservation" title="Add Quadrat Observation" />
+                    <Button id="addThreePointObservation" title="Add Three Point Observation" />
                 </View>
             </HeaderView>
 

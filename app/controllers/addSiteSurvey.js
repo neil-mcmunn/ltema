@@ -37,9 +37,7 @@ $.addSiteSurveyWin.setTitleControl(titleLabel);
 // Instruciton text
 var instructions =  "Type in the search bar to find a park.\n\n" +
 					"Pick a Biome to show the Protocols to choose from.\n\n" +
-					"Pick a Protocol and click the Done button to create the new site survey.\n\n" +
-					"\n" +
-					"LTEMA currently supports the Grassland and Alpine protocols.\n\n\n";
+					"Pick a Protocol and click the Done button to create the new site survey.\n\n\n";
 $.info.text = instructions;
 
 /* Event Listeners */
@@ -79,7 +77,10 @@ $.pickBiome.addEventListener('click', function(e) {
 
 // Check for unsupported protocols
 $.pickProtocol.addEventListener('click', function(e) {
-	if ((pickProtocolLabels[e.index].title !== "Alpine") && (pickProtocolLabels[e.index].title !== "Grassland")) {
+	if ((pickProtocolLabels[e.index].title !== "Alpine") && (pickProtocolLabels[e.index].title !== "Grassland")
+		&& (pickProtocolLabels[e.index].title !== "Sessile organisms") && (pickProtocolLabels[e.index].title !== "Mobile organisms")
+		&& (pickProtocolLabels[e.index].title !== "Sea stars")) {
+
 		$.pickProtocolError.text = "* Unsupported protocol by LTEMA at this time";
 		$.pickProtocolError.visible = true;
 	} else {
@@ -133,12 +134,17 @@ function doneBtn(e){
 		$.pickBiomeError.visible = true;
 		errorFlag - true;
 	}
-	if (($.pickProtocol.index == null) || ($.pickProtocol.index == -1)) {
+
+    var protocolName = $.pickProtocol.labels[$.pickProtocol.index].title;
+    if (($.pickProtocol.index == null) || ($.pickProtocol.index == -1)) {
 		$.pickProtocolError.text = "* Please select a protocol";
 		$.pickProtocolError.visible = true;
 		errorFlag = true;
 	//is an elseif because an unselected TabbedBar has no title to check and will error out - there might be a better way to do this
-	} else if (($.pickProtocol.labels[$.pickProtocol.index].title !== "Alpine") && ($.pickProtocol.labels[$.pickProtocol.index].title !== "Grassland")) {
+	} else if ((protocolName !== "Alpine") && (protocolName !== "Grassland")
+        && (protocolName !== "Sessile organisms") && (protocolName !== "Mobile organisms")
+        && (protocolName !== "Sea stars")) {
+
 		$.pickProtocolError.text = "* Unsupported protocol by LTEMA at this time";
 		$.pickProtocolError.visible = true;
 		errorFlag = true;
@@ -155,7 +161,7 @@ function doneBtn(e){
 		try {
 			var db = Ti.Database.open('ltemaDB');
 			var currentYear = new Date().getFullYear().toString();
-			var protocolResult = db.execute('SELECT protocol_id FROM protocol WHERE protocol_name =?', $.pickProtocol.labels[$.pickProtocol.index].title);
+			var protocolResult = db.execute('SELECT protocol_id FROM protocol WHERE protocol_name =?', protocolName);
 			var protocolID = protocolResult.fieldByName('protocol_id');
 			var parkResult = db.execute('SELECT park_id FROM park WHERE park_name =?', $.parkSrch.value);
 			var parkID = parkResult.fieldByName('park_id');
@@ -182,90 +188,140 @@ function doneBtn(e){
 			
 			// Get the transects associated with the survey
 			if (id != null) {
-				var transects = db.execute('SELECT * FROM transect WHERE site_id = ?', id);
-			
-				// Copy and associate any exiting transects
-				while (transects.isValidRow()) {
-					var transectName = transects.fieldByName('transect_name');
-					var surveyor = transects.fieldByName('surveyor');
-					var otherSurveyors = transects.fieldByName('other_surveyors');
-					var plotDistance = transects.fieldByName('plot_distance');
-					var stakeOrientation = transects.fieldByName('stake_orientation');
-					var utmZone = transects.fieldByName('utm_zone');
-					var utmEasting = transects.fieldByName('utm_easting');
-					var utmNorthing = transects.fieldByName('utm_northing');
-					var tComments = transects.fieldByName('comments');
-					var transectID = transects.fieldByName('transect_id');
-					
-					db.execute('INSERT INTO transect (transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
-						utm_zone, utm_easting, utm_northing, comments, site_id) \
+                var transects = db.execute('SELECT * FROM transect WHERE site_id = ?', id);
+
+                // Copy and associate any exiting transects
+                while (transects.isValidRow()) {
+                    var transectName = transects.fieldByName('transect_name');
+                    var surveyor = transects.fieldByName('surveyor');
+                    var otherSurveyors = transects.fieldByName('other_surveyors');
+                    var plotDistance = transects.fieldByName('plot_distance');
+                    var stakeOrientation = transects.fieldByName('stake_orientation');
+                    var utmZone = transects.fieldByName('utm_zone');
+                    var utmEasting = transects.fieldByName('utm_easting');
+                    var utmNorthing = transects.fieldByName('utm_northing');
+                    var tComments = transects.fieldByName('comments');
+                    var transectID = transects.fieldByName('transect_id');
+                    var intertidalUTMTop = transects.fieldByName('intertidal_utm_top');
+                    var intertidalUTMMid = transects.fieldByName('intertidal_utm_mid');
+                    var isBoundary = transects.fieldByName('is_boundary');
+
+                    // should handle Alpine, Grasslands, and intertidal protocols. Fields are nullable.
+                    db.execute('INSERT INTO transect (transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
+						utm_zone, utm_easting, utm_northing, comments, site_id, intertidal_utm_top, intertidal_utm_mid, is_boundary) \
 						VALUES (?,?,?,?,?,?,?,?,?,?)', transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
-						utmEasting, utmNorthing, tComments, siteID);
-					
-					// Get the transect_id for the last row inserted	
-					results = db.execute('SELECT last_insert_rowid() as transectID');
-					var newTransectID = results.fieldByName('transectID');
-					
-					// Get any plots associated with the transect
-					var plots = db.execute('SELECT * FROM plot WHERE transect_id = ?', transectID);
-					
-					// Copy and associate any existing plots
-					while (plots.isValidRow()) {
-						var plotName = plots.fieldByName('plot_name');
-						var plotUtmZone = plots.fieldByName('utm_zone');
-						var plotUtmEasting = plots.fieldByName('utm_easting');
-						var plotUtmNorthing = plots.fieldByName('utm_northing');
-						var utc = plots.fieldByName('utc');
-						var stakeDeviation = plots.fieldByName('stake_deviation');
-						var distanceDeviation = plots.fieldByName('distance_deviation');
-						var comments = plots.fieldByName('comments');
-						var plotID = plots.fieldByName('plot_id');
-						
-						db.execute('INSERT INTO plot (plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation, \
+                        utmEasting, utmNorthing, tComments, siteID, intertidalUTMTop, intertidalUTMMid, isBoundary);
+
+                    // Get the transect_id for the last row inserted
+                    results = db.execute('SELECT last_insert_rowid() as transectID');
+                    var newTransectID = results.fieldByName('transectID');
+
+                    // Check protocol and associate related sub-categories (plots, quadrats)
+                    if (protocolName == 'Alpine' || protocolName == 'Grasslands') {
+                        var plots = db.execute('SELECT * FROM plot WHERE transect_id = ?', transectID);
+
+                        // Copy and associate any existing plots
+                        while (plots.isValidRow()) {
+                            var plotName = plots.fieldByName('plot_name');
+                            var plotUtmZone = plots.fieldByName('utm_zone');
+                            var plotUtmEasting = plots.fieldByName('utm_easting');
+                            var plotUtmNorthing = plots.fieldByName('utm_northing');
+                            var utc = plots.fieldByName('utc');
+                            var stakeDeviation = plots.fieldByName('stake_deviation');
+                            var distanceDeviation = plots.fieldByName('distance_deviation');
+                            var comments = plots.fieldByName('comments');
+                            var plotID = plots.fieldByName('plot_id');
+
+                            db.execute('INSERT INTO plot (plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation, \
 							transect_id, comments) VALUES (?,?,?,?,?,?,?,?,?)', plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
-							utc, stakeDeviation, distanceDeviation, newTransectID, comments);
-						
-						// Get the plot_id for the last row inserted
-						results = db.execute('SELECT last_insert_rowid() as plotID');
-						var newPlotID = results.fieldByName('plotID');
-						
-						// Get any plot observations associated with the plot
-						var observations = db.execute('SELECT * FROM plot_observation WHERE plot_id = ?', plotID);
-						
-						// Copy and associate any existing plot observations
-						while (observations.isValidRow()){
-							var observation = observations.fieldByName('observation');
-							var groundCover = 0;
-							var count = observations.fieldByName('count');
-							var observationComments = observations.fieldByName('comments');
-						
-							db.execute('INSERT INTO plot_observation (observation, ground_cover, count, comments, plot_id) \
+                                utc, stakeDeviation, distanceDeviation, newTransectID, comments);
+
+                            // Get the plot_id for the last row inserted
+                            results = db.execute('SELECT last_insert_rowid() as plotID');
+                            var newPlotID = results.fieldByName('plotID');
+
+                            // Get any plot observations associated with the plot
+                            var observations = db.execute('SELECT * FROM plot_observation WHERE plot_id = ?', plotID);
+
+                            // Copy and associate any existing plot observations
+                            while (observations.isValidRow()) {
+                                var observation = observations.fieldByName('observation');
+                                var groundCover = 0;
+                                var count = observations.fieldByName('count');
+                                var observationComments = observations.fieldByName('comments');
+
+                                db.execute('INSERT INTO plot_observation (observation, ground_cover, count, comments, plot_id) \
 								VALUES (?,?,?,?,?)', observation, groundCover, count, observationComments, newPlotID);
-							
-							observations.next();
-						}	
-						plots.next();
-					}
-					transects.next();
-				}
-				observations.close();
-				plots.close();
-				transects.close();
-			}
-					
-		} catch (e){
-			var errorMessage = e.message;
-			Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-		} finally {
-			protocolResult.close();
-			parkResult.close();
-			previousSurveys.close();
-			results.close();
-			db.close();
-			Ti.App.fireEvent("app:refreshSiteSurveys");
-			$.addSiteSurveyWin.close();
-		}
-	} 
+
+                                observations.next();
+                            }
+                            plots.next();
+                        }
+                        transects.next();
+                        plots.close();
+
+                    } else if (protocolName == 'Mobile organisms') {
+                        var quadrats = db.execute('SELECT * FROM quadrat WHERE transect_id = ?', transectID);
+
+                        while (quadrats.isValidRow()) {
+                            var quadratID = quadrats.fieldByName('quadrat_id');
+                            var quadratName = quadrats.fieldByName('quadrat_name');
+                            var quadratZone = quadrats.fieldByName('quadrat_zone');
+                            var randomDrop = quadrats.fieldByName('random_drop');
+                            var comments = quadrats.fieldByName('comments');
+
+                            db.execute('INSERT INTO quadrat (quadrat_name, quadrat_zone, random_drop, comments) VALUES (?,?,?,?)',
+                                quadratName, quadratZone, randomDrop, comments);
+
+                            // Get the quadrat_id for the last row inserted
+                            results = db.execute('SELECT last_insert_rowid() as quadratID');
+                            var newQuadratID = results.fieldByName('quadratID');
+
+                            // Get any quadrat observations associated with the quadrat
+                            var observations = db.execute('SELECT * from quadrat_observation WHERE quadrat_id = ?', quadratID);
+
+                            // Copy and associate any existing quadrat observations
+                            while (observation.isValidRow()) {
+                                var observation = observations.fieldByName('observation');
+                                var nonSessileCode = observations.fieldByName('non_sessile_code');
+                                var nonSessileOther = observations.fieldByName('non_sessile_other');
+                                var count = observations.fieldByName('count');
+                                var comments = observations.fieldByName('comments');
+
+                                db.execute('INSERT INTO quadrat_observation (observation, count, non_sessile_code, non_sessile_other, comments',
+                                    observation, count, nonSessileCode, nonSessileOther, comments);
+
+                                observations.next();
+                            }
+                            quadrats.next();
+                        }
+                        transects.next();
+                        quadrats.close();
+
+                    } else if (protocolName == 'Sessile organisms') {
+
+
+                    } else if (protocolName == 'Sea stars') {
+
+                    }
+
+                    observations.close();
+                    transects.close();
+                }
+            }
+        } catch (e){
+            var errorMessage = e.message;
+            Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+        } finally {
+            protocolResult.close();
+            parkResult.close();
+            previousSurveys.close();
+            results.close();
+            db.close();
+            Ti.App.fireEvent("app:refreshSiteSurveys");
+            $.addSiteSurveyWin.close();
+        }
+    }
 }
 
 

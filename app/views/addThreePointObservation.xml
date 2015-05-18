@@ -1,22 +1,49 @@
 <Alloy>
-    <Window id="addQuadratObservationWin" class="container" title="Add Quadrat Observation">
+    <Window id="addThreePointObservationWin" class="container" title="Add Three-Point (Sessile) Observation">
         <RightNavButton>
-            <Button id="doneAddTransect" title="Done" onClick="doneBtn"/>
+            <Button id="doneAddThreePointObservation" title="Done" onClick="doneBtn"/>
         </RightNavButton>
 
         <ScrollView id="formView">
 
-            <Label id="observationLbl" text="Observation:" />
-            <TextField id="observation" visible="false" hintText="Enter other observation"/>
-            <SearchBar id="observationSearch" />
-            <Label id="observationError" class="error" visible="false" text="* Please enter observation" />
+            <Label id="layer1NameLbl" text="Layer 1 Sessile Name:" />
+            <TextField id="layer1Name" visible="false" hintText="Enter observation"/>
+            <SearchBar id="layer1NameSearch" />
+            <Label id="layer1NameError" class="error" visible="false" text="* Please enter observation" />
 
-            <Label id="countLbl" text="Count:" />
-            <TextField id="count" hintText="(see instructions below)" />
-            <Label id="countError" class="error" visible="false" text="* Please enter count" />
+            <Label id="layer1OtherLbl" text="Layer 1 Sessile Other:" />
+            <TextField id="layer1Other" hintText="(see Help for instructions)" />
+            <Label id="layer1OtherError" class="error" visible="false" text="* Please enter Other name" />
 
-            <Label id="commentLbl" text="Comments:" />
-            <TextField id="comments" hintText="(optional)" />
+            <Label id="layer1AttributesLbl" text="Layer 1 Attributes:" />
+            <View id="radioView" visible="false" />
+            <Label id="layer1AttributesError" class="error" visible="false" text="* Please select at least one attribute" />
+
+            <Label id="layer2NameLbl" text="Layer 2 Sessile Name:" />
+            <TextField id="layer2Name" visible="false" hintText="Enter observation"/>
+            <SearchBar id="layer2NameSearch" />
+            <Label id="layer2NameError" class="error" visible="false" text="* Please enter observation" />
+
+            <Label id="layer2OtherLbl" text="Layer 2 Sessile Other:" />
+            <TextField id="layer2Other" hintText="(see Help for instructions)" />
+            <Label id="layer2OtherError" class="error" visible="false" text="* Please enter Other name" />
+
+            <Label id="layer2AttributesLbl" text="Layer 2 Attributes:" />
+            <View id="radioView" visible="false" />
+            <Label id="layer2AttributesError" class="error" visible="false" text="* Please select at least one attribute" />
+
+            <Label id="layer3NameLbl" text="Layer 3 Sessile Name:" />
+            <TextField id="layer3Name" visible="false" hintText="Enter observation"/>
+            <SearchBar id="layer3NameSearch" />
+            <Label id="layer3NameError" class="error" visible="false" text="* Please enter observation" />
+
+            <Label id="layer3OtherLbl" text="Layer 3 Sessile Other:" />
+            <TextField id="layer3Other" hintText="(see Help for instructions)" />
+            <Label id="layer3OtherError" class="error" visible="false" text="* Please enter Other name" />
+
+            <Label id="layer3AttributesLbl" text="Layer 3 Attributes:" />
+            <View id="radioView" visible="false" />
+            <Label id="layer3AttributesError" class="error" visible="false" text="* Please select at least one attribute" />
 
             <Button id="photoBtn" title="Take Photo" onClick="takePhoto" />
             <Label id="photoHint" text="(optional)" />
