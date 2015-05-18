@@ -161,7 +161,7 @@ function doneBtn(e){
 		try {
 			var db = Ti.Database.open('ltemaDB');
 			var currentYear = new Date().getFullYear().toString();
-			var protocolResult = db.execute('SELECT protocol_id FROM protocol WHERE protocol_name =?', protocolName;
+			var protocolResult = db.execute('SELECT protocol_id FROM protocol WHERE protocol_name =?', protocolName);
 			var protocolID = protocolResult.fieldByName('protocol_id');
 			var parkResult = db.execute('SELECT park_id FROM park WHERE park_name =?', $.parkSrch.value);
 			var parkID = parkResult.fieldByName('park_id');
