@@ -209,7 +209,7 @@ function doneBtn(e){
                     // should handle Alpine, Grasslands, and intertidal protocols. Fields are nullable.
                     db.execute('INSERT INTO transect (transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
 						utm_zone, utm_easting, utm_northing, comments, site_id, intertidal_utm_top, intertidal_utm_mid, is_boundary) \
-						VALUES (?,?,?,?,?,?,?,?,?,?)', transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
+						VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
                         utmEasting, utmNorthing, tComments, siteID, intertidalUTMTop, intertidalUTMMid, isBoundary);
 
                     // Get the transect_id for the last row inserted
