@@ -327,12 +327,9 @@ function addBtn(){
 	//disable add button until screen is returned to focus.  Issue #28
 	$.addTransect.enabled = false;
 
-	var quadrats = Alloy.createController("quadrats", {transectID:$.rowData.transectID, siteID:$.tbl.siteID}).getView();
+	var addTransect = Alloy.createController("addTransect", {siteID: $.tbl.siteID, protocolName: $.tbl.protocolName}).getView();
 	var nav = Alloy.Globals.navMenu;
-	nav.openWindow(quadrats);
-	//var addTransect = Alloy.createController("addTransect", {siteID: $.tbl.siteID, protocolName: $.tbl.protocolName}).getView();
-	//var nav = Alloy.Globals.navMenu;
-	//nav.openWindow(addTransect);
+	nav.openWindow(addTransect);
 }
 
 // Delete a file from the application data directory

@@ -1,0 +1,2 @@
+transectsModal.js:
+    line 283 disabled photo taken check

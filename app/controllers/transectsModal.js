@@ -280,7 +280,7 @@ function saveEdit(e){
 	} finally {
 		db.close();
 		//close the window when user hits done button if a photo has been taken.
-		if(photo != null){
+		//if(photo != null){
 			//remove the temp photo - used for photo preview  //Ti.Filesystem.tempDirectory 
 			var tempPhoto = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.png');
 			if(tempPhoto.exists){
@@ -288,7 +288,7 @@ function saveEdit(e){
 			}
 			Ti.App.fireEvent("app:refreshTransects");
 			$.modalNav.close();
-		}
+		//}
 		$.photoError.visible = true;
 	}	
 }

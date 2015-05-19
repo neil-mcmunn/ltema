@@ -45,6 +45,7 @@ function populateTable() {
 				title : siteSurvey,
 				siteID : siteID,
 				parkName: parkName, //not visible, but passed to transects screen
+				protocolName: protocolName,
 				height: 60,
 				font: {fontSize: 20}
 			});
