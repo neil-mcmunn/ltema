@@ -288,7 +288,7 @@ function doneBtn(e){
                                 var count = observations.fieldByName('count');
                                 var comments = observations.fieldByName('comments');
 
-                                db.execute('INSERT INTO quadrat_observation (observation, count, non_sessile_code, non_sessile_other, comments',
+                                db.execute('INSERT INTO quadrat_observation (observation, count, non_sessile_code, non_sessile_other, comments) VALUES (?,?,?,?,?)',
                                     observation, count, nonSessileCode, nonSessileOther, comments);
 
                                 observations.next();
