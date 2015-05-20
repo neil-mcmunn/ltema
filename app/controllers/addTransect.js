@@ -134,36 +134,36 @@ function doneBtn(e){
 	if($.surveyorError.visible) {
 		errorFlag = true;
 	}
-	
-	if($.plotDistanceError.visible) {
-		errorFlag = true;
-	}
-	
-	if(photo == null && $.pickStake.index == null){
-		$.photoError.visible = true;
-		$.photoError.text = "* Please take a photo";
-		$.stakeError.visible = true;
-		$.stakeError.text = "* Please select a stake orientation";
-		errorFlag = true;
-	}
-	if (photo == null && protocolName != 'Mobile organisms'){
-		$.photoError.visible = true;
-		$.photoError.text = "* Please take a photo";
-		errorFlag = true;
-	}
-	if($.pickStake.index == null){
-		if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+
+	if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+		if ($.plotDistanceError.visible) {
+			errorFlag = true;
+		}
+
+		if (photo == null && $.pickStake.index == null) {
+			$.photoError.visible = true;
+			$.photoError.text = "* Please take a photo";
 			$.stakeError.visible = true;
 			$.stakeError.text = "* Please select a stake orientation";
 			errorFlag = true;
 		}
+		if (photo == null) {
+			$.photoError.visible = true;
+			$.photoError.text = "* Please take a photo";
+			errorFlag = true;
+		}
+		if ($.pickStake.index == null) {
+			$.stakeError.visible = true;
+			$.stakeError.text = "* Please select a stake orientation";
+			errorFlag = true;
+		}
+		if(utmZone == null){
+			$.locationError.text = '* Please capture current location';
+			$.locationError.visible = true;
+			errorFlag = true;
+		}
 	}
-	if(utmZone == null){
-		$.locationError.text = '* Please capture current location';
-		$.locationError.visible = true;
-		errorFlag = true;
-	}
-		
+
 	if (errorFlag === true) {
 		e.source.enabled = true;
 		$.tsctName.blur();
