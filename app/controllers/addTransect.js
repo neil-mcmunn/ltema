@@ -198,7 +198,7 @@ function doneBtn(e){
 					$.tsctName.value, $.srvyName.value, $.otherSrvyName.value, $.plotDist.value, pickStakeLabels[$.pickStake.index].title, utmZone, utmEasting, utmNorthing, $.comments.value, siteID, mediaID);
 			} else if (protocolName == 'Mobile organisms') {
 				db.execute('INSERT INTO transect (transect_name,surveyor,other_surveyors,plot_distance,stake_orientation,utm_zone,utm_easting,utm_northing,utm_zone2,utm_easting2,utm_northing2,is_boundary,comments,site_id,media_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-					$.tsctName.value, $.srvyName.value, $.otherSrvyName.value, $.plotDist.value, pickStakeLabels[$.pickStake.index].title, utmZone, utmEasting, utmNorthing, utmZone2, utmEasting2, utmNorthing2, isBoundary $.comments.value, siteID, mediaID);
+					$.tsctName.value, $.srvyName.value, $.otherSrvyName.value, $.plotDist.value, pickStakeLabels[$.pickStake.index].title, utmZone, utmEasting, utmNorthing, utmZone2, utmEasting2, utmNorthing2, isBoundary, $.comments.value, siteID, mediaID);
 			}
 		}catch(e){
 			var errorMessage = e.message;
