@@ -16,21 +16,18 @@
 			<Label id="otherSrvyNameLbl" text="Other Surveyors:" />
 			<TextField id="otherSrvyName" hintText="(optional) First and last names"/>	       
 			<Label id="otherSurveyorsError" class="error" visible="false" />  
-			
-			<Label id="stakeLbl" text="Stake Orientation:" />
-			<TabbedBar id="pickStake" />
-			<!--<TabbedBar id="pickStake">           
-				<Labels>
-					<Label text="tlbr">Top Left / Bottom Right</Label>
-					<Label text="trbl">Top Right / Bottom Left</Label>
-				</Labels>         
-		</TabbedBar>-->
+
+			<!-- Alpine and Grassland -->
+			<Label id="stakeLbl" text="Stake Orientation:" visible="false" />
+			<TabbedBar id="pickStake" visible="false" />
 			<Label id="stakeError" class="error" visible="false" />
 			
-			<Label id="plotLbl" text="Plot Distance:" />
-			<TextField id="plotDist" hintText="Enter a whole number from 2 to 30"/>
+			<Label id="plotLbl" text="Plot Distance:" visible="false" />
+			<TextField id="plotDist" hintText="Enter a whole number from 2 to 30" visible="false"/>
 			<Label id="plotDistanceError" class="error" visible="false" />
-			
+
+			<!-- End Alpine/Grassland specifics -->
+
 			<Label id="commentLbl" text="Comments:" />
 			<TextField id="comments" hintText="(optional)"/>
 			<Label id="commentsError" class="error" visible="false" />
@@ -40,10 +37,14 @@
 			<Label id="photoError" class="error" visible="false" />
 			<Label id="thumbnailHintText" class="error" visible="false" text="Click thumbnail to preview photo"/>
 			
-			<Button id="locationBtn" title="Capture Location" onClick="getLocation" />
+			<Button id="locationBtn" title="Capture Location" onClick="getLocation" visible="false" />
 			<Label id="location" class="error" visible="false" />
 			<Label id="locationError" class="error" visible="false" />
-			
+
+			<Button id="location2Btn" title="Capture Mid Location" onClick="getLocation" visible="false" />
+			<Label id="location2" class="error" visible="false" />
+			<Label id="location2Error" class="error" visible="false" />
+
 			<View id="footerLine" />
 			<Label id="info" />
 		</ScrollView>

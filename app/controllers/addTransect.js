@@ -14,24 +14,46 @@ var utmEasting;
 var utmNorthing;
 var utmZone;
 
-var current_latitude;
-var current_longitude;
-var current_accuracy;
-
-var utmTop;
-var utmMid;
+// if non-sessile, these are the transect's mid points. The 3 above are the top point.
+var utmEasting2;
+var utmNorthing2;
+var utmZone2;
 var isBoundary;
 
-// Create Stake Orientation TabbedBar labels
-var pickStakeLabels = [
-	{title:"Top Left / Bottom Right", enabled:false},
-	{title:"Top Right / Bottom Left", enabled:false}
-];
-//Enable Stake Orientation TabbedBar
-pickStakeLabels[0].enabled = true;
-pickStakeLabels[1].enabled = true;
-$.pickStake.labels = pickStakeLabels;
+var current_latitude;
+var current_longitude;
 
+var current_accuracy;
+
+// Select appropriate labels to protocol
+if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+	// Create Stake Orientation TabbedBar labels
+	var pickStakeLabels = [
+		{title: "Top Left / Bottom Right", enabled: false},
+		{title: "Top Right / Bottom Left", enabled: false}
+	];
+	//Enable Stake Orientation TabbedBar
+	pickStakeLabels[0].enabled = true;
+	pickStakeLabels[1].enabled = true;
+	$.pickStake.labels = pickStakeLabels;
+
+	$.plotLbl.visible = true;
+	$.plotDist.visible = true;
+	$.stakeLbl.visible = true;
+	$.pickStake.visible = true;
+	$.locationBtn.visible = true;
+
+} else if (protocolName == 'Mobile organism') {
+	$.locationBtn.title = "Capture Top Location";
+	$.locationBtn.visible = true;
+	$.locationBtn2.title = "Capture Mid Location";
+	$.locationBtn2.visible = true;
+
+} else if (protocolName == 'Sessile organisms') {
+
+} else if (protocolName == 'Sea stars') {
+
+}
 //Start continuous location capture - based on distance filter
 var gps = require('location');
 	gps.location(function(latitude, longitude, accuracy, error) {
@@ -124,15 +146,17 @@ function doneBtn(e){
 		$.stakeError.text = "* Please select a stake orientation";
 		errorFlag = true;
 	}
-	if (photo == null){
+	if (photo == null && protocolName != 'Mobile organisms'){
 		$.photoError.visible = true;
 		$.photoError.text = "* Please take a photo";
 		errorFlag = true;
 	}
 	if($.pickStake.index == null){
-		$.stakeError.visible = true;
-		$.stakeError.text = "* Please select a stake orientation";
-		errorFlag = true;
+		if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+			$.stakeError.visible = true;
+			$.stakeError.text = "* Please select a stake orientation";
+			errorFlag = true;
+		}
 	}
 	if(utmZone == null){
 		$.locationError.text = '* Please capture current location';
@@ -169,9 +193,13 @@ function doneBtn(e){
 			var mediaID = results.fieldByName('mediaID');
 			
 			//Insert Query - add row to transect table
-			db.execute(	'INSERT INTO transect (transect_name,surveyor,other_surveyors,plot_distance,stake_orientation,utm_zone,utm_easting,utm_northing,comments,site_id,media_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-						$.tsctName.value, $.srvyName.value, $.otherSrvyName.value, $.plotDist.value, pickStakeLabels[$.pickStake.index].title, utmZone, utmEasting, utmNorthing, $.comments.value, siteID, mediaID);
-						
+			if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+				db.execute('INSERT INTO transect (transect_name,surveyor,other_surveyors,plot_distance,stake_orientation,utm_zone,utm_easting,utm_northing,comments,site_id,media_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+					$.tsctName.value, $.srvyName.value, $.otherSrvyName.value, $.plotDist.value, pickStakeLabels[$.pickStake.index].title, utmZone, utmEasting, utmNorthing, $.comments.value, siteID, mediaID);
+			} else if (protocolName == 'Mobile organisms') {
+				db.execute('INSERT INTO transect (transect_name,surveyor,other_surveyors,plot_distance,stake_orientation,utm_zone,utm_easting,utm_northing,utm_zone2,utm_easting2,utm_northing2,is_boundary,comments,site_id,media_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+					$.tsctName.value, $.srvyName.value, $.otherSrvyName.value, $.plotDist.value, pickStakeLabels[$.pickStake.index].title, utmZone, utmEasting, utmNorthing, utmZone2, utmEasting2, utmNorthing2, isBoundary $.comments.value, siteID, mediaID);
+			}
 		}catch(e){
 			var errorMessage = e.message;
 			Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
@@ -284,21 +312,41 @@ function getLocation(){
 		//notify user that location services is disabled
 		gpsDialog.show();  
 		//return;
-	}else{
-	
-	//get the location - UTM
-	var utm = require('utm');
-			utm.LatLngToUTMRef(current_latitude, current_longitude, function(UTMEasting, UTMNorthing, longitudeZone) {
-			
+	}else {
+		//get the location - UTM (one point required)
+		var utm = require('utm');
+		utm.LatLngToUTMRef(current_latitude, current_longitude, function(UTMEasting, UTMNorthing, longitudeZone) {
+
 			utmEasting = UTMEasting;
 			utmNorthing = UTMNorthing;
 			utmZone = longitudeZone;
-			
+
 			if(utmZone.toString() == "NaN"){
 				ltemaAccessDialog.show();
 			}else{
+				var accuracy = Math.round(current_accuracy);
+				$.location.text = "UTM Zone: " + utmZone + "\nUTM Easting: " + UTMEasting + "\nUTM Northing: " + UTMNorthing + "\nAccuracy: " + accuracy;
 				$.location.visible = true;
-				$.location.text = "UTM Zone: " + utmZone + "\nUTM Easting: " + UTMEasting + "\nUTM Northing: " + UTMNorthing + "\nAccuracy: " + Math.round(current_accuracy);
+			}
+		});
+	}
+
+	// add second point if for non-sessile protocol
+	if (protocolName == 'Mobile organisms') {
+		//get the location - UTM
+		var utm2 = require('utm');
+		utm2.LatLngToUTMRef(current_latitude, current_longitude, function(UTMEasting, UTMNorthing, longitudeZone) {
+
+			utmEasting2 = UTMEasting;
+			utmNorthing2 = UTMNorthing;
+			utmZone2 = longitudeZone;
+
+			if(utmZone2.toString() == "NaN"){
+				ltemaAccessDialog.show();
+			}else{
+				$.location.text = "Top UTM Zone: " + utmZone + "\nTop UTM Easting: " + UTMEasting + "\nTop UTM Northing: " + UTMNorthing + "\nAccuracy: " + accuracy;
+				$.location2.text = "Mid UTM Zone: " + utmZone2 + "\nMid UTM Easting" + UTMEasting2 + "\nMid UTM Northing: " + UTMNorthing + "\nAccuracy: " + Math.round(current_accuracy);
+				$.location2.visible = true;
 			}
 		});
 	}
@@ -360,14 +408,12 @@ Ti.App.addEventListener('otherSurveyorChange', function(e) {
 });
 
 //Plot Distance
-if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+$.plotDist.addEventListener('change', function (e) {
+	// Replace bad input (non-numbers) on plotDistance TextField
+	e.source.value = e.source.value.replace(/[^0-9]+/, "");
+	Ti.App.fireEvent('plotDistanceChange');
+});
 
-	$.plotDist.addEventListener('change', function (e) {
-		// Replace bad input (non-numbers) on plotDistance TextField
-		e.source.value = e.source.value.replace(/[^0-9]+/, "");
-		Ti.App.fireEvent('plotDistanceChange');
-	});
-}
 
 Ti.App.addEventListener('plotDistanceChange', function(e) {
 	if ($.plotDist.value < 2) {
