@@ -8,8 +8,7 @@
 var args = arguments[0];
 $.tbl.siteID = args.siteID;
 var parkName = args.parkName;
-//var protocolName = args.protocolName;
-var protocolName = "Mobile organisms";
+var protocolName = args.protocolName;
 
 populateTable();
 
