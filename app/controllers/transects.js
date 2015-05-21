@@ -46,7 +46,8 @@ function populateTable() {
 
 			// Base string to display on selected protocol for each entry
 			var transectDesc;
-
+			transectDesc = 'this is transect desc.......' + protocolName;
+/*
 			if (protocolName == 'Alpine' || protocolName == 'Grassland') {
 				transectDesc = transectName + ' - UTM Z:' +
 				utmZone + ' E:' + utmEasting + ' N:' + utmNorthing;
@@ -56,7 +57,7 @@ function populateTable() {
 				'UTM Z:' + utmZone + ' E:' + utmEasting + ' N:' + utmNorthing + ' - Mid Point:' +
 				'UTM Z:' + utmZone2 + ' E:' + utmEasting2 + ' N:' + utmNorthing2;
 			}
-
+*/
 
 			//Create a new row
 				var newRow = Ti.UI.createTableViewRow({
