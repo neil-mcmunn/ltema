@@ -53,7 +53,7 @@ function populateTable() {
 			} else if (protocolName == 'Sessile organisms' || protocolName == 'Mobile organisms' ||	protocolName == 'Sea stars') {
 				// not sure what other info to put in this msg yet
 				transectDesc = transectName + ' - Top Point:\n' +
-				'UTM Z:' + utmZone + ' E:' + utmEasting + ' N:' + utmNorthing + '\n - Mid Point:\n'
+				'UTM Z:' + utmZone + ' E:' + utmEasting + ' N:' + utmNorthing + '\n - Mid Point:\n' +
 				'UTM Z:' + utmZone2 + ' E:' + utmEasting2 + ' N:' + utmNorthing2 + protocolName;
 			}
 
