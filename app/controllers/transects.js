@@ -25,11 +25,7 @@ function populateTable() {
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Query - Retrieve existing sites from database, and their associated protocols
-		var rows = db.execute('SELECT transect_id, transect_name, surveyor, \
-						utm_zone, utm_easting, utm_northing, media_id, \
-						utm_zone2, utm_easting2, utm_northing2, is_boundary \
-						FROM transect \
-						WHERE site_id = ?', $.tbl.siteID);
+		var rows = db.execute('SELECT *	FROM transect WHERE site_id = ?', $.tbl.siteID);
 
 
 		//get requested data from each row in table
