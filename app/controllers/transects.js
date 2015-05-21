@@ -39,9 +39,9 @@ function populateTable() {
 			var utmEasting = rows.fieldByName('utm_easting');
 			var utmNorthing = rows.fieldByName('utm_northing');
 			var mediaID = rows.fieldByName('media_id');
-			var utmZone2 = rows.fieldByName('utm_zone2');
-			var utmEasting2 = rows.fieldByName('utm_easting2');
-			var utmNorthing2 = rows.fieldByName('utm_northing2');
+			var utmZone2 = rows.fieldByName('utm_zone_2');
+			var utmEasting2 = rows.fieldByName('utm_easting_2');
+			var utmNorthing2 = rows.fieldByName('utm_northing_2');
 			var isBoundary = rows.fieldByName('is_boundary');
 
 			// Base string to display on selected protocol for each entry
