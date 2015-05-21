@@ -10,6 +10,12 @@ $.tbl.siteID = args.siteID;
 var parkName = args.parkName;
 var protocolName = args.protocolName;
 
+const ALPINE = 'Alpine';
+const GRASSLAND = 'Grassland';
+const SESSILE = 'Sessile organisms';
+const NON_SESSILE = 'Mobile organisms';
+const SEA_STAR = 'Sea stars';
+
 populateTable();
 
 function populateTable() {
@@ -147,17 +153,17 @@ $.tbl.addEventListener('click', function(e){
 				navBarHidden : false
 			});
 		//row clicked, get transect view
-		} else if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+		} else if (protocolName == ALPINE || protocolName == GRASSLAND) {
 			var plots = Alloy.createController("plots", {transectID:e.rowData.transectID, siteID:$.tbl.siteID}).getView();
 			var nav = Alloy.Globals.navMenu;
 			nav.openWindow(plots);
-		} else if (protocolName == 'Mobile organisms') {
+		} else if (protocolName == NON_SESSILE) {
 			var quadrats = Alloy.createController("quadrats", {transectID:e.rowData.transectID, siteID:$.tbl.siteID}).getView();
 			var nav = Alloy.Globals.navMenu;
 			nav.openWindow(quadrats);
-		} else if (protocolName == 'Sessile organisms') {
+		} else if (protocolName == SESSILE) {
 			// open sessile controller
-		} else if (protocolName == 'Sea stars') {
+		} else if (protocolName == SEA_STAR) {
 			// open sea stars controller
 		}
 	}
@@ -196,7 +202,7 @@ $.tbl.addEventListener('delete', function(e) {
 		}
 
 		//delete images associated with plots
-		if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+		if (protocolName == ALPINE || protocolName == GRASSLAND) {
 			var plotFiles = db.execute('SELECT plt.plot_id, med.media_name \
 									FROM media med, plot plt \
 									WHERE med.media_id = plt.media_id \
@@ -216,7 +222,7 @@ $.tbl.addEventListener('delete', function(e) {
 										AND pob.plot_id IN' + pids);
 
 		//delete images associated with quadrats
-		} else if (protocolName == "Mobile organisms") {
+		} else if (protocolName == NON_SESSILE) {
 			var quadratFiles = db.execute('SELECT q.quadrat_id, m.media_name \
 									FROM media m, quadrat q\
 									WHERE m.media_id = q.media_id \
@@ -248,10 +254,10 @@ $.tbl.addEventListener('delete', function(e) {
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally { 
 		transectFiles.close();
-		if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+		if (protocolName == ALPINE || protocolName == GRASSLAND) {
 			plotFiles.close();
 		}
-		if (protocolName == "Mobile organisms") {
+		if (protocolName == NON_SESSILE) {
 			quadratFiles.close();
 		}
 		observationFiles.close();

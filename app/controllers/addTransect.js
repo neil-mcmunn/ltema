@@ -8,6 +8,12 @@ var args = arguments[0];
 var siteID = args.siteID;
 var protocolName = args.protocolName;
 
+const ALPINE = 'Alpine';
+const GRASSLAND = 'Grassland';
+const SESSILE = 'Sessile organisms';
+const NON_SESSILE = 'Mobile organisms';
+const SEA_STAR = 'Sea stars';
+
 // Initialize Variables
 var photo;
 var utmEasting;
@@ -26,7 +32,7 @@ var current_longitude;
 var current_accuracy;
 
 // Select appropriate labels to protocol
-if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+if (protocolName == ALPINE || protocolName == GRASSLAND) {
 	// Create Stake Orientation TabbedBar labels
 	var pickStakeLabels = [
 		{title: "Top Left / Bottom Right", enabled: false},
@@ -43,15 +49,15 @@ if (protocolName == 'Alpine' || protocolName == 'Grassland') {
 	$.pickStake.visible = true;
 	$.locationBtn.visible = true;
 
-} else if (protocolName == 'Mobile organism') {
+} else if (protocolName == 'Mobile organisms') {
 	$.locationBtn.title = "Capture Top Location";
 	$.locationBtn.visible = true;
 	$.locationBtn2.title = "Capture Mid Location";
 	$.locationBtn2.visible = true;
 
-} else if (protocolName == 'Sessile organisms') {
+} else if (protocolName == SESSILE) {
 
-} else if (protocolName == 'Sea stars') {
+} else if (protocolName == SEA_STAR) {
 
 }
 //Start continuous location capture - based on distance filter
@@ -120,7 +126,7 @@ function doneBtn(e){
 	// check that the following (required) fields are not empty
 	Ti.App.fireEvent('transectChange');
 	Ti.App.fireEvent('surveyorChange');
-	if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+	if (protocolName == ALPINE || protocolName == GRASSLAND) {
 		Ti.App.fireEvent('plotDistanceChange');
 	}
 	
@@ -135,7 +141,7 @@ function doneBtn(e){
 		errorFlag = true;
 	}
 
-	if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+	if (protocolName == ALPINE || protocolName == GRASSLAND) {
 		if ($.plotDistanceError.visible) {
 			errorFlag = true;
 		}
@@ -169,7 +175,7 @@ function doneBtn(e){
 		$.tsctName.blur();
 		$.srvyName.blur();
 		$.otherSrvyName.blur();
-		if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+		if (protocolName == ALPINE || protocolName == GRASSLAND) {
 			$.plotDist.blur();
 		}
 		$.comments.blur();
@@ -193,7 +199,7 @@ function doneBtn(e){
 			var mediaID = results.fieldByName('mediaID');
 			
 			//Insert Query - add row to transect table
-			if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+			if (protocolName == ALPINE || protocolName == GRASSLAND) {
 				db.execute('INSERT INTO transect (transect_name,surveyor,other_surveyors,plot_distance,stake_orientation,utm_zone,utm_easting,utm_northing,comments,site_id,media_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
 					$.tsctName.value, $.srvyName.value, $.otherSrvyName.value, $.plotDist.value, pickStakeLabels[$.pickStake.index].title, utmZone, utmEasting, utmNorthing, $.comments.value, siteID, mediaID);
 			} else if (protocolName == 'Mobile organisms') {

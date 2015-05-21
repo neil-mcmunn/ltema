@@ -9,6 +9,13 @@ var transectID = args.transectID;
 var title = args.title;
 var protocolName = args.protocolName;
 
+const ALPINE = 'Alpine';
+const GRASSLAND = 'Grassland';
+const SESSILE = 'Sessile organisms';
+const NON_SESSILE = 'Mobile organisms';
+const SEA_STAR = 'Sea stars';
+
+
 //initialize variables
 var photo;
 
@@ -203,7 +210,7 @@ function editBtnClick(e){
 		$.transectName.editable = true;
 		$.surveyor.editable = true;
 		$.otherSurveyors.editable = true;
-		if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+		if (protocolName == ALPINE || protocolName == GRASSLAND) {
 			$.plotDistance.editable = true;
 		}
 		stakeBarLabels[0].enabled = true;
@@ -219,7 +226,7 @@ function editBtnClick(e){
 		//fire error-checking listeners
 		$.transectName.blur();
 		$.surveyor.blur();
-		if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+		if (protocolName == ALPINE || protocolName == GRASSLAND) {
 			$.plotDistance.blur();
 		}
 		if (($.transectError.visible == true)||($.surveyorError.visible == true)||($.plotDistanceError.visible == true)) {
@@ -235,7 +242,7 @@ function editBtnClick(e){
 		$.transectName.editable = false;
 		$.surveyor.editable = false;
 		$.otherSurveyors.editable = false;
-		if (protocolName == 'Alpine' || protocolName == 'Grassland') {
+		if (protocolName == ALPINE || protocolName == GRASSLAND) {
 			$.plotDistance.editable = false;
 		}
 		stakeBarLabels[0].enabled = false;

@@ -7,6 +7,13 @@
 var pickBiomeLabels = [];
 var pickProtocolLabels = [];
 
+const ALPINE = 'Alpine';
+const GRASSLAND = 'Grassland';
+const SESSILE = 'Sessile organisms';
+const NON_SESSILE = 'Mobile organisms';
+const SEA_STAR = 'Sea stars';
+
+
 // Populate the biome TabbedBar with database-derived labels
 try {
 	var db = Ti.Database.open('ltemaDB');
@@ -77,9 +84,9 @@ $.pickBiome.addEventListener('click', function(e) {
 
 // Check for unsupported protocols
 $.pickProtocol.addEventListener('click', function(e) {
-	if ((pickProtocolLabels[e.index].title !== "Alpine") && (pickProtocolLabels[e.index].title !== "Grassland")
-		&& (pickProtocolLabels[e.index].title !== "Sessile organisms") && (pickProtocolLabels[e.index].title !== "Mobile organisms")
-		&& (pickProtocolLabels[e.index].title !== "Sea stars")) {
+	if ((pickProtocolLabels[e.index].title !== ALPINE) && (pickProtocolLabels[e.index].title !== GRASSLAND)
+		&& (pickProtocolLabels[e.index].title !== SESSILE) && (pickProtocolLabels[e.index].title !== NON_SESSILE)
+		&& (pickProtocolLabels[e.index].title !== SEA_STAR)) {
 
 		$.pickProtocolError.text = "* Unsupported protocol by LTEMA at this time";
 		$.pickProtocolError.visible = true;
@@ -141,9 +148,9 @@ function doneBtn(e){
 		$.pickProtocolError.visible = true;
 		errorFlag = true;
 	//is an elseif because an unselected TabbedBar has no title to check and will error out - there might be a better way to do this
-	} else if ((protocolName !== "Alpine") && (protocolName !== "Grassland")
-        && (protocolName !== "Sessile organisms") && (protocolName !== "Mobile organisms")
-        && (protocolName !== "Sea stars")) {
+	} else if ((protocolName !== ALPINE) && (protocolName !== GRASSLAND)
+        && (protocolName !== SESSILE) && (protocolName !== NON_SESSILE)
+        && (protocolName !== SEA_STAR)) {
 
 		$.pickProtocolError.text = "* Unsupported protocol by LTEMA at this time";
 		$.pickProtocolError.visible = true;
@@ -202,22 +209,23 @@ function doneBtn(e){
                     var utmNorthing = transects.fieldByName('utm_northing');
                     var tComments = transects.fieldByName('comments');
                     var transectID = transects.fieldByName('transect_id');
-                    var intertidalUTMTop = transects.fieldByName('intertidal_utm_top');
-                    var intertidalUTMMid = transects.fieldByName('intertidal_utm_mid');
+                    var utmZone2 = transects.fieldByName('utm_zone_2');
+                    var utmEasting2 = transects.fieldByName('utm_easting_2');
+                    var utmNorthing2 = transects.fieldByName('utm_northing_2');
                     var isBoundary = transects.fieldByName('is_boundary');
 
                     // should handle Alpine, Grasslands, and intertidal protocols. Fields are nullable.
                     db.execute('INSERT INTO transect (transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
-						utm_zone, utm_easting, utm_northing, comments, site_id, intertidal_utm_top, intertidal_utm_mid, is_boundary) \
-						VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
-                        utmEasting, utmNorthing, tComments, siteID, intertidalUTMTop, intertidalUTMMid, isBoundary);
+						utm_zone, utm_easting, utm_northing, utm_zone_2, utm_easting_2, utm_northing_2, is_boundary, comments, site_id) \
+						VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
+                        utmEasting, utmNorthing, utmZone2, utmEasting2, utmNorthing2, isBoundary, tComments, siteID);
 
                     // Get the transect_id for the last row inserted
                     results = db.execute('SELECT last_insert_rowid() as transectID');
                     var newTransectID = results.fieldByName('transectID');
 
                     // Check protocol and associate related sub-categories (plots, quadrats)
-                    if (protocolName == 'Alpine' || protocolName == 'Grasslands') {
+                    if (protocolName == ALPINE || protocolName == GRASSLAND) {
                         var plots = db.execute('SELECT * FROM plot WHERE transect_id = ?', transectID);
 
                         // Copy and associate any existing plots
@@ -260,7 +268,7 @@ function doneBtn(e){
                         transects.next();
                         plots.close();
 
-                    } else if (protocolName == 'Mobile organisms') {
+                    } else if (protocolName == NON_SESSILE) {
                         var quadrats = db.execute('SELECT * FROM quadrat WHERE transect_id = ?', transectID);
 
                         while (quadrats.isValidRow()) {
@@ -298,10 +306,10 @@ function doneBtn(e){
                         transects.next();
                         quadrats.close();
 
-                    } else if (protocolName == 'Sessile organisms') {
+                    } else if (protocolName == SESSILE) {
 
 
-                    } else if (protocolName == 'Sea stars') {
+                    } else if (protocolName == SEA_STAR) {
 
                     }
 
