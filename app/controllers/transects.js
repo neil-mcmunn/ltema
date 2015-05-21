@@ -27,7 +27,7 @@ function populateTable() {
 		//Query - Retrieve existing sites from database, and their associated protocols
 		var rows = db.execute('SELECT transect_id, transect_name, surveyor, \
 						utm_zone, utm_easting, utm_northing, media_id, \
-						intertidal_utm_top, intertidal_utm_mid, is_boundary \
+						utm_zone2, utm_easting2, utm_northing2, is_boundary \
 						FROM transect \
 						WHERE site_id = ?', $.tbl.siteID);
 
@@ -43,8 +43,9 @@ function populateTable() {
 			var utmEasting = rows.fieldByName('utm_easting');
 			var utmNorthing = rows.fieldByName('utm_northing');
 			var mediaID = rows.fieldByName('media_id');
-			var intertidalUTMTop = rows.fieldByName('intertidal_utm_top');
-			var intertidalUTMMid = rows.fieldByName('intertidal_utm_mid');
+			var utmZone2 = rows.fieldByName('utm_zone2');
+			var utmEasting2 = rows.fieldByName('utm_easting2');
+			var utmNorthing2 = rows.fieldByName('utm_northing2');
 			var isBoundary = rows.fieldByName('is_boundary');
 
 			// Base string to display on selected protocol for each entry
@@ -55,7 +56,9 @@ function populateTable() {
 				utmZone + ' E:' + utmEasting + ' N:' + utmNorthing;
 			} else if (protocolName == 'Sessile organisms' || protocolName == 'Mobile organisms' ||	protocolName == 'Sea stars') {
 				// not sure what other info to put in this msg yet
-				transectDesc = transectName + ' - ' + protocolName;
+				transectDesc = transectName + ' - Top Point:\n' +
+				'UTM Z:' + utmZone + ' E:' + utmEasting + ' N:' + utmNorthing + '\n - Mid Point:\n'
+				'UTM Z:' + utmZone2 + ' E:' + utmEasting2 + ' N:' + utmNorthing2 + protocolName;
 			}
 
 
