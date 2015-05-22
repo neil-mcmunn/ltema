@@ -55,6 +55,7 @@ function populateTable() {
 				right : 15,
 				height: 60,
 				width: 60
+				buttonid: 'info'
 			});
 			var downloadButton = Ti.UI.createButton({
 				backgroundImage:'icons/download.png',
@@ -62,7 +63,8 @@ function populateTable() {
 				backgroundSelectedImage: 'icons/download_clicked.png',
 				right : 75,
 				height: 30,
-				width: 30
+				width: 30,
+				buttonid: 'download'
 			});
 			var uploadButton = Ti.UI.createButton({
 				backgroundImage:'icons/upload.png',
@@ -70,13 +72,17 @@ function populateTable() {
 				backgroundSelectedImage: 'icons/upload_clicked.png',
 				right : 135,
 				height: 30,
-				width: 30
+				width: 30,
+				buttonid: 'upload'
 			});
 			var exportButton = Ti.UI.createButton({
-				style : Titanium.UI.iPhone.SystemButton.ACTION,
+				backgroundImage:'icons/export.png',
+				backgroundFocusedImage: 'icons/export_clicked.png',
+				backgroundSelectedImage: 'icons/export_clicked.png',
 				right : 195,
 				height: 60,
-				width: 60
+				width: 60,
+				buttonid: 'export'
 			});
 
 			newRow.add(infoButton);
@@ -156,7 +162,25 @@ $.tbl.addEventListener('click', function(e) {
 		return;
 	}
 	//info button clicked, display modal
-	if(e.source.toString() == '[object TiUIButton]') {
+	if(e.source.buttonid == 'info') {
+		var modal = Alloy.createController("siteSurveyModal", {siteID:e.rowData.siteID}).getView();
+		modal.open({
+			modal : true,
+			modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
+			modalStyle : Ti.UI.iPhone.MODAL_PRESENTATION_PAGESHEET,
+			navBarHidden : false
+		});
+	//download button clicked
+	} else if (e.source.buttonid == 'download') {
+		var modal = Alloy.createController("siteSurveyModal", {siteID:e.rowData.siteID}).getView();
+		modal.open({
+			modal : true,
+			modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
+			modalStyle : Ti.UI.iPhone.MODAL_PRESENTATION_PAGESHEET,
+			navBarHidden : false
+		});
+	//upload button clicked
+	} else if (e.source.buttonid == 'upload') {
 		var modal = Alloy.createController("siteSurveyModal", {siteID:e.rowData.siteID}).getView();
 		modal.open({
 			modal : true,
