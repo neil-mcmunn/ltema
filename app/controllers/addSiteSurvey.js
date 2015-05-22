@@ -168,7 +168,7 @@ function doneBtn(e){
 
 			var prevID = previousID.fieldByName('site_id');
 
-			if (prevID == null) {
+			if (!prevID) {
 				// Insert the new survey
 				var siteID = uuid.generateUUID();
 				db.execute('INSERT INTO site_survey (site_id, year, protocol_id, park_id) VALUES (?,?,?,?)', siteID, currentYear, protocolID, parkID);
@@ -177,6 +177,7 @@ function doneBtn(e){
 			} else {
 				//updating existing site
 				var siteID = prevID;
+				db.execute('UPDATE site_survey SET year=? WHERE site_id=?', currentYear, siteID);
 
 				var transects = db.execute('SELECT * FROM transect WHERE site_id = ?', siteID);
 			
