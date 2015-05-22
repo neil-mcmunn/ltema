@@ -54,7 +54,7 @@ function populateTable() {
 				style : Titanium.UI.iPhone.SystemButton.DISCLOSURE,
 				right : 15,
 				height: 60,
-				width: 60
+				width: 60,
 				buttonid: 'info'
 			});
 			var downloadButton = Ti.UI.createButton({
