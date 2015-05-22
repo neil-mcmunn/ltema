@@ -95,7 +95,7 @@ var titleLabel = Titanium.UI.createLabel({
 	top:10,
 	text:parkName,
 	textAlign:'center',
-	font:{fontSize:20,fontWeight:'bold'},
+	font:{fontSize:20,fontWeight:'bold'}
 });
 
 // associate label to title

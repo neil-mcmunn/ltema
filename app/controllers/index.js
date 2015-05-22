@@ -56,7 +56,33 @@ function populateTable() {
 				height: 60,
 				width: 60
 			});
+			var downloadButton = Ti.UI.createButton({
+				backgroundImage:'download.png',
+				backgroundFocusedImage: 'download_clicked.png',
+				backgroundSelectedImage: 'download_clicked.png',
+				right : 15,
+				height: 60,
+				width: 60
+			});
+			var uploadButton = Ti.UI.createButton({
+				backgroundImage:'upload.png',
+				backgroundFocusedImage: 'upload_clicked.png',
+				backgroundSelectedImage: 'upload_clicked.png',
+				right : 15,
+				height: 60,
+				width: 60
+			});
+			var exportButton = Ti.UI.createButton({
+				style : Titanium.UI.iPhone.SystemButton.ACTION,
+				right : 15,
+				height: 60,
+				width: 60
+			});
+
 			newRow.add(infoButton);
+			newRow.add(downloadButton);
+			newRow.add(uploadButton);
+			newRow.add(exportButton);
 			
 			//Add row to the table view
 			$.tbl.appendRow(newRow);
