@@ -120,8 +120,6 @@ function createButtons(rows, downloadExists) {
 
 		//Add row to the table view
 		$.tbl.appendRow(newRow);
-
-		rows.next();
 	}
 
 }
