@@ -43,11 +43,11 @@ function checkSurveys() {
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	}
 	finally {
-		httpClient.close();
+
 	}
 }
 
-function createButtons(rows, exists) {
+function createButtons(rows, downloadExists) {
 	//Get requested data from each row in table
 	while (rows.isValidRow()) {
 		var siteID = rows.fieldByName('site_id');
@@ -58,16 +58,25 @@ function createButtons(rows, exists) {
 		//create a string from each entry
 		var siteSurvey = year + ' - ' + protocolName + ' - ' + parkName;
 
-		//create a new row
-		var newRow = Ti.UI.createTableViewRow({
-			title : siteSurvey,
-			siteID : siteID,
-			parkName: parkName, //not visible, but passed to transects screen
-			height: 60,
-			font: {fontSize: 20},
-			color: 'gray'
-		});
-
+		//create a new row (gray out if not downloaded)
+		if (downloadExists) {
+			var newRow = Ti.UI.createTableViewRow({
+				title: siteSurvey,
+				siteID: siteID,
+				parkName: parkName, //not visible, but passed to transects screen
+				height: 60,
+				font: {fontSize: 20}
+			});
+		} else {
+			var newRow = Ti.UI.createTableViewRow({
+				title: siteSurvey,
+				siteID: siteID,
+				parkName: parkName, //not visible, but passed to transects screen
+				height: 60,
+				font: {fontSize: 20},
+				color: 'gray'
+			});
+		}
 		//create and add info icon for the row
 		var infoButton = Ti.UI.createButton({
 			style : Titanium.UI.iPhone.SystemButton.DISCLOSURE,
@@ -140,9 +149,7 @@ function populateTable() {
 
 		// separate downloaded and available surveys
 		var downloadedSurveys = [];
-		var counter = 0;
-		while (cloudRows.isValidRow()){
-			counter++;
+		for (var i = 0; i < cloudRows.length; i++) {
 			while (rows.isValidRow()) {
 				var protocolNameOnDevice = rows.fieldByName('protocol_name');
 				var protocolNameOnCloud = cloudRows.fieldByName('protocol_name');
@@ -157,7 +164,7 @@ function populateTable() {
 					downloadedSurveys.push(results);
 
 					// remove this row from rows array
-					cloudRows.splice(counter, 1);
+					cloudRows.splice(i, 1);
 				}
 				rows.next();
 			}
