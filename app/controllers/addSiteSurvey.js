@@ -168,9 +168,14 @@ function doneBtn(e){
 
 			var prevID = previousID.fieldByName('site_id');
 
+			console.log('id line 171: \n' + prevID);
+
 			if (!prevID) {
 				// Insert the new survey
 				var siteID = uuid.generateUUID();
+
+				console.log('if line 177: \n' + siteID);
+
 				db.execute('INSERT INTO site_survey (site_id, year, protocol_id, park_id) VALUES (?,?,?,?)', siteID, currentYear, protocolID, parkID);
 
 			// Get the transects associated with the survey
