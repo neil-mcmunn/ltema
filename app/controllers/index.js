@@ -60,21 +60,21 @@ function populateTable() {
 				backgroundImage:'icons/download.png',
 				backgroundFocusedImage: 'icons/download_clicked.png',
 				backgroundSelectedImage: 'icons/download_clicked.png',
-				right : 90,
-				height: 60,
-				width: 60
+				right : 75,
+				height: 30,
+				width: 30
 			});
 			var uploadButton = Ti.UI.createButton({
 				backgroundImage:'icons/upload.png',
 				backgroundFocusedImage: 'icons/upload_clicked.png',
 				backgroundSelectedImage: 'icons/upload_clicked.png',
-				right : 165,
-				height: 60,
-				width: 60
+				right : 135,
+				height: 30,
+				width: 30
 			});
 			var exportButton = Ti.UI.createButton({
 				style : Titanium.UI.iPhone.SystemButton.ACTION,
-				right : 240,
+				right : 195,
 				height: 60,
 				width: 60
 			});
