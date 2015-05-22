@@ -57,8 +57,8 @@
       <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.37533513">
-              <caret line="69" column="56" selection-start-line="69" selection-start-column="56" selection-end-line="69" selection-end-column="56" />
+            <state vertical-scroll-proportion="0.6487936">
+              <caret line="69" column="42" selection-start-line="69" selection-start-column="42" selection-end-line="69" selection-end-column="42" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -365,7 +365,13 @@
       <option name="project" value="LOCAL" />
       <updated>1432316712523</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="update UI button locations">
+      <created>1432318321120</created>
+      <option name="number" value="00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1432318321120</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -412,7 +418,8 @@
     <MESSAGE value="update database" />
     <MESSAGE value="update add transect view" />
     <MESSAGE value="add UI buttons to index" />
-    <option name="LAST_COMMIT_MESSAGE" value="add UI buttons to index" />
+    <MESSAGE value="update UI button locations" />
+    <option name="LAST_COMMIT_MESSAGE" value="update UI button locations" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -544,8 +551,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.37533513">
-          <caret line="69" column="56" selection-start-line="69" selection-start-column="56" selection-end-line="69" selection-end-column="56" />
+        <state vertical-scroll-proportion="0.6487936">
+          <caret line="69" column="42" selection-start-line="69" selection-start-column="42" selection-end-line="69" selection-end-column="42" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
