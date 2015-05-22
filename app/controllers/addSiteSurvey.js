@@ -172,14 +172,14 @@ function doneBtn(e){
 
 			if (!prevID) {
 				// Insert the new survey
-				var siteID = uuid.generateUUID();
+				var siteID = String(uuid.generateUUID());
 
-				console.log('id line 177: \n' + siteID);
+				console.log('id line 177: \n');
 				console.log('variable types:\n');
-				console.log('siteID: ' + typeof siteID);
-				console.log('currentYear: ' + typeof currentYear);
-				console.log('protocolID: ' + typeof protocolID);
-				console.log('parkID: ' + typeof parkID);
+				console.log('siteID: ' + typeof siteID + 'as ' + siteID);
+				console.log('currentYear: ' + typeof currentYear + 'as ' + currentYear);
+				console.log('protocolID: ' + typeof protocolID + 'as ' + protocolID);
+				console.log('parkID: ' + typeof parkID + 'as ' + parkID);
 
 				db.execute('INSERT INTO site_survey (site_id, year, protocol_id, park_id) VALUES (?,?,?,?)', siteID, currentYear, protocolID, parkID);
 
