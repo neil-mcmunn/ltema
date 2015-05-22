@@ -6,6 +6,7 @@
 
 var args = arguments[0];
 var siteID = args.siteID;
+var uuid = require('uuid');
 
 // Initialize Variables
 var photo;

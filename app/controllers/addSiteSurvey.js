@@ -6,6 +6,7 @@
 // Tabbed Bar Labels
 var pickBiomeLabels = [];
 var pickProtocolLabels = [];
+var uuid = require('uuid');
 
 // Populate the biome TabbedBar with database-derived labels
 try {
@@ -161,31 +162,27 @@ function doneBtn(e){
 			var parkID = parkResult.fieldByName('park_id');
 			
 			// Check if this site has been previously surveyed
-			var previousSurveys = db.execute('SELECT site_id FROM site_survey \
+			var previousID = db.execute('SELECT site_id FROM site_survey \
 											WHERE protocol_id = ? \
 											AND park_id = ?', protocolID, parkID);
-			
-			// Get the most recently entered survey
-			var id;								
-			while (previousSurveys.isValidRow()) {
-				id = previousSurveys.fieldByName('site_id');
-				previousSurveys.next();
-			}
-			
-			
-			// Insert the new survey
-			db.execute( 'INSERT INTO site_survey (year, protocol_id, park_id) VALUES (?,?,?)', currentYear, protocolID, parkID);
-			
-			//get the id of the last row inserted into the database - *not sure if this is acceptable sql code to use?
-			var results = db.execute('SELECT last_insert_rowid() as siteID');
-			var siteID = results.fieldByName('siteID');
-			
+
+			var prevID = previousID.fieldByName('site_id');
+
+			if (prevID == null) {
+				// Insert the new survey
+				var siteID = uuid.generateUUID();
+				db.execute('INSERT INTO site_survey (site_id, year, protocol_id, park_id) VALUES (?,?,?,?)', siteID, currentYear, protocolID, parkID);
+
 			// Get the transects associated with the survey
-			if (id != null) {
-				var transects = db.execute('SELECT * FROM transect WHERE site_id = ?', id);
+			} else {
+				//updating existing site
+				var siteID = prevID;
+
+				var transects = db.execute('SELECT * FROM transect WHERE site_id = ?', siteID);
 			
 				// Copy and associate any exiting transects
 				while (transects.isValidRow()) {
+					var transectID = transects.fieldByName('transect_id');
 					var transectName = transects.fieldByName('transect_name');
 					var surveyor = transects.fieldByName('surveyor');
 					var otherSurveyors = transects.fieldByName('other_surveyors');
@@ -197,20 +194,17 @@ function doneBtn(e){
 					var tComments = transects.fieldByName('comments');
 					var transectID = transects.fieldByName('transect_id');
 					
-					db.execute('INSERT INTO transect (transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
+					db.execute('INSERT INTO transect (transect_id, transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
 						utm_zone, utm_easting, utm_northing, comments, site_id) \
-						VALUES (?,?,?,?,?,?,?,?,?,?)', transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone, 
+						VALUES (?,?,?,?,?,?,?,?,?,?,?)', transectID, transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
 						utmEasting, utmNorthing, tComments, siteID);
-					
-					// Get the transect_id for the last row inserted	
-					results = db.execute('SELECT last_insert_rowid() as transectID');
-					var newTransectID = results.fieldByName('transectID');
-					
+
 					// Get any plots associated with the transect
 					var plots = db.execute('SELECT * FROM plot WHERE transect_id = ?', transectID);
 					
 					// Copy and associate any existing plots
 					while (plots.isValidRow()) {
+						var plotID = plots.fieldByName('plot_id');
 						var plotName = plots.fieldByName('plot_name');
 						var plotUtmZone = plots.fieldByName('utm_zone');
 						var plotUtmEasting = plots.fieldByName('utm_easting');
@@ -221,26 +215,23 @@ function doneBtn(e){
 						var comments = plots.fieldByName('comments');
 						var plotID = plots.fieldByName('plot_id');
 						
-						db.execute('INSERT INTO plot (plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation, \
-							transect_id, comments) VALUES (?,?,?,?,?,?,?,?,?)', plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
-							utc, stakeDeviation, distanceDeviation, newTransectID, comments);
-						
-						// Get the plot_id for the last row inserted
-						results = db.execute('SELECT last_insert_rowid() as plotID');
-						var newPlotID = results.fieldByName('plotID');
-						
+						db.execute('INSERT INTO plot (plot_id, plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation, \
+							transect_id, comments) VALUES (?,?,?,?,?,?,?,?,?,?)', plotID, plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
+							utc, stakeDeviation, distanceDeviation, transectID, comments);
+
 						// Get any plot observations associated with the plot
 						var observations = db.execute('SELECT * FROM plot_observation WHERE plot_id = ?', plotID);
 						
 						// Copy and associate any existing plot observations
 						while (observations.isValidRow()){
+							var observationID = uuid.generateUUID();
 							var observation = observations.fieldByName('observation');
 							var groundCover = 0;
 							var count = observations.fieldByName('count');
 							var observationComments = observations.fieldByName('comments');
 						
-							db.execute('INSERT INTO plot_observation (observation, ground_cover, count, comments, plot_id) \
-								VALUES (?,?,?,?,?)', observation, groundCover, count, observationComments, newPlotID);
+							db.execute('INSERT INTO plot_observation (observation_id, observation, ground_cover, count, comments, plot_id) \
+								VALUES (?,?,?,?,?,?)', observationID, observation, groundCover, count, observationComments, plotID);
 							
 							observations.next();
 						}	
@@ -285,7 +276,7 @@ var win = Ti.UI.createWindow({
 	top : 135,
 	borderRadius : 0,
 	borderWidth: 3,
-	title : 'park names',
+	title : 'park names'
 });
 
 

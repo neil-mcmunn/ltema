@@ -6,6 +6,7 @@
 
 var args = arguments[0];
 var plotID = args.plotID;
+var uuid = require('uuid');
 
 // Get the siteID
 var siteID;

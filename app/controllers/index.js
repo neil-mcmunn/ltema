@@ -13,88 +13,153 @@ Ti.Geolocation.removeEventListener('location', function(e) {});
 //Prompt the user to allow applicaiton to use location services
 Titanium.Geolocation.getCurrentPosition(function(e) {});
 
+var surveyList;
+
 populateTable();
+
+function checkSurveys() {
+	try {
+		var url = "https://capstone-ltemac.herokuapp.com/getSurveys";
+		var httpClient = Ti.Network.createHTTPClient({
+			onload : function(e) {
+				surveyList = JSON.parse(this.responseText);
+				alert('success');
+			},
+			onerror : function(e) {
+				alert('error');
+			},
+			timeout : 30,
+
+			validatesSecureCertificate: true
+		});
+
+		httpClient.open("GET", url);
+		httpClient.send();
+	}
+	catch (e) {
+
+	}
+	finally {
+
+	}
+}
+
+function createButtons(rows, exists) {
+	//Get requested data from each row in table
+	while (rows.isValidRow()) {
+		var siteID = rows.fieldByName('site_id');
+		var year = rows.fieldByName('year');
+		var protocolName = rows.fieldByName('protocol_name');
+		var parkName = rows.fieldByName('park_name');
+
+		//create a string from each entry
+		var siteSurvey = year + ' - ' + protocolName + ' - ' + parkName;
+
+		//create a new row
+		var newRow = Ti.UI.createTableViewRow({
+			title : siteSurvey,
+			siteID : siteID,
+			parkName: parkName, //not visible, but passed to transects screen
+			height: 60,
+			font: {fontSize: 20},
+			color: 'gray'
+		});
+
+		//create and add info icon for the row
+		var infoButton = Ti.UI.createButton({
+			style : Titanium.UI.iPhone.SystemButton.DISCLOSURE,
+			right : 15,
+			height: 60,
+			width: 60,
+			buttonid: 'info'
+		});
+		var downloadButton = Ti.UI.createButton({
+			backgroundImage:'icons/download.png',
+			backgroundFocusedImage: 'icons/download_clicked.png',
+			backgroundSelectedImage: 'icons/download_clicked.png',
+			right : 75,
+			height: 30,
+			width: 30,
+			buttonid: 'download'
+		});
+		var uploadButton = Ti.UI.createButton({
+			backgroundImage:'icons/upload.png',
+			backgroundFocusedImage: 'icons/upload_clicked.png',
+			backgroundSelectedImage: 'icons/upload_clicked.png',
+			right : 135,
+			height: 30,
+			width: 30,
+			buttonid: 'upload'
+		});
+		var exportButton = Ti.UI.createButton({
+			backgroundImage:'icons/export.png',
+			backgroundFocusedImage: 'icons/export_clicked.png',
+			backgroundSelectedImage: 'icons/export_clicked.png',
+			right : 195,
+			height: 60,
+			width: 60,
+			buttonid: 'export'
+		});
+
+		newRow.add(infoButton);
+		newRow.add(downloadButton);
+		newRow.add(uploadButton);
+		newRow.add(exportButton);
+
+		//Add row to the table view
+		$.tbl.appendRow(newRow);
+
+		rows.next();
+	}
+}
 
 function populateTable() {
 	$.addSite.enabled = true;
 	//Clear the table if there is anything in it
 	var rd = []; 
 	$.tbl.data = rd;
+
 	try {
 		//open database
 		var db = Ti.Database.open('ltemaDB');
-		
+
+		// get list of all surveys on cloud
+		var cloudRows = checkSurveys().rows;
+
 		//Query - Retrieve existing sites from database
 		var rows = db.execute('SELECT site_id, year, protocol_name, park_name \
 						FROM site_survey s, protocol p, park prk \
 						WHERE s.protocol_id = p.protocol_id \
 						AND s.park_id = prk.park_id ');
-		
-		//Get requested data from each row in table
-		while (rows.isValidRow()) {	
-			var siteID = rows.fieldByName('site_id');
-			var year = rows.fieldByName('year');
-			var protocolName = rows.fieldByName('protocol_name');
-			var parkName = rows.fieldByName('park_name');
-			
-			//create a string from each entry
-			var siteSurvey = year + ' - ' + protocolName + ' - ' + parkName; 
-			
-			//create a new row
-			var newRow = Ti.UI.createTableViewRow({
-				title : siteSurvey,
-				siteID : siteID,
-				parkName: parkName, //not visible, but passed to transects screen
-				height: 60,
-				font: {fontSize: 20}
-			});
-			
-			//create and add info icon for the row
-			var infoButton = Ti.UI.createButton({
-				style : Titanium.UI.iPhone.SystemButton.DISCLOSURE,
-				right : 15,
-				height: 60,
-				width: 60,
-				buttonid: 'info'
-			});
-			var downloadButton = Ti.UI.createButton({
-				backgroundImage:'icons/download.png',
-				backgroundFocusedImage: 'icons/download_clicked.png',
-				backgroundSelectedImage: 'icons/download_clicked.png',
-				right : 75,
-				height: 30,
-				width: 30,
-				buttonid: 'download'
-			});
-			var uploadButton = Ti.UI.createButton({
-				backgroundImage:'icons/upload.png',
-				backgroundFocusedImage: 'icons/upload_clicked.png',
-				backgroundSelectedImage: 'icons/upload_clicked.png',
-				right : 135,
-				height: 30,
-				width: 30,
-				buttonid: 'upload'
-			});
-			var exportButton = Ti.UI.createButton({
-				backgroundImage:'icons/export.png',
-				backgroundFocusedImage: 'icons/export_clicked.png',
-				backgroundSelectedImage: 'icons/export_clicked.png',
-				right : 195,
-				height: 60,
-				width: 60,
-				buttonid: 'export'
-			});
 
-			newRow.add(infoButton);
-			newRow.add(downloadButton);
-			newRow.add(uploadButton);
-			newRow.add(exportButton);
-			
-			//Add row to the table view
-			$.tbl.appendRow(newRow);
-		
-			rows.next();
+
+		var downloadedSurveys = [];
+		var availableSurveys = [];
+		while (cloudRows.isValidRow()){
+			while (rows.isValidRow()) {
+				var protocolNameOnDevice = rows.fieldByName('protocol_name');
+				var parkNameOnDevice = rows.fieldByName('park_name');
+				var protocolNameOnCloud = cloudRows.fieldByName('protocol_name');
+				var parkNameOnCloud = cloudRows.fieldByName('park_name');
+
+				// already downloaded
+				if ((protocolNameOnCloud == protocolNameOnDevice) && (parkNameOnCloud == parkNameOnDevice)) {
+					var siteID = rows.fieldByName('site_id');
+					var year = rows.fieldByName('year');
+					var results = [siteID, year, protocolNameOnDevice, parkNameOnDevice];
+					downloadedSurveys.push(results);
+				} else {
+					var siteIDOnCloud = cloudRows.fieldByName('site_id');
+					var yearOnCloud = cloudRows.fieldByName('year');
+					var results = [siteIDOnCloud, yearOnCloud, protocolNameOnCloud, parkNameOnCloud];
+					availableSurveys.push(results);
+				}
+			}
 		}
+
+		createButtons(downloadedSurveys, true);
+		createButtons(availableSurveys, false);
+
 	} catch(e){
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
@@ -104,6 +169,15 @@ function populateTable() {
 		toggleEditBtn();
 	}
 }
+
+function download() {
+
+}
+
+function upload() {
+
+}
+
 
 /* Nav Bar Label */
 

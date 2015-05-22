@@ -6,6 +6,7 @@
 
 var args = arguments[0];
 var transectID = args.transectID;
+var uuid = require('uuid');
 
 // Get the plot name and the transect defaults for stake orientation and plot distance
 try {
