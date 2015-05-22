@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="427bbe56-2c44-4d98-8007-3cea5801674a" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/controllers/addSiteSurvey.js" afterPath="$PROJECT_DIR$/app/controllers/addSiteSurvey.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/controllers/index.js" afterPath="$PROJECT_DIR$/app/controllers/index.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="LTEMA.iws" />
@@ -59,8 +59,8 @@
       <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="1.0925926">
-              <caret line="161" column="52" selection-start-line="161" selection-start-column="52" selection-end-line="161" selection-end-column="52" />
+            <state vertical-scroll-proportion="3.6111112">
+              <caret line="144" column="55" selection-start-line="144" selection-start-column="55" selection-end-line="144" selection-end-column="55" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -71,7 +71,7 @@
       <file leaf-file-name="addSiteSurvey.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/controllers/addSiteSurvey.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-2.3059866">
+            <state vertical-scroll-proportion="0.2949002">
               <caret line="181" column="18" selection-start-line="181" selection-start-column="18" selection-end-line="181" selection-end-column="18" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
@@ -119,8 +119,8 @@
         <option value="$PROJECT_DIR$/app/controllers/addPlot.js" />
         <option value="$PROJECT_DIR$/app/controllers/addPlotObservation.js" />
         <option value="$PROJECT_DIR$/app/controllers/addTransect.js" />
-        <option value="$PROJECT_DIR$/app/controllers/index.js" />
         <option value="$PROJECT_DIR$/app/controllers/addSiteSurvey.js" />
+        <option value="$PROJECT_DIR$/app/controllers/index.js" />
       </list>
     </option>
   </component>
@@ -499,7 +499,13 @@
       <option name="project" value="LOCAL" />
       <updated>1432334417220</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="add site survey issue">
+      <created>1432335183249</created>
+      <option name="number" value="00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1432335183249</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -553,7 +559,8 @@
     <MESSAGE value="fix support for check surveys" />
     <MESSAGE value="update db" />
     <MESSAGE value="fix loop in check surveys" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix loop in check surveys" />
+    <MESSAGE value="add site survey issue" />
+    <option name="LAST_COMMIT_MESSAGE" value="add site survey issue" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -765,16 +772,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.0925926">
-          <caret line="161" column="52" selection-start-line="161" selection-start-column="52" selection-end-line="161" selection-end-column="52" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/lib/camera.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-0.8851485">
@@ -803,9 +800,19 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="3.6111112">
+          <caret line="144" column="55" selection-start-line="144" selection-start-column="55" selection-end-line="144" selection-end-column="55" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/app/controllers/addSiteSurvey.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-2.3059866">
+        <state vertical-scroll-proportion="0.2949002">
           <caret line="181" column="18" selection-start-line="181" selection-start-column="18" selection-end-line="181" selection-end-column="18" />
           <folding>
             <element signature="n#!!doc" expanded="true" />

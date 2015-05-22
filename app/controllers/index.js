@@ -144,7 +144,6 @@ function populateTable() {
 						WHERE s.protocol_id = p.protocol_id \
 						AND s.park_id = prk.park_id ');
 
-
 		// separate downloaded and available surveys
 		var downloadedSurveys = [];
 		for (var i = 0; i < cloudRows.length; i++) {
@@ -176,7 +175,6 @@ function populateTable() {
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
-		rows.close();
 		db.close();
 		toggleEditBtn();
 	}
