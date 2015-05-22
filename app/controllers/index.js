@@ -13,7 +13,7 @@ Ti.Geolocation.removeEventListener('location', function(e) {});
 //Prompt the user to allow applicaiton to use location services
 Titanium.Geolocation.getCurrentPosition(function(e) {});
 
-var surveyList;
+var surveyList = [];
 
 populateTable();
 
@@ -33,14 +33,17 @@ function checkSurveys() {
 			validatesSecureCertificate: true
 		});
 
-		httpClient.open("GET", url);
+		// the 'false' optional parameter makes this a synchronous call
+		httpClient.open("GET", url, false);
+		httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
 		httpClient.send();
 	}
 	catch (e) {
-
+		var errorMessage = e.message;
+		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	}
 	finally {
-
+		httpClient.close();
 	}
 }
 
@@ -111,6 +114,8 @@ function createButtons(rows, exists) {
 
 		rows.next();
 	}
+
+	rows.close();
 }
 
 function populateTable() {
@@ -124,7 +129,8 @@ function populateTable() {
 		var db = Ti.Database.open('ltemaDB');
 
 		// get list of all surveys on cloud
-		var cloudRows = checkSurveys().rows;
+		checkSurveys();
+		var cloudRows = surveyList;
 
 		//Query - Retrieve existing sites from database
 		var rows = db.execute('SELECT site_id, year, protocol_name, park_name \
@@ -133,13 +139,15 @@ function populateTable() {
 						AND s.park_id = prk.park_id ');
 
 
+		// separate downloaded and available surveys
 		var downloadedSurveys = [];
-		var availableSurveys = [];
+		var counter = 0;
 		while (cloudRows.isValidRow()){
+			counter++;
 			while (rows.isValidRow()) {
 				var protocolNameOnDevice = rows.fieldByName('protocol_name');
-				var parkNameOnDevice = rows.fieldByName('park_name');
 				var protocolNameOnCloud = cloudRows.fieldByName('protocol_name');
+				var parkNameOnDevice = rows.fieldByName('park_name');
 				var parkNameOnCloud = cloudRows.fieldByName('park_name');
 
 				// already downloaded
@@ -148,15 +156,16 @@ function populateTable() {
 					var year = rows.fieldByName('year');
 					var results = [siteID, year, protocolNameOnDevice, parkNameOnDevice];
 					downloadedSurveys.push(results);
-				} else {
-					var siteIDOnCloud = cloudRows.fieldByName('site_id');
-					var yearOnCloud = cloudRows.fieldByName('year');
-					var results = [siteIDOnCloud, yearOnCloud, protocolNameOnCloud, parkNameOnCloud];
-					availableSurveys.push(results);
+
+					// remove this row from rows array
+					cloudRows.splice(counter, 1);
 				}
+				rows.next();
 			}
+			cloudRows.next();
 		}
 
+		var availableSurveys = cloudRows;
 		createButtons(downloadedSurveys, true);
 		createButtons(availableSurveys, false);
 
@@ -165,6 +174,7 @@ function populateTable() {
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
 		rows.close();
+		cloudRows.close();
 		db.close();
 		toggleEditBtn();
 	}
