@@ -168,7 +168,6 @@ function populateTable() {
 				}
 				rows.next();
 			}
-			cloudRows.next();
 		}
 
 		var availableSurveys = cloudRows;
