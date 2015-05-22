@@ -59,8 +59,8 @@
       <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.05543237">
-              <caret line="152" column="37" selection-start-line="152" selection-start-column="37" selection-end-line="152" selection-end-column="37" />
+            <state vertical-scroll-proportion="0.7738359">
+              <caret line="174" column="21" selection-start-line="174" selection-start-column="21" selection-end-line="174" selection-end-column="21" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -473,7 +473,13 @@
       <option name="project" value="LOCAL" />
       <updated>1432328087590</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="fix support for check surveys">
+      <created>1432331290173</created>
+      <option name="number" value="00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1432331290173</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -524,7 +530,8 @@
     <MESSAGE value="resize images" />
     <MESSAGE value="add button ids" />
     <MESSAGE value="add support for check surveys" />
-    <option name="LAST_COMMIT_MESSAGE" value="add support for check surveys" />
+    <MESSAGE value="fix support for check surveys" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix support for check surveys" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -758,8 +765,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.05543237">
-          <caret line="152" column="37" selection-start-line="152" selection-start-column="37" selection-end-line="152" selection-end-column="37" />
+        <state vertical-scroll-proportion="0.7738359">
+          <caret line="174" column="21" selection-start-line="174" selection-start-column="21" selection-end-line="174" selection-end-column="21" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>

@@ -115,7 +115,6 @@ function createButtons(rows, exists) {
 		rows.next();
 	}
 
-	rows.close();
 }
 
 function populateTable() {
@@ -174,7 +173,6 @@ function populateTable() {
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
 		rows.close();
-		cloudRows.close();
 		db.close();
 		toggleEditBtn();
 	}
