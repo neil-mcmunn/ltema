@@ -250,7 +250,6 @@ function doneBtn(e){
 		} finally {
 			protocolResult.close();
 			parkResult.close();
-			previousSurveys.close();
 			results.close();
 			db.close();
 			Ti.App.fireEvent("app:refreshSiteSurveys");
