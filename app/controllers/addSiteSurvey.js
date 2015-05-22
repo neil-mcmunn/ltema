@@ -178,6 +178,8 @@ function doneBtn(e){
 
 				db.execute('INSERT INTO site_survey (site_id, year, protocol_id, park_id) VALUES (?,?,?,?)', siteID, currentYear, protocolID, parkID);
 
+				console.log('after insert line 181');
+
 			// Get the transects associated with the survey
 			} else {
 				//updating existing site

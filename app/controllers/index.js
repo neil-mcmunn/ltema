@@ -138,6 +138,8 @@ function populateTable() {
 		checkSurveys();
 		var cloudRows = surveyList;
 
+		console.log('cloudRows line 141 index.js \n' + cloudRows);
+
 		//Query - Retrieve existing sites from database
 		var rows = db.execute('SELECT site_id, year, protocol_name, park_name \
 						FROM site_survey s, protocol p, park prk \
@@ -167,7 +169,9 @@ function populateTable() {
 			}
 		}
 
+		console.log ('downloadedSurveys line 170 index.js \n' + downloadedSurveys);
 		var availableSurveys = cloudRows;
+		console.log ('availableSurveys line 172 index.js \n' + availableSurveys);
 		createButtons(downloadedSurveys, true);
 		createButtons(availableSurveys, false);
 
