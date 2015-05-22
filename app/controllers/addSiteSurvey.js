@@ -31,7 +31,7 @@ var titleLabel = Titanium.UI.createLabel({
 	top:10,
 	text: 'New Site Survey',
 	textAlign:'center',
-	font:{fontSize:20,fontWeight:'bold'},
+	font:{fontSize:20,fontWeight:'bold'}
 });
 $.addSiteSurveyWin.setTitleControl(titleLabel);
 
@@ -179,6 +179,7 @@ function doneBtn(e){
 				var siteID = prevID;
 				db.execute('UPDATE site_survey SET year=? WHERE site_id=?', currentYear, siteID);
 
+				/*
 				var transects = db.execute('SELECT * FROM transect WHERE site_id = ?', siteID);
 			
 				// Copy and associate any exiting transects
@@ -243,6 +244,7 @@ function doneBtn(e){
 				observations.close();
 				plots.close();
 				transects.close();
+				*/
 			}
 					
 		} catch (e){
