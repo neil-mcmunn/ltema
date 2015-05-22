@@ -57,24 +57,24 @@ function populateTable() {
 				width: 60
 			});
 			var downloadButton = Ti.UI.createButton({
-				backgroundImage:'download.png',
-				backgroundFocusedImage: 'download_clicked.png',
-				backgroundSelectedImage: 'download_clicked.png',
-				right : 15,
+				backgroundImage:'/iphone/icons/download.png',
+				backgroundFocusedImage: '/iphone/icons/download_clicked.png',
+				backgroundSelectedImage: '/iphone/icons/download_clicked.png',
+				right : 90,
 				height: 60,
 				width: 60
 			});
 			var uploadButton = Ti.UI.createButton({
-				backgroundImage:'upload.png',
-				backgroundFocusedImage: 'upload_clicked.png',
-				backgroundSelectedImage: 'upload_clicked.png',
-				right : 15,
+				backgroundImage:'/iphone/icons/upload.png',
+				backgroundFocusedImage: '/iphone/icons/upload_clicked.png',
+				backgroundSelectedImage: '/iphone/icons/upload_clicked.png',
+				right : 165,
 				height: 60,
 				width: 60
 			});
 			var exportButton = Ti.UI.createButton({
 				style : Titanium.UI.iPhone.SystemButton.ACTION,
-				right : 15,
+				right : 240,
 				height: 60,
 				width: 60
 			});
