@@ -40,7 +40,7 @@ function checkSurveys() {
 	}
 	catch (e) {
 		var errorMessage = e.message;
-		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+		console.log('error in checkSurveys: ' + errorMessage);
 	}
 	finally {
 
@@ -138,7 +138,10 @@ function populateTable() {
 		checkSurveys();
 		var cloudRows = surveyList;
 
-		console.log('cloudRows line 141 index.js \n' + cloudRows);
+		console.log('cloudRows line 141 index.js: \n' + cloudRows);
+
+		var testArray = [1, 2, 3, 4, 5];
+		console.log('test array: ' + testArray);
 
 		//Query - Retrieve existing sites from database
 		var rows = db.execute('SELECT site_id, year, protocol_name, park_name \
@@ -169,9 +172,10 @@ function populateTable() {
 			}
 		}
 
-		console.log ('downloadedSurveys line 170 index.js \n' + downloadedSurveys);
+		console.log ('downloadedSurveys line 172 index.js: \n' + downloadedSurveys);
 		var availableSurveys = cloudRows;
-		console.log ('availableSurveys line 172 index.js \n' + availableSurveys);
+		console.log ('availableSurveys line 174 index.js: \n' + availableSurveys);
+
 		createButtons(downloadedSurveys, true);
 		createButtons(availableSurveys, false);
 
