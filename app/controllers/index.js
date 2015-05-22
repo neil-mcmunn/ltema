@@ -49,7 +49,7 @@ function checkSurveys() {
 
 function createButtons(rows, downloadExists) {
 	//Get requested data from each row in table
-	while (rows.isValidRow()) {
+	for (var i = 0; i < rows.length; i++) {
 		var siteID = rows.fieldByName('site_id');
 		var year = rows.fieldByName('year');
 		var protocolName = rows.fieldByName('protocol_name');
