@@ -176,10 +176,10 @@ function doneBtn(e){
 
 				console.log('id line 177: \n' + siteID);
 				console.log('variable types:\n');
-				console.log('siteID: ' + typeof(siteID));
-				console.log('currentYear: ' + typeof(currentYear));
-				console.log('protocolID: ' + typeof(protocolID));
-				console.log('parkID: ' + typeof(parkID));
+				console.log('siteID: ' + typeof siteID);
+				console.log('currentYear: ' + typeof currentYear);
+				console.log('protocolID: ' + typeof protocolID);
+				console.log('parkID: ' + typeof parkID);
 
 				db.execute('INSERT INTO site_survey (site_id, year, protocol_id, park_id) VALUES (?,?,?,?)', siteID, currentYear, protocolID, parkID);
 

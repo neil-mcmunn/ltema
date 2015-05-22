@@ -72,7 +72,7 @@
         <entry file="file://$PROJECT_DIR$/app/controllers/addSiteSurvey.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.7472284">
-              <caret line="181" column="57" selection-start-line="181" selection-start-column="57" selection-end-line="181" selection-end-column="57" />
+              <caret line="181" column="56" selection-start-line="181" selection-start-column="56" selection-end-line="181" selection-end-column="56" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -529,7 +529,13 @@
       <option name="project" value="LOCAL" />
       <updated>1432336749076</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="add console.log statements">
+      <created>1432337055212</created>
+      <option name="number" value="00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1432337055212</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -838,7 +844,7 @@
     <entry file="file://$PROJECT_DIR$/app/controllers/addSiteSurvey.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.7472284">
-          <caret line="181" column="57" selection-start-line="181" selection-start-column="57" selection-end-line="181" selection-end-column="57" />
+          <caret line="181" column="56" selection-start-line="181" selection-start-column="56" selection-end-line="181" selection-end-column="56" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
