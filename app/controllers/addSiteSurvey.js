@@ -165,7 +165,7 @@ function doneBtn(e){
 			var previousID = db.execute('SELECT site_id FROM site_survey \
 											WHERE protocol_id = ? \
 											AND park_id = ?', protocolID, parkID);
-
+			previousID.close();
 			var prevID = previousID.fieldByName('site_id');
 
 			console.log('id line 171: \n' + prevID);
@@ -181,8 +181,8 @@ function doneBtn(e){
 				console.log('protocolID: ' + typeof protocolID + 'as ' + protocolID);
 				console.log('parkID: ' + typeof parkID + 'as ' + parkID);
 
-				db.execute('INSERT INTO site_survey (site_id, year, protocol_id, park_id) VALUES (?,?,?,?)', siteID, currentYear, protocolID, parkID);
-
+				var newSite = db.execute('INSERT INTO site_survey (site_id, year, protocol_id, park_id) VALUES (?,?,?,?)', siteID, currentYear, protocolID, parkID);
+				newSite.close();
 				console.log('after insert line 181');
 
 			// Get the transects associated with the survey
