@@ -140,9 +140,6 @@ function populateTable() {
 
 		console.log('cloudRows line 141 index.js: \n' + cloudRows);
 
-		var testArray = [1, 2, 3, 4, 5];
-		console.log('test array: ' + testArray);
-
 		//Query - Retrieve existing sites from database
 		var rows = db.execute('SELECT site_id, year, protocol_name, park_name \
 						FROM site_survey s, protocol p, park prk \
