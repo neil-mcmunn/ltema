@@ -279,7 +279,7 @@ function populateTable() {
 		console.log('json line 162 index.js: \n' + json.rows);
 		var cloudRows = json.rows;
 
-		console.log('cloudRows line 165 index.js: \n' + cloudRows);
+		console.log(cloudRows);
 
 		//Query - Retrieve existing sites from sqlite database
 		var rows = db.execute('SELECT site_id, site_survey_guid, year, protocol_name, park_name \
