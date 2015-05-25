@@ -187,10 +187,10 @@ function createButtons(rows, downloadExists) {
 	console.log('createButtons line 52 rows value: ' + rows + '\ndownloadExists=' + downloadExists);
 	//Get requested data from each row in table
 	for (var i = 0; i < rows.length; i++) {
-		var siteID = rows['site_id'];
-		var year = rows['year'];
-		var protocolName = rows['protocol_name'];
-		var parkName = rows['park_name'];
+		var siteID = rows[i]['site_id'];
+		var year = rows[i]['year'];
+		var protocolName = rows[i]['protocol_name'];
+		var parkName = rows[i]['park_name'];
 
 		//create a string from each entry
 		var siteSurvey = year + ' - ' + protocolName + ' - ' + parkName;
@@ -275,11 +275,11 @@ function populateTable() {
 		console.log('before checkSurveys index line 158');
 		// get list of all surveys on cloud
 		checkSurveys();
-		console.log('after checkSurveys index line 161, now printing cloudRows');
-		console.log('json line 162 index.js: \n' + json.rows);
+		//console.log('after checkSurveys index line 161, now printing cloudRows');
+		//console.log('json line 162 index.js: \n' + json.rows);
 		var cloudRows = json.rows;
 
-		console.log(cloudRows);
+		//console.log(cloudRows);
 
 		//Query - Retrieve existing sites from sqlite database
 		var rows = db.execute('SELECT site_id, site_survey_guid, year, protocol_name, park_name \
