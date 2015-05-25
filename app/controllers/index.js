@@ -23,6 +23,7 @@ function checkSurveys() {
 		var httpClient = Ti.Network.createHTTPClient({
 			onload : function(e) {
 				surveyList = JSON.parse(this.responseText);
+				console.log('index L26 surveyList: ' + surveyList);
 				alert('success');
 			},
 			onerror : function(e) {
@@ -154,9 +155,11 @@ function populateTable() {
 		//for (var i = 0; i < cloudRows.length; i++) {
 			while (rows.isValidRow()) {
 				var protocolNameOnDevice = rows.fieldByName('protocol_name');
-				var protocolNameOnCloud = cloudRows.fieldByName('protocol_name');
+				//var protocolNameOnCloud = cloudRows.fieldByName('protocol_name');
+				var protocolNameOnCloud = 'cloud';
 				var parkNameOnDevice = rows.fieldByName('park_name');
-				var parkNameOnCloud = cloudRows.fieldByName('park_name');
+				//var parkNameOnCloud = cloudRows.fieldByName('park_name');
+				var parkNameOnCloud = 'cloud';
 
 				console.log('index L161 (pd, pc, prkD, prkC): ' + protocolNameOnDevice, protocolNameOnCloud, parkNameOnDevice, parkNameOnCloud);
 				// already downloaded
