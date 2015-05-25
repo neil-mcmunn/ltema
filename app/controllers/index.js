@@ -187,10 +187,10 @@ function createButtons(rows, downloadExists) {
 	console.log('createButtons line 52 rows value: ' + rows + '\ndownloadExists=' + downloadExists);
 	//Get requested data from each row in table
 	for (var i = 0; i < rows.length; i++) {
-		var siteID = rows.fieldByName('site_id');
-		var year = rows.fieldByName('year');
-		var protocolName = rows.fieldByName('protocol_name');
-		var parkName = rows.fieldByName('park_name');
+		var siteID = rows['site_id'];
+		var year = rows['year'];
+		var protocolName = rows['protocol_name'];
+		var parkName = rows['park_name'];
 
 		//create a string from each entry
 		var siteSurvey = year + ' - ' + protocolName + ' - ' + parkName;
