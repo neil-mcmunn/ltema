@@ -194,6 +194,7 @@ function createButtons(rows, downloadExists) {
 
 		//create a string from each entry
 		var siteSurvey = year + ' - ' + protocolName + ' - ' + parkName;
+		console.log('createButtons siteSurvey: ' + siteSurvey + ' siteID ' + siteID);
 
 		//create a new row (gray out if not downloaded)
 		if (downloadExists) {
