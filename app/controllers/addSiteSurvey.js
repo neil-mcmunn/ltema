@@ -162,42 +162,46 @@ function doneBtn(e){
 			var parkID = parkResult.fieldByName('park_id');
 			
 			// Check if this site has been previously surveyed
-			var previousID = db.execute('SELECT site_id FROM site_survey \
+			var previousID = db.execute('SELECT site_id, site_survey_guid FROM site_survey \
 											WHERE protocol_id = ? \
 											AND park_id = ?', protocolID, parkID);
 
-			var prevID = previousID.fieldByName('site_id');
+			var prevSiteID = previousID.fieldByName('site_id');
+			var prevSiteGUID = previousID.fieldByName('site_survey_guid');
 
-			console.log('id line 171: \n' + prevID);
+			console.log('id line 171 (addSiteSurvey): ' + prevSiteID + ' and guid: ' + prevSiteGUID);
 
-			if (!prevID) {
+			if (!prevSiteID) {
 				// Insert the new survey
-				var siteID = String(uuid.generateUUID());
+				var siteGUID = String(uuid.generateUUID());
 				//var results = db.execute('SELECT last_insert_rowid() as siteID');
 
-				console.log('id line 177: \n');
+				console.log('id line 178 (addSiteSurvey): \n');
 				console.log('variable types:\n');
 				console.log('siteID: ' + typeof siteID + ' as ' + siteID);
+				console.log('siteGUID: ' + typeof siteGUID + ' as ' + siteGUID);
 				console.log('currentYear: ' + typeof currentYear + ' as ' + currentYear);
 				console.log('protocolID: ' + typeof protocolID + ' as ' + protocolID);
 				console.log('parkID: ' + typeof parkID + ' as ' + parkID);
 
-				db.execute('INSERT INTO site_survey (site_survey_guid, year, protocol_id, park_id) VALUES (?,?,?,?)', siteID, currentYear, protocolID, parkID);
+				db.execute('INSERT INTO site_survey (site_survey_guid, year, protocol_id, park_id) VALUES (?,?,?,?)', siteGUID, currentYear, protocolID, parkID);
 
 				console.log('after insert line 181');
 
 			// Get the transects associated with the survey
 			} else {
+				console.log('enter else clause line 191 (addSiteSurvey)');
 				//updating existing site
-				var siteID = prevID;
+				var siteID = prevSiteID;
+				console.log('siteID: ' + typeof siteID + ' as ' + siteID);
 				db.execute('UPDATE site_survey SET year=? WHERE site_id=?', currentYear, siteID);
 
-				/*
 				var transects = db.execute('SELECT * FROM transect WHERE site_id = ?', siteID);
 			
-				// Copy and associate any exiting transects
+				// Copy and associate any existing transects
 				while (transects.isValidRow()) {
 					var transectID = transects.fieldByName('transect_id');
+					var transectGUID = transects.fieldByName('transect_guid');
 					var transectName = transects.fieldByName('transect_name');
 					var surveyor = transects.fieldByName('surveyor');
 					var otherSurveyors = transects.fieldByName('other_surveyors');
@@ -209,10 +213,10 @@ function doneBtn(e){
 					var tComments = transects.fieldByName('comments');
 					var transectID = transects.fieldByName('transect_id');
 					
-					db.execute('INSERT INTO transect (transect_id, transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
+					db.execute('INSERT INTO transect (transect_guid, transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
 						utm_zone, utm_easting, utm_northing, comments, site_id) \
-						VALUES (?,?,?,?,?,?,?,?,?,?,?)', transectID, transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
-						utmEasting, utmNorthing, tComments, siteID);
+						VALUES (?,?,?,?,?,?,?,?,?,?,?) WHERE transect_id = ?', transectGUID, transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
+						utmEasting, utmNorthing, tComments, siteID, transectID);
 
 					// Get any plots associated with the transect
 					var plots = db.execute('SELECT * FROM plot WHERE transect_id = ?', transectID);
@@ -257,7 +261,6 @@ function doneBtn(e){
 				observations.close();
 				plots.close();
 				transects.close();
-				*/
 			}
 					
 		} catch (e){
