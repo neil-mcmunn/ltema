@@ -151,13 +151,14 @@ function populateTable() {
 		console.log('index L151 rows: ' + rows);
 		// separate downloaded and available surveys
 		var downloadedSurveys = [];
-		for (var i = 0; i < cloudRows.length; i++) {
+		//for (var i = 0; i < cloudRows.length; i++) {
 			while (rows.isValidRow()) {
 				var protocolNameOnDevice = rows.fieldByName('protocol_name');
 				var protocolNameOnCloud = cloudRows.fieldByName('protocol_name');
 				var parkNameOnDevice = rows.fieldByName('park_name');
 				var parkNameOnCloud = cloudRows.fieldByName('park_name');
 
+				console.log('index L161 (pd, pc, prkD, prkC): ' + protocolNameOnDevice, protocolNameOnCloud, parkNameOnDevice, parkNameOnCloud);
 				// already downloaded
 				if ((protocolNameOnCloud == protocolNameOnDevice) && (parkNameOnCloud == parkNameOnDevice)) {
 					var siteID = rows.fieldByName('site_id');
@@ -171,7 +172,7 @@ function populateTable() {
 				}
 				rows.next();
 			}
-		}
+		//}
 
 		console.log ('downloadedSurveys line 172 index.js: \n' + downloadedSurveys);
 		var availableSurveys = cloudRows;
