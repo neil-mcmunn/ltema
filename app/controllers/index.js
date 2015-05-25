@@ -188,7 +188,7 @@ function createButtons(rows, downloadExists) {
 	//Get requested data from each row in table
 	for (var i = 0; i < rows.length; i++) {
 		var site = rows[i]['site'];
-		var year = rows[i]['year'];
+		var year = rows[i]['date_surveyed'];
 		var protocol = rows[i]['protocol'];
 		var versionNo = rows[i]['version_no'];
 
@@ -200,16 +200,16 @@ function createButtons(rows, downloadExists) {
 		if (downloadExists) {
 			var newRow = Ti.UI.createTableViewRow({
 				title: siteSurvey,
-				siteID: siteID,
-				parkName: parkName, //not visible, but passed to transects screen
+				site: site,
+				protocol: protocol, //not visible, but passed to transects screen
 				height: 60,
 				font: {fontSize: 20}
 			});
 		} else {
 			var newRow = Ti.UI.createTableViewRow({
 				title: siteSurvey,
-				siteID: siteID,
-				parkName: parkName, //not visible, but passed to transects screen
+				site: site,
+				protocol: protocol, //not visible, but passed to transects screen
 				height: 60,
 				font: {fontSize: 20},
 				color: 'gray'
