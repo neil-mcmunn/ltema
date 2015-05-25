@@ -32,11 +32,13 @@ function checkSurveys() {
 
 		var json;
 
-		httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
 		console.log('httpClient opening now');
 		// the 'false' optional parameter makes this a synchronous call
 		httpClient.open("GET", url, false);
 		console.log('httpClient opened');
+
+		httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
+		httpClient.setRequestHeader('Content-Type', 'application/json');
 
 		httpClient.onload = function() {
 			Ti.API.info("Received text (index L39): " + this.responseText);

@@ -59,8 +59,8 @@
       <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-3.8816068">
-              <caret line="44" column="24" selection-start-line="44" selection-start-column="24" selection-end-line="44" selection-end-column="24" />
+            <state vertical-scroll-proportion="0.03655914">
+              <caret line="40" column="69" selection-start-line="40" selection-start-column="69" selection-end-line="40" selection-end-column="69" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -277,12 +277,6 @@
       <created>1432158521230</created>
       <option name="number" value="Default" />
       <updated>1432158521230</updated>
-    </task>
-    <task id="LOCAL-00003" summary="specify error checking in doneBtn (addTransect.js) for alpine/grassland protocols">
-      <created>1432165864970</created>
-      <option name="number" value="00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1432165864970</updated>
     </task>
     <task id="LOCAL-00004" summary="fix populateTable in transects.js">
       <created>1432166421489</created>
@@ -572,7 +566,13 @@
       <option name="project" value="LOCAL" />
       <updated>1432590896626</updated>
     </task>
-    <option name="localTasksCounter" value="52" />
+    <task id="LOCAL-00052" summary="debug checkSurveys index.js">
+      <created>1432592063886</created>
+      <option name="number" value="00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1432592063886</updated>
+    </task>
+    <option name="localTasksCounter" value="53" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -630,7 +630,8 @@
     <MESSAGE value="update queries to allow guids" />
     <MESSAGE value="update db" />
     <MESSAGE value="debug createButtons index.js" />
-    <option name="LAST_COMMIT_MESSAGE" value="debug createButtons index.js" />
+    <MESSAGE value="debug checkSurveys index.js" />
+    <option name="LAST_COMMIT_MESSAGE" value="debug checkSurveys index.js" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -943,8 +944,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-3.8816068">
-          <caret line="44" column="24" selection-start-line="44" selection-start-column="24" selection-end-line="44" selection-end-column="24" />
+        <state vertical-scroll-proportion="0.03655914">
+          <caret line="40" column="69" selection-start-line="40" selection-start-column="69" selection-end-line="40" selection-end-column="69" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
