@@ -14,7 +14,124 @@ Ti.Geolocation.removeEventListener('location', function(e) {});
 Titanium.Geolocation.getCurrentPosition(function(e) {});
 
 var surveyList = [];
-var json;
+var json = {
+	"command": "SELECT",
+	"rowCount": 11,
+	"oid": null,
+	"rows": [
+		{
+			"site": "testSite",
+			"protocol": "testProtocol",
+			"date_surveyed": "2015-05-01T00:00:00.000Z",
+			"version_no": 1
+		},
+		{
+			"site": "uploadSiteTest1",
+			"protocol": "intertidal",
+			"date_surveyed": "2015-05-04T00:00:00.000Z",
+			"version_no": 2
+		},
+		{
+			"site": "uploadSiteTest1",
+			"protocol": "intertidal1",
+			"date_surveyed": "2015-05-04T00:00:00.000Z",
+			"version_no": 2
+		},
+		{
+			"site": "uploadSiteTest2",
+			"protocol": "uploadProtocolTest1",
+			"date_surveyed": "2015-05-04T00:00:00.000Z",
+			"version_no": 2
+		},
+		{
+			"site": "uploadSiteTest1",
+			"protocol": "uploadProtocolTest1",
+			"date_surveyed": "2015-05-04T00:00:00.000Z",
+			"version_no": 2
+		},
+		{
+			"site": "uploadSiteTest2",
+			"protocol": "uploadProtocolTest2",
+			"date_surveyed": "2015-05-04T00:00:00.000Z",
+			"version_no": 1
+		},
+		{
+			"site": "MacMillan Park",
+			"protocol": "Alpine",
+			"date_surveyed": "2015-05-25T00:00:00.000Z",
+			"version_no": 1
+		},
+		{
+			"site": "Gerald Island Park",
+			"protocol": "Alpine",
+			"date_surveyed": "2015-05-25T00:00:00.000Z",
+			"version_no": 1
+		},
+		{
+			"site": "Sand Point Conservancy",
+			"protocol": "Alpine",
+			"date_surveyed": "2015-05-25T00:00:00.000Z",
+			"version_no": 1
+		},
+		{
+			"site": "Victor Lake Park",
+			"protocol": "Grassland",
+			"date_surveyed": "2015-05-25T00:00:00.000Z",
+			"version_no": 1
+		},
+		{
+			"site": "Ilgachuz Range Ecological Reserve",
+			"protocol": "Alpine",
+			"date_surveyed": "2015-05-25T00:00:00.000Z",
+			"version_no": 1
+		}
+	],
+	"fields": [
+		{
+			"name": "site",
+			"tableID": 524614,
+			"columnID": 1,
+			"dataTypeID": 1043,
+			"dataTypeSize": -1,
+			"dataTypeModifier": 104,
+			"format": "text"
+		},
+		{
+			"name": "protocol",
+			"tableID": 524614,
+			"columnID": 2,
+			"dataTypeID": 1043,
+			"dataTypeSize": -1,
+			"dataTypeModifier": 104,
+			"format": "text"
+		},
+		{
+			"name": "date_surveyed",
+			"tableID": 524614,
+			"columnID": 4,
+			"dataTypeID": 1082,
+			"dataTypeSize": 4,
+			"dataTypeModifier": -1,
+			"format": "text"
+		},
+		{
+			"name": "version_no",
+			"tableID": 524614,
+			"columnID": 6,
+			"dataTypeID": 23,
+			"dataTypeSize": 4,
+			"dataTypeModifier": -1,
+			"format": "text"
+		}
+	],
+	"_parsers": [
+		null,
+		null,
+		null,
+		null
+	],
+	"rowAsArray": false
+};
 
 populateTable();
 
@@ -42,9 +159,8 @@ function checkSurveys() {
 		httpClient.onload = function() {
 			Ti.API.info("Received text (index L39): " + this.responseText);
 			//json = eval('(' + this.responseText + ')');
-			json = JSON.parse(this.responseText);
+			//json = JSON.parse(this.responseText);
 			alert('success');
-			return json;
 		};
 		httpClient.onerror = function(e) {
 			Ti.API.debug("STATUS: " + this.status);
