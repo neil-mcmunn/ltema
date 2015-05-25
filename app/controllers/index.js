@@ -18,33 +18,41 @@ var surveyList = [];
 populateTable();
 
 function checkSurveys() {
+	console.log('enter checkSurveys');
 	try {
+		console.log('enter try');
 		var url = "https://capstone-ltemac.herokuapp.com/getSurveys";
+		console.log('create httpClient object');
 		var httpClient = Ti.Network.createHTTPClient({
 			onload : function(e) {
-				surveyList = JSON.parse(this.responseText);
-				console.log('index L26 surveyList: ' + surveyList);
+				console.log('httpClient onload:');
+				console.log('index L26 surveyList: ' + JSON.parse(this.responseText));
+				return JSON.parse(this.responseText);
 				alert('success');
 			},
 			onerror : function(e) {
+				console.log('httpClient onerror');
 				alert('error');
 			},
 			timeout : 30,
 
 			validatesSecureCertificate: true
 		});
-
+		console.log('httpClient object created, opening now');
 		// the 'false' optional parameter makes this a synchronous call
 		httpClient.open("GET", url, false);
+		console.log('httpClient opened');
 		httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
+		console.log('setRequestHeader secret, now sending');
 		httpClient.send();
+		console.log('httpClient object has been sent');
 	}
 	catch (e) {
 		var errorMessage = e.message;
 		console.log('error in checkSurveys: ' + errorMessage);
 	}
 	finally {
-
+		httpClient.close();
 	}
 }
 
@@ -138,8 +146,8 @@ function populateTable() {
 		var db = Ti.Database.open('ltemaDB');
 
 		// get list of all surveys on cloud
-		checkSurveys();
-		var cloudRows = surveyList;
+		var cloudRows = checkSurveys();
+		//var cloudRows = surveyList;
 
 		console.log('cloudRows line 141 index.js: \n' + cloudRows);
 
