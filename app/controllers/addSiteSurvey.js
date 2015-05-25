@@ -258,7 +258,7 @@ function doneBtn(e){
 					}
 					transects.next();
 				}
-				observations.close();
+				//observations.close();
 				plots.close();
 				transects.close();
 			}
