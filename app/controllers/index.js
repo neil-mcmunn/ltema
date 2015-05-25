@@ -155,11 +155,13 @@ function populateTable() {
 		//open database
 		var db = Ti.Database.open('ltemaDB');
 
+		console.log('before checkSurveys index line 158');
 		// get list of all surveys on cloud
 		checkSurveys();
+		console.log('after checkSurveys index line 161, now printing cloudRows');
 		var cloudRows = json["rows"];
 
-		console.log('cloudRows line 141 index.js: \n' + json);
+		console.log('cloudRows line 164 index.js: \n' + cloudRows);
 
 		//Query - Retrieve existing sites from sqlite database
 		var rows = db.execute('SELECT site_id, site_survey_guid, year, protocol_name, park_name \
