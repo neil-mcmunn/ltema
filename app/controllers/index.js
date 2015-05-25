@@ -141,7 +141,7 @@ function populateTable() {
 		console.log('cloudRows line 141 index.js: \n' + cloudRows);
 
 		//Query - Retrieve existing sites from sqlite database
-		var rows = db.execute('SELECT site_id, year, protocol_name, park_name \
+		var rows = db.execute('SELECT site_id, site_survey_guid, year, protocol_name, park_name \
 						FROM site_survey s, protocol p, park prk \
 						WHERE s.protocol_id = p.protocol_id \
 						AND s.park_id = prk.park_id ');
@@ -158,8 +158,9 @@ function populateTable() {
 				// already downloaded
 				if ((protocolNameOnCloud == protocolNameOnDevice) && (parkNameOnCloud == parkNameOnDevice)) {
 					var siteID = rows.fieldByName('site_id');
+					var siteGUID = rows.fieldByName('site_survey_guid');
 					var year = rows.fieldByName('year');
-					var results = [siteID, year, protocolNameOnDevice, parkNameOnDevice];
+					var results = [siteID, siteGUID, year, protocolNameOnDevice, parkNameOnDevice];
 					downloadedSurveys.push(results);
 
 					// remove this row from rows array
@@ -176,6 +177,7 @@ function populateTable() {
 		createButtons(downloadedSurveys, true);
 		createButtons(availableSurveys, false);
 
+		console.log('got through createButton functions line 179 index.js');
 	} catch(e){
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
