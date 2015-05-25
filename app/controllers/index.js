@@ -1,6 +1,6 @@
 /*
  *  List screen to view, add, or delete site surveys
- * 
+ *
  */
 
 //Run these two commands to reset db if testing delete functions
@@ -8,8 +8,8 @@
 //yourDb.remove();
 
 //Initially remove the event that triggers the GPS location to be continuously captured
-Ti.Geolocation.removeEventListener('location', function(e) {});
 
+Ti.Geolocation.removeEventListener('location', function(e) {});
 //Prompt the user to allow applicaiton to use location services
 Titanium.Geolocation.getCurrentPosition(function(e) {});
 
@@ -19,30 +19,38 @@ populateTable();
 
 function checkSurveys() {
 	console.log('enter checkSurveys');
+
 	try {
+
 		console.log('enter try');
+
 		var url = "https://capstone-ltemac.herokuapp.com/getSurveys";
 		console.log('create httpClient object');
-		var httpClient = Ti.Network.createHTTPClient({
-			onload : function(e) {
-				console.log('httpClient onload:');
-				console.log('index L26 surveyList: ' + JSON.parse(this.responseText));
-				return JSON.parse(this.responseText);
-				alert('success');
-			},
-			onerror : function(e) {
-				console.log('httpClient onerror');
-				alert('error');
-			},
-			timeout : 30,
+		var httpClient = Ti.Network.createHTTPClient();
 
-			validatesSecureCertificate: true
-		});
-		console.log('httpClient object created, opening now');
+		console.log('httpClient object created');
+
+		var json;
+
+		httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
+		console.log('httpClient opening now');
 		// the 'false' optional parameter makes this a synchronous call
 		httpClient.open("GET", url, false);
 		console.log('httpClient opened');
-		httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
+
+		httpClient.onload = function() {
+			Ti.API.info("Received text (index L39): " + this.responseText);
+			json = eval('(' + this.responseText + ')');
+			alert('success');
+			return json;
+		};
+		httpClient.onerror = function(e) {
+			Ti.API.debug("STATUS: " + this.status);
+			Ti.API.debug("TEXT:   " + this.responseText);
+			Ti.API.debug("ERROR:  " + e.error);
+			alert('error retrieving remote data');
+		};
+
 		console.log('setRequestHeader secret, now sending');
 		httpClient.send();
 		console.log('httpClient object has been sent');
@@ -52,7 +60,7 @@ function checkSurveys() {
 		console.log('error in checkSurveys: ' + errorMessage);
 	}
 	finally {
-		httpClient.close();
+		//httpClient.close();
 	}
 }
 
