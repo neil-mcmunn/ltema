@@ -42,7 +42,8 @@ function checkSurveys() {
 
 		httpClient.onload = function() {
 			Ti.API.info("Received text (index L39): " + this.responseText);
-			json = eval('(' + this.responseText + ')');
+			//json = eval('(' + this.responseText + ')');
+			json = this.responseText;
 			alert('success');
 			return json;
 		};
