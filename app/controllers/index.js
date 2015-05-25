@@ -159,7 +159,7 @@ function populateTable() {
 		var cloudRows = checkSurveys();
 		//var cloudRows = surveyList;
 
-		console.log('cloudRows line 141 index.js: \n' + cloudRows);
+		console.log('cloudRows line 141 index.js: \n' + JSON.parse(cloudRows));
 
 		//Query - Retrieve existing sites from sqlite database
 		var rows = db.execute('SELECT site_id, site_survey_guid, year, protocol_name, park_name \
