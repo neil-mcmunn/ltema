@@ -176,8 +176,8 @@ function doneBtn(e){
 				var siteGUID = String(uuid.generateUUID());
 				//var results = db.execute('SELECT last_insert_rowid() as siteID');
 
-				console.log('id line 178 (addSiteSurvey): \n');
-				console.log('variable types:\n');
+				console.log('id line 178 (addSiteSurvey): ');
+				console.log('variable types:');
 				console.log('siteID: ' + typeof siteID + ' as ' + siteID);
 				console.log('siteGUID: ' + typeof siteGUID + ' as ' + siteGUID);
 				console.log('currentYear: ' + typeof currentYear + ' as ' + currentYear);

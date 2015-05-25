@@ -48,6 +48,8 @@ function checkSurveys() {
 }
 
 function createButtons(rows, downloadExists) {
+	console.log('enter createButtons');
+	console.log('createButtons line 52 rows value: ' + rows + '\ndownloadExists=' + downloadExists);
 	//Get requested data from each row in table
 	for (var i = 0; i < rows.length; i++) {
 		var siteID = rows.fieldByName('site_id');
