@@ -140,7 +140,7 @@ function populateTable() {
 
 		console.log('cloudRows line 141 index.js: \n' + cloudRows);
 
-		//Query - Retrieve existing sites from database
+		//Query - Retrieve existing sites from sqlite database
 		var rows = db.execute('SELECT site_id, year, protocol_name, park_name \
 						FROM site_survey s, protocol p, park prk \
 						WHERE s.protocol_id = p.protocol_id \

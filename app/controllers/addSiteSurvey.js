@@ -172,9 +172,8 @@ function doneBtn(e){
 
 			if (!prevID) {
 				// Insert the new survey
-				//var siteID = String(uuid.generateUUID());
-				var results = db.execute('SELECT last_insert_rowid() as siteID');
-				var siteID = results.fieldByName('siteID');
+				var siteID = String(uuid.generateUUID());
+				//var results = db.execute('SELECT last_insert_rowid() as siteID');
 
 				console.log('id line 177: \n');
 				console.log('variable types:\n');
@@ -183,7 +182,7 @@ function doneBtn(e){
 				console.log('protocolID: ' + typeof protocolID + ' as ' + protocolID);
 				console.log('parkID: ' + typeof parkID + ' as ' + parkID);
 
-				db.execute('INSERT INTO site_survey (year, protocol_id, park_id) VALUES (?,?,?)', currentYear, protocolID, parkID);
+				db.execute('INSERT INTO site_survey (site_survey_guid, year, protocol_id, park_id) VALUES (?,?,?,?)', siteID, currentYear, protocolID, parkID);
 
 				console.log('after insert line 181');
 
