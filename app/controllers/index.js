@@ -148,6 +148,7 @@ function populateTable() {
 						WHERE s.protocol_id = p.protocol_id \
 						AND s.park_id = prk.park_id ');
 
+		console.log('index L151 rows: ' + rows);
 		// separate downloaded and available surveys
 		var downloadedSurveys = [];
 		for (var i = 0; i < cloudRows.length; i++) {
