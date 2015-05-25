@@ -290,16 +290,16 @@ function populateTable() {
 		console.log('index L151 rows: ' + rows);
 		// separate downloaded and available surveys
 		var downloadedSurveys = [];
-		//for (var i = 0; i < cloudRows.length; i++) {
+		for (var i = 0; i < cloudRows.length; i++) {
 			while (rows.isValidRow()) {
 				var protocolNameOnDevice = rows.fieldByName('protocol_name');
-				//var protocolNameOnCloud = cloudRows.fieldByName('protocol_name');
-				var protocolNameOnCloud = 'cloud';
+				var protocolNameOnCloud = cloudRows[i].protocol_name;
+				//var protocolNameOnCloud = 'cloud';
 				var parkNameOnDevice = rows.fieldByName('park_name');
-				//var parkNameOnCloud = cloudRows.fieldByName('park_name');
-				var parkNameOnCloud = 'cloud';
+				var parkNameOnCloud = cloudRows[i].park_name;
+				//var parkNameOnCloud = 'cloud';
 
-				console.log('index L161 (pd, pc, prkD, prkC): ' + protocolNameOnDevice, protocolNameOnCloud, parkNameOnDevice, parkNameOnCloud);
+				console.log('index L302 (pd, pc, prkD, prkC): ' + protocolNameOnDevice, protocolNameOnCloud, parkNameOnDevice, parkNameOnCloud);
 				// already downloaded
 				if ((protocolNameOnCloud == protocolNameOnDevice) && (parkNameOnCloud == parkNameOnDevice)) {
 					var siteID = rows.fieldByName('site_id');
@@ -313,16 +313,16 @@ function populateTable() {
 				}
 				rows.next();
 			}
-		//}
+		}
 
-		console.log ('downloadedSurveys line 172 index.js: \n' + downloadedSurveys);
-		var availableSurveys = cloudRows;
-		console.log ('availableSurveys line 174 index.js: \n' + availableSurveys);
+		console.log ('downloadedSurveys line 318 index.js: \n' + downloadedSurveys);
+		var availableSurveys = cloudRows
+		console.log ('availableSurveys line 320 index.js: \n' + availableSurveys);
 
 		createButtons(downloadedSurveys, true);
 		createButtons(availableSurveys, false);
 
-		console.log('got through createButton functions line 179 index.js');
+		console.log('got through createButton functions line 325 index.js');
 	} catch(e){
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
