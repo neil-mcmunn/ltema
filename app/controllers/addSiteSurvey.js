@@ -259,16 +259,16 @@ function doneBtn(e){
 					transects.next();
 				}
 				//observations.close();
-				plots.close();
-				transects.close();
+				//plots.close();
+				//transects.close();
 			}
 					
 		} catch (e){
 			var errorMessage = e.message;
 			Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 		} finally {
-			protocolResult.close();
-			parkResult.close();
+			//protocolResult.close();
+			//parkResult.close();
 			db.close();
 			Ti.App.fireEvent("app:refreshSiteSurveys");
 			$.addSiteSurveyWin.close();

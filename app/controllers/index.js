@@ -42,7 +42,7 @@ function checkSurveys() {
 		httpClient.onload = function() {
 			Ti.API.info("Received text (index L39): " + this.responseText);
 			//json = eval('(' + this.responseText + ')');
-			json = this.responseText;
+			json = JSON.parse(this.responseText);
 			alert('success');
 			return json;
 		};
@@ -159,9 +159,10 @@ function populateTable() {
 		// get list of all surveys on cloud
 		checkSurveys();
 		console.log('after checkSurveys index line 161, now printing cloudRows');
-		var cloudRows = json["rows"];
+		console.log('json line 162 index.js: \n' + json.rows);
+		var cloudRows = json.rows;
 
-		console.log('cloudRows line 164 index.js: \n' + cloudRows);
+		console.log('cloudRows line 165 index.js: \n' + cloudRows);
 
 		//Query - Retrieve existing sites from sqlite database
 		var rows = db.execute('SELECT site_id, site_survey_guid, year, protocol_name, park_name \
