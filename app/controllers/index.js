@@ -14,6 +14,7 @@ Ti.Geolocation.removeEventListener('location', function(e) {});
 Titanium.Geolocation.getCurrentPosition(function(e) {});
 
 var surveyList = [];
+var json;
 
 populateTable();
 
@@ -29,8 +30,6 @@ function checkSurveys() {
 		var httpClient = Ti.Network.createHTTPClient();
 
 		console.log('httpClient object created');
-
-		var json;
 
 		console.log('httpClient opening now');
 		// the 'false' optional parameter makes this a synchronous call
@@ -157,10 +156,10 @@ function populateTable() {
 		var db = Ti.Database.open('ltemaDB');
 
 		// get list of all surveys on cloud
-		var cloudRows = checkSurveys();
-		//var cloudRows = surveyList;
+		checkSurveys();
+		var cloudRows = json["rows"];
 
-		console.log('cloudRows line 141 index.js: \n' + JSON.parse(cloudRows));
+		console.log('cloudRows line 141 index.js: \n' + json);
 
 		//Query - Retrieve existing sites from sqlite database
 		var rows = db.execute('SELECT site_id, site_survey_guid, year, protocol_name, park_name \
