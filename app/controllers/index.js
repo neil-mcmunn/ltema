@@ -296,7 +296,7 @@ function populateTable() {
 			var siteID = rows.fieldByName('site_id');
 			var siteGUID = rows.fieldByName('site_survey_guid');
 			var year = rows.fieldByName('year');
-			var results = {'site_id': siteID, 'site_survey_guid' : siteGUID, 'year' : year, 'protocol_name' : protocolName, 'park_name' : parkName};
+			var results = {'site_id': siteID, 'site_survey_guid' : siteGUID, 'date_surveyed' : year, 'protocol_name' : protocolName, 'park_name' : parkName};
 			surveysFromSQLITE.push(results);
 
 			rows.next();
@@ -321,8 +321,8 @@ function populateTable() {
 				if ((protocolNameOnCloud == protocolNameOnDevice) && (parkNameOnCloud == parkNameOnDevice)) {
 					var siteID = surveysFromSQLITE[j]['site_id'];
 					var siteGUID = surveysFromSQLITE[j]['site_survey_guid'];
-					var year = surveysFromSQLITE[j]['year'];
-					var results = [siteID, siteGUID, year, protocolNameOnDevice, parkNameOnDevice];
+					var year = surveysFromSQLITE[j]['date_surveyed'];
+					var results = {'site_id':siteID, 'site_survey_guid': siteGUID, 'date_surveyed': year, 'protocol':protocolNameOnDevice, 'site':parkNameOnDevice};
 					downloadedSurveys.push(results);
 
 					// remove this row from rows array

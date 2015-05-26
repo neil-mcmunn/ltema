@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="427bbe56-2c44-4d98-8007-3cea5801674a" name="Default" comment="debug checkSurveys index.js">
+    <list default="true" id="427bbe56-2c44-4d98-8007-3cea5801674a" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/controllers/index.js" afterPath="$PROJECT_DIR$/app/controllers/index.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -60,7 +60,7 @@
         <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.8129032">
-              <caret line="188" column="4" selection-start-line="188" selection-start-column="4" selection-end-line="188" selection-end-column="4" />
+              <caret line="323" column="69" selection-start-line="323" selection-start-column="69" selection-end-line="323" selection-end-column="69" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -277,12 +277,6 @@
       <created>1432158521230</created>
       <option name="number" value="Default" />
       <updated>1432158521230</updated>
-    </task>
-    <task id="LOCAL-00029" summary="add site survey issue">
-      <created>1432335183249</created>
-      <option name="number" value="00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1432335183249</updated>
     </task>
     <task id="LOCAL-00030" summary="add site survey issue">
       <created>1432335527131</created>
@@ -572,7 +566,13 @@
       <option name="project" value="LOCAL" />
       <updated>1432601967331</updated>
     </task>
-    <option name="localTasksCounter" value="78" />
+    <task id="LOCAL-00078" summary="debug checkSurveys index.js">
+      <created>1432602128953</created>
+      <option name="number" value="00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1432602128953</updated>
+    </task>
+    <option name="localTasksCounter" value="79" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -945,7 +945,7 @@
     <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.8129032">
-          <caret line="188" column="4" selection-start-line="188" selection-start-column="4" selection-end-line="188" selection-end-column="4" />
+          <caret line="323" column="69" selection-start-line="323" selection-start-column="69" selection-end-line="323" selection-end-column="69" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
