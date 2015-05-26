@@ -289,17 +289,32 @@ function populateTable() {
 						WHERE s.protocol_id = p.protocol_id \
 						AND s.park_id = prk.park_id ');
 
-		console.log('index L151 rows: ' + rows);
+		var surveysFromSQLITE = [];
+		while (rows.isValidRow()){
+			var protocolName = rows.fieldByName('protocol_name');
+			var parkName = rows.fieldByName('park_name');
+			var siteID = rows.fieldByName('site_id');
+			var siteGUID = rows.fieldByName('site_survey_guid');
+			var year = rows.fieldByName('year');
+			var results = [siteID, siteGUID, year, protocolName, parkName];
+			surveysFromSQLITE.push(results);
+
+			rows.next();
+		}
+		console.log('index L303 surveysFromSQLITE: ');
+		console.log(surveysFromSQLITE);
+
 		// separate downloaded and available surveys
-		var downloadedSurveys = [];
+		//var downloadedSurveys = [];
 		console.log('cloudRows length: ' + cloudRows.length);
 
 		for (var i = 0; i < cloudRows.length; i++) {
 			var protocolNameOnCloud = cloudRows[i].protocol;
 			var parkNameOnCloud = cloudRows[i].site;
-			while (rows.isValidRow()) {
-				var protocolNameOnDevice = rows.fieldByName('protocol_name');
-				var parkNameOnDevice = rows.fieldByName('park_name');
+
+			for (var j = 0; j < surveysFromSQLITE.length; j++) {
+				var protocolNameOnDevice = availableSurveys['protocol_name'];
+				var parkNameOnDevice = availableSurveys['park_name'];
 
 				console.log('index L302 (pd, pc, prkD, prkC): ' + protocolNameOnDevice, protocolNameOnCloud, parkNameOnDevice, parkNameOnCloud);
 				// already downloaded
@@ -317,9 +332,11 @@ function populateTable() {
 			}
 		}
 
-		console.log ('downloadedSurveys line 318 index.js: \n' + downloadedSurveys);
+		console.log ('downloadedSurveys line 318 index.js: ');
+		console.log(downloadedSurveys);
 		var availableSurveys = cloudRows
-		console.log ('availableSurveys line 320 index.js: \n' + availableSurveys);
+		console.log ('availableSurveys line 320 index.js: ');
+		console.log(availableSurveys);
 
 		createButtons(downloadedSurveys, true);
 		createButtons(availableSurveys, false);
