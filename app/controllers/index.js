@@ -296,7 +296,7 @@ function populateTable() {
 			var siteID = rows.fieldByName('site_id');
 			var siteGUID = rows.fieldByName('site_survey_guid');
 			var year = rows.fieldByName('year');
-			var results = [siteID, siteGUID, year, protocolName, parkName];
+			var results = [{'siteID': siteID, 'siteGuid' : siteGUID, 'year' : year, 'protocol_name' : protocolName, 'park_name' : parkName}];
 			surveysFromSQLITE.push(results);
 
 			rows.next();
