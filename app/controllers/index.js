@@ -313,8 +313,8 @@ function populateTable() {
 			var parkNameOnCloud = cloudRows[i].site;
 
 			for (var j = 0; j < surveysFromSQLITE.length; j++) {
-				var protocolNameOnDevice = availableSurveys['protocol_name'];
-				var parkNameOnDevice = availableSurveys['park_name'];
+				var protocolNameOnDevice = surveysFromSQLITE['protocol_name'];
+				var parkNameOnDevice = surveysFromSQLITE['park_name'];
 
 				console.log('index L302 (pd, pc, prkD, prkC): ' + protocolNameOnDevice, protocolNameOnCloud, parkNameOnDevice, parkNameOnCloud);
 				// already downloaded

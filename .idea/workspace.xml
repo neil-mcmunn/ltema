@@ -59,8 +59,8 @@
       <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.10107527">
-              <caret line="310" column="52" selection-start-line="310" selection-start-column="52" selection-end-line="310" selection-end-column="52" />
+            <state vertical-scroll-proportion="0.3204301">
+              <caret line="316" column="70" selection-start-line="316" selection-start-column="70" selection-end-line="316" selection-end-column="70" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -277,12 +277,6 @@
       <created>1432158521230</created>
       <option name="number" value="Default" />
       <updated>1432158521230</updated>
-    </task>
-    <task id="LOCAL-00022" summary="fix support for check surveys">
-      <created>1432332836993</created>
-      <option name="number" value="00022" />
-      <option name="project" value="LOCAL" />
-      <updated>1432332836993</updated>
     </task>
     <task id="LOCAL-00023" summary="fix support for check surveys">
       <created>1432332966542</created>
@@ -572,7 +566,13 @@
       <option name="project" value="LOCAL" />
       <updated>1432599801506</updated>
     </task>
-    <option name="localTasksCounter" value="71" />
+    <task id="LOCAL-00071" summary="debug checkSurveys index.js">
+      <created>1432600649746</created>
+      <option name="number" value="00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1432600649746</updated>
+    </task>
+    <option name="localTasksCounter" value="72" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -944,8 +944,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.10107527">
-          <caret line="310" column="52" selection-start-line="310" selection-start-column="52" selection-end-line="310" selection-end-column="52" />
+        <state vertical-scroll-proportion="0.3204301">
+          <caret line="316" column="70" selection-start-line="316" selection-start-column="70" selection-end-line="316" selection-end-column="70" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
