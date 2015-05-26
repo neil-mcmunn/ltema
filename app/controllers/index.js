@@ -305,7 +305,7 @@ function populateTable() {
 		console.log(surveysFromSQLITE);
 
 		// separate downloaded and available surveys
-		//var downloadedSurveys = [];
+		var downloadedSurveys = [];
 		console.log('cloudRows length: ' + cloudRows.length);
 
 		for (var i = 0; i < cloudRows.length; i++) {
