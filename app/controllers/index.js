@@ -293,12 +293,12 @@ function populateTable() {
 		// separate downloaded and available surveys
 		var downloadedSurveys = [];
 		for (var i = 0; i < cloudRows.length; i++) {
+			var protocolNameOnCloud = cloudRows[i].protocol;
+			var parkNameOnCloud = cloudRows[i].site;
 			while (rows.isValidRow()) {
 				var protocolNameOnDevice = rows.fieldByName('protocol_name');
-				var protocolNameOnCloud = cloudRows[i].protocol;
 				//var protocolNameOnCloud = 'cloud';
 				var parkNameOnDevice = rows.fieldByName('park_name');
-				var parkNameOnCloud = cloudRows[i].site;
 				//var parkNameOnCloud = 'cloud';
 
 				console.log('index L302 (pd, pc, prkD, prkC): ' + protocolNameOnDevice, protocolNameOnCloud, parkNameOnDevice, parkNameOnCloud);
