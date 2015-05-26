@@ -334,7 +334,7 @@ function populateTable() {
 
 		console.log ('downloadedSurveys line 318 index.js: ');
 		console.log(downloadedSurveys);
-		var availableSurveys = cloudRows
+		var availableSurveys = cloudRows;
 		console.log ('availableSurveys line 320 index.js: ');
 		console.log(availableSurveys);
 
