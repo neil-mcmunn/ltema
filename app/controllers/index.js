@@ -184,7 +184,9 @@ function checkSurveys() {
 
 function createButtons(rows, downloadExists) {
 	console.log('enter createButtons');
-	console.log('createButtons line 52 rows value: ' + rows + '\ndownloadExists=' + downloadExists);
+	console.log('createButtons line 52 rows value: ');
+	console.log(rows);
+	console.log('downloadExists=' + downloadExists);
 	//Get requested data from each row in table
 	for (var i = 0; i < rows.length; i++) {
 		var site = rows[i]['site'];
@@ -193,7 +195,7 @@ function createButtons(rows, downloadExists) {
 		var versionNo = rows[i]['version_no'];
 
 		//create a string from each entry
-		var siteSurvey = year + ' - ' + protocol + ' - ' + site;
+		var siteSurvey = year.slice(0,4) + ' - ' + protocol + ' - ' + site;
 		console.log('createButtons siteSurvey: ' + siteSurvey + ' site ' + site);
 
 		//create a new row (gray out if not downloaded)
@@ -293,10 +295,10 @@ function populateTable() {
 		for (var i = 0; i < cloudRows.length; i++) {
 			while (rows.isValidRow()) {
 				var protocolNameOnDevice = rows.fieldByName('protocol_name');
-				var protocolNameOnCloud = cloudRows[i].protocol_name;
+				var protocolNameOnCloud = cloudRows[i].protocol;
 				//var protocolNameOnCloud = 'cloud';
 				var parkNameOnDevice = rows.fieldByName('park_name');
-				var parkNameOnCloud = cloudRows[i].park_name;
+				var parkNameOnCloud = cloudRows[i].site;
 				//var parkNameOnCloud = 'cloud';
 
 				console.log('index L302 (pd, pc, prkD, prkC): ' + protocolNameOnDevice, protocolNameOnCloud, parkNameOnDevice, parkNameOnCloud);
