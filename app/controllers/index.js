@@ -319,9 +319,9 @@ function populateTable() {
 				console.log('index L302 (pd, pc, prkD, prkC): ' + protocolNameOnDevice, protocolNameOnCloud, parkNameOnDevice, parkNameOnCloud);
 				// already downloaded
 				if ((protocolNameOnCloud == protocolNameOnDevice) && (parkNameOnCloud == parkNameOnDevice)) {
-					var siteID = rows.fieldByName('site_id');
-					var siteGUID = rows.fieldByName('site_survey_guid');
-					var year = rows.fieldByName('year');
+					var siteID = surveysFromSQLITE['site_id'];
+					var siteGUID = surveysFromSQLITE['site_survey_guid'];
+					var year = surveysFromSQLITE['year'];
 					var results = [siteID, siteGUID, year, protocolNameOnDevice, parkNameOnDevice];
 					downloadedSurveys.push(results);
 
