@@ -59,8 +59,8 @@
       <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.8129032">
-              <caret line="323" column="69" selection-start-line="323" selection-start-column="69" selection-end-line="323" selection-end-column="69" />
+            <state vertical-scroll-proportion="0.69462365">
+              <caret line="166" column="30" selection-start-line="166" selection-start-column="30" selection-end-line="166" selection-end-column="30" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -277,12 +277,6 @@
       <created>1432158521230</created>
       <option name="number" value="Default" />
       <updated>1432158521230</updated>
-    </task>
-    <task id="LOCAL-00030" summary="add site survey issue">
-      <created>1432335527131</created>
-      <option name="number" value="00030" />
-      <option name="project" value="LOCAL" />
-      <updated>1432335527131</updated>
     </task>
     <task id="LOCAL-00031" summary="add site survey issue">
       <created>1432335801055</created>
@@ -572,7 +566,13 @@
       <option name="project" value="LOCAL" />
       <updated>1432602128953</updated>
     </task>
-    <option name="localTasksCounter" value="79" />
+    <task id="LOCAL-00079" summary="debug checkSurveys index.js">
+      <created>1432602406540</created>
+      <option name="number" value="00079" />
+      <option name="project" value="LOCAL" />
+      <updated>1432602406540</updated>
+    </task>
+    <option name="localTasksCounter" value="80" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -849,6 +849,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.70100504">
           <caret line="82" column="0" selection-start-line="82" selection-start-column="0" selection-end-line="82" selection-end-column="48" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -944,8 +945,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.8129032">
-          <caret line="323" column="69" selection-start-line="323" selection-start-column="69" selection-end-line="323" selection-end-column="69" />
+        <state vertical-scroll-proportion="0.69462365">
+          <caret line="166" column="30" selection-start-line="166" selection-start-column="30" selection-end-line="166" selection-end-column="30" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>

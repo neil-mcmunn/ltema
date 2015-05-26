@@ -14,6 +14,8 @@ Ti.Geolocation.removeEventListener('location', function(e) {});
 Titanium.Geolocation.getCurrentPosition(function(e) {});
 
 var surveyList = [];
+var json;
+/*
 var json = {
 	"command": "SELECT",
 	"rowCount": 11,
@@ -132,6 +134,7 @@ var json = {
 	],
 	"rowAsArray": false
 };
+*/
 
 populateTable();
 
@@ -159,7 +162,9 @@ function checkSurveys() {
 		httpClient.onload = function() {
 			Ti.API.info("Received text (index L39): " + this.responseText);
 			//json = eval('(' + this.responseText + ')');
-			//json = JSON.parse(this.responseText);
+			json = JSON.parse(this.responseText);
+			console.log('onload: ');
+			console.log(json);
 			alert('success');
 		};
 		httpClient.onerror = function(e) {
