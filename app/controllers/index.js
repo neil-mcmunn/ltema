@@ -185,7 +185,7 @@ function checkSurveys() {
 function createButtons(rows, downloadExists) {
 	console.log('enter createButtons');
 	console.log('createButtons line 52 rows value: ');
-	console.log(rows);
+	//console.log(rows);
 	console.log('downloadExists=' + downloadExists);
 	//Get requested data from each row in table
 	for (var i = 0; i < rows.length; i++) {
@@ -313,15 +313,15 @@ function populateTable() {
 			var parkNameOnCloud = cloudRows[i].site;
 
 			for (var j = 0; j < surveysFromSQLITE.length; j++) {
-				var protocolNameOnDevice = surveysFromSQLITE['protocol_name'];
-				var parkNameOnDevice = surveysFromSQLITE['park_name'];
+				var protocolNameOnDevice = surveysFromSQLITE[j]['protocol_name'];
+				var parkNameOnDevice = surveysFromSQLITE[j]['park_name'];
 
 				console.log('index L302 (pd, pc, prkD, prkC): ' + protocolNameOnDevice, protocolNameOnCloud, parkNameOnDevice, parkNameOnCloud);
 				// already downloaded
 				if ((protocolNameOnCloud == protocolNameOnDevice) && (parkNameOnCloud == parkNameOnDevice)) {
-					var siteID = surveysFromSQLITE['site_id'];
-					var siteGUID = surveysFromSQLITE['site_survey_guid'];
-					var year = surveysFromSQLITE['year'];
+					var siteID = surveysFromSQLITE[j]['site_id'];
+					var siteGUID = surveysFromSQLITE[j]['site_survey_guid'];
+					var year = surveysFromSQLITE[j]['year'];
 					var results = [siteID, siteGUID, year, protocolNameOnDevice, parkNameOnDevice];
 					downloadedSurveys.push(results);
 
