@@ -162,9 +162,9 @@ function checkSurveys() {
 		httpClient.onload = function() {
 			Ti.API.info("Received text (index L39): " + this.responseText);
 			//json = eval('(' + this.responseText + ')');
-			json = JSON.parse(this.responseText);
-			console.log('onload: ');
-			console.log(json);
+			json = this.responseText;
+			//console.log('onload: ');
+			//console.log(json);
 			alert('success');
 		};
 		httpClient.onerror = function(e) {
@@ -284,9 +284,10 @@ function populateTable() {
 		checkSurveys();
 		//console.log('after checkSurveys index line 161, now printing cloudRows');
 		//console.log('json line 162 index.js: \n' + json.rows);
-		var cloudRows = json.rows;
-
-		//console.log(cloudRows);
+		var cloudRows = json;
+		console.log('cloudRows: \n\n');
+		console.log(cloudRows);
+		console.log('end cloudRows. \n\n');
 
 		//Query - Retrieve existing sites from sqlite database
 		var rows = db.execute('SELECT site_id, site_survey_guid, year, protocol_name, park_name \
