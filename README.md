@@ -1,4 +1,4 @@
-LTEMA
+LTEMA (Long Term Ecological Montitoring Application Cloud)
 ========
 
 Camosun College - Computer Systems Technology <br>
@@ -17,6 +17,7 @@ LTEMA streamlines the process of collecting ground cover observations for BC Par
 - integrates GPS and camera into the site survey process
 - exports data and linked photos in one bundle
 - pre-populates a revisted site with static measurements
+- developed for use with a LTEMAC cloud server
 
 <br>
 
