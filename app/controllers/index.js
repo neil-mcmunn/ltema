@@ -289,8 +289,8 @@ function createButtons(rows, downloadExists) {
 			backgroundFocusedImage: 'icons/download_clicked.png',
 			backgroundSelectedImage: 'icons/download_clicked.png',
 			right : 75,
-			height: 30,
-			width: 30,
+			height: 60,
+			width: 60,
 			buttonid: 'download'
 		});
 		var uploadButton = Ti.UI.createButton({
@@ -298,8 +298,8 @@ function createButtons(rows, downloadExists) {
 			backgroundFocusedImage: 'icons/upload_clicked.png',
 			backgroundSelectedImage: 'icons/upload_clicked.png',
 			right : 135,
-			height: 30,
-			width: 30,
+			height: 60,
+			width: 60,
 			buttonid: 'upload'
 		});
 		var exportButton = Ti.UI.createButton({
