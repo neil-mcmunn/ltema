@@ -4,6 +4,8 @@
 
 function processDownload(cloudSurvey) {
     //do stuff with surveyData
+    // expected fields: site, site_survey_guid, year, protocol_id, park_id, exported, transect_guid, transect_name, surveyor, other_surveyors, plot_distance,
+    //   stake_orientation, utm_zone, utm_easting, utm_northing, comments, flickr_id, plot_guid, plot_name, 
    try {
     	console.log ('enter try in download');
     	var db = Ti.Database.open('ltemaDB');
@@ -23,14 +25,13 @@ function processDownload(cloudSurvey) {
     	var year = cloudSurvey.last_modified.slice(0,4);
     	console.log ('year: ' + year);
     	
-		console.log('eline 25 (download)');
+		console.log('line 25 (download)');
 		
 		// Check if this site has been previously surveyed
-		var previousID = db.execute('SELECT site_id, site_survey_guid FROM site_survey \
+		var previousID = db.execute('SELECT site_survey_guid FROM site_survey \
 										WHERE protocol_id = ? \
 										AND park_id = ?', protocolID, parkID);
 
-		var prevSiteID = previousID.fieldByName('site_id');
 		var prevSiteGUID = previousID.fieldByName('site_survey_guid');
 		
 		if (prevSiteGUID == null) {
@@ -58,13 +59,7 @@ function processDownload(cloudSurvey) {
 			console.log('after insert download line 50');
 
 		// Get the transects associated with the survey
-		} else {
-			//updating existing site
-			var previousID = db.execute('SELECT site_id FROM site_survey \
-										WHERE site_survey_guid = ?', siteGUID);
-
-			var siteID = previousID.fieldByName('site_id');
-			
+		} else {			
 			//var siteID = prevSiteID;
 			var siteGUID = prevSiteGUID;
 			//delete existing data
@@ -77,79 +72,83 @@ function processDownload(cloudSurvey) {
 			var transects = db.execute('SELECT * FROM transect WHERE site_survey_guid = ?', siteGUID);
 		
 			// Copy and associate any existing transects
-			for (var i = 0; i < surveyData.length; i++) {
-				var transectGUID = surveyData[i].transect_guid;
-				var transectName = surveyData[i].transect_name;
-				var surveyor = surveyData[i].surveyor;
-				var otherSurveyors = surveyData[i].other_surveyors;
-				var plotDistance = surveyData[i].plot_distance;
-				var stakeOrientation = surveyData[i].stake_orientation;
-				var utmZone = surveyData[i].utm_zone;
-				var utmEasting = surveyData[i].utm_easting;
-				var utmNorthing = surveyData[i].utm_northing;
-				var tComments = surveyData[i].comments;
-				var transectID = surveyData[i].transect_id;
-				var transectMediaID = surveyData[i].media_id;
+			var cloudTransects = surveyData.transects;
+			for (var i = 0; i < cloudTransects.length; i++) {
+				var siteGUID_FK = cloudTransect[i].site_survey_guid;
+				if (siteGUID_FK == siteGUID) {
+					continue;
+				}
+				var transectGUID = cloudTransects[i].transect_guid;
+				var transectName = cloudTransects[i].transect_name;
+				var surveyor = cloudTransects[i].surveyor;
+				var otherSurveyors = cloudTransects[i].other_surveyors;
+				var plotDistance = cloudTransects[i].plot_distance;
+				var stakeOrientation = cloudTransects[i].stake_orientation;
+				var utmZone = cloudTransects[i].utm_zone;
+				var utmEasting = cloudTransects[i].utm_easting;
+				var utmNorthing = cloudTransects[i].utm_northing;
+				var tComments = cloudTransects[i].comments;
+				var transectFlickrID = cloudTransects[i].flickr_id;
 				
 				db.execute('INSERT INTO transect (transect_guid, transect_name, surveyor, other_surveyors, \
-					plot_distance, stake_orientation, utm_zone, utm_easting, utm_northing, comments, site_id) \
-					VALUES (?,?,?,?,?,?,?,?,?,?,?) WHERE transect_guid = ?', transectGUID, transectName, surveyor, otherSurveyors, 
-					plotDistance, stakeOrientation, utmZone, utmEasting, utmNorthing, tComments, siteID, transectGUID);
+					plot_distance, stake_orientation, utm_zone, utm_easting, utm_northing, comments, site_guid, flickr_id) \
+					VALUES (?,?,?,?,?,?,?,?,?,?,?)', transectGUID, transectName, surveyor, otherSurveyors, 
+					plotDistance, stakeOrientation, utmZone, utmEasting, utmNorthing, tComments, siteGUID);
 	
 				// Get any plots associated with the transect
 				var plots = db.execute('SELECT * FROM plot WHERE transect_guid = ?', transectGUID);
 				
 				// Copy and associate any existing plots
-				while (plots.isValidRow()) {
-					var plotID = plots.fieldByName('plot_id');
-					var plotName = plots.fieldByName('plot_name');
-					var plotUtmZone = plots.fieldByName('utm_zone');
-					var plotUtmEasting = plots.fieldByName('utm_easting');
-					var plotUtmNorthing = plots.fieldByName('utm_northing');
-					var utc = plots.fieldByName('utc');
-					var stakeDeviation = plots.fieldByName('stake_deviation');
-					var distanceDeviation = plots.fieldByName('distance_deviation');
-					var comments = plots.fieldByName('comments');
-					var plotID = plots.fieldByName('plot_id');
+				var cloudPlots = surveyData.plots;
+				for (var j = 0; j < cloudPlots.length; j++) {
+					var transectGUID_FK = cloudPlots[j].transect_guid;
+					if (transectGUID_FK != transectGUID) {
+						continue;
+					}
+					var plotGUID = cloudPlots[j].plot_guid;
+					var plotName = cloudPlots[j].plot_name;
+					var plotUtmZone = cloudPlots[j].utm_zone;
+					var plotUtmEasting = cloudPlots[j].utm_easting;
+					var plotUtmNorthing = cloudPlots[j].utm_northing;
+					var utc = cloudPlots[j].utc;
+					var stakeDeviation = cloudPlots[j].stake_deviation;
+					var distanceDeviation = cloudPlots[j].distance_deviation;
+					var plotComments = cloudPlots[j].comments;
+					var plotFlickrID = cloudPlots[j].flickr_id;
 					
 					db.execute('INSERT INTO plot (plot_id, plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation, \
-						transect_id, comments) VALUES (?,?,?,?,?,?,?,?,?,?)', plotID, plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
-						utc, stakeDeviation, distanceDeviation, transectID, comments);
-	
-					// Get any plot observations associated with the plot
-					var observations = db.execute('SELECT * FROM plot_observation WHERE plot_id = ?', plotID);
-					
-					// Copy and associate any existing plot observations
-					while (observations.isValidRow()){
-						var observationID = uuid.generateUUID();
-						var observation = observations.fieldByName('observation');
-						var groundCover = 0;
-						var count = observations.fieldByName('count');
-						var observationComments = observations.fieldByName('comments');
-					
-						db.execute('INSERT INTO plot_observation (observation_id, observation, ground_cover, count, comments, plot_id) \
-							VALUES (?,?,?,?,?,?)', observationID, observation, groundCover, count, observationComments, plotID);
+						transect_guid, comments, flickr_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)', plotID, plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
+						utc, stakeDeviation, distanceDeviation, transectGUID, plotComments, plotFlickrID);
 						
-						observations.next();
+					// Copy and associate any existing plot observations
+					var plotObservations = surveyData.plot_observations;
+					for (var k = 0; k < plotObservations.length; k++) {
+						var plotGUID_FK = plotObservations[k].plot_guid;
+						if (plotGUID_FK != plotGUID) {
+							continue;
+						}
+						var observationGUID = plotObservations[k].plot_observation_guid;
+						var observation = plotObservations[k].observation;
+						var groundCover = 0;
+						var count = plotObservations[k].count;
+						var observationComments = plotObservations[k].comments;
+						var plobsFlickrID = plotObservations[k].flickr_id;
+						var speciesCode = plotObservations[k].species_code;
+					
+						db.execute('INSERT INTO plot_observation (observation_id, observation, ground_cover, count, comments, plot_guid, flickr_id, species_code) \
+							VALUES (?,?,?,?,?,?,?,?)', observationID, observation, groundCover, count, observationComments, plotGUID, plobsFlickrID, speciesCode);
+						
 					}	
-					plots.next();
 				}
-				transects.next();
 			}
-			//observations.close();
-			//plots.close();
-			//transects.close();
 		}
 				
 	} catch (e){
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
-		//protocolResult.close();
-		//parkResult.close();
 		db.close();
 		Ti.App.fireEvent("app:refreshSiteSurveys");
-		$.addSiteSurveyWin.close();
 	}
 
 }
