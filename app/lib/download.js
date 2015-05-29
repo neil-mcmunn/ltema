@@ -60,40 +60,44 @@ function processDownload(cloudSurvey) {
 		// Get the transects associated with the survey
 		} else {
 			//updating existing site
+			var previousID = db.execute('SELECT site_id FROM site_survey \
+										WHERE site_survey_guid = ?', siteGUID);
+
+			var siteID = previousID.fieldByName('site_id');
 			
-			
-			var siteID = prevSiteID;
+			//var siteID = prevSiteID;
 			var siteGUID = prevSiteGUID;
 			//delete existing data
 			db.execute('DELETE FROM site_survey WHERE site_survey_guid = ?', siteGUID);
 			
 			console.log('(download, Else clause) siteGUID: ' + typeof siteGUID + ' as ' + siteGUID);
-			db.execute('UPDATE site_survey SET year=? WHERE site_survey_guid=?', currentYear, siteGUID);
-	
+			//db.execute('UPDATE site_survey SET year=? WHERE site_survey_guid=?', currentYear, siteGUID);
+			db.execute('INSERT INTO site_survey (site_survey_guid, year, protocol_id, park_id) VALUES (?,?,?,?)', siteGUID, year, protocolID, parkID);
+			
 			var transects = db.execute('SELECT * FROM transect WHERE site_survey_guid = ?', siteGUID);
 		
 			// Copy and associate any existing transects
-			while (transects.isValidRow()) {
-				var transectID = transects.fieldByName('transect_id');
-				var transectGUID = transects.fieldByName('transect_guid');
-				var transectName = transects.fieldByName('transect_name');
-				var surveyor = transects.fieldByName('surveyor');
-				var otherSurveyors = transects.fieldByName('other_surveyors');
-				var plotDistance = transects.fieldByName('plot_distance');
-				var stakeOrientation = transects.fieldByName('stake_orientation');
-				var utmZone = transects.fieldByName('utm_zone');
-				var utmEasting = transects.fieldByName('utm_easting');
-				var utmNorthing = transects.fieldByName('utm_northing');
-				var tComments = transects.fieldByName('comments');
-				var transectID = transects.fieldByName('transect_id');
+			for (var i = 0; i < surveyData.length; i++) {
+				var transectGUID = surveyData[i].transect_guid;
+				var transectName = surveyData[i].transect_name;
+				var surveyor = surveyData[i].surveyor;
+				var otherSurveyors = surveyData[i].other_surveyors;
+				var plotDistance = surveyData[i].plot_distance;
+				var stakeOrientation = surveyData[i].stake_orientation;
+				var utmZone = surveyData[i].utm_zone;
+				var utmEasting = surveyData[i].utm_easting;
+				var utmNorthing = surveyData[i].utm_northing;
+				var tComments = surveyData[i].comments;
+				var transectID = surveyData[i].transect_id;
+				var transectMediaID = surveyData[i].media_id;
 				
-				db.execute('INSERT INTO transect (transect_guid, transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
-					utm_zone, utm_easting, utm_northing, comments, site_id) \
-					VALUES (?,?,?,?,?,?,?,?,?,?,?) WHERE transect_id = ?', transectGUID, transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
-					utmEasting, utmNorthing, tComments, siteID, transectID);
+				db.execute('INSERT INTO transect (transect_guid, transect_name, surveyor, other_surveyors, \
+					plot_distance, stake_orientation, utm_zone, utm_easting, utm_northing, comments, site_id) \
+					VALUES (?,?,?,?,?,?,?,?,?,?,?) WHERE transect_guid = ?', transectGUID, transectName, surveyor, otherSurveyors, 
+					plotDistance, stakeOrientation, utmZone, utmEasting, utmNorthing, tComments, siteID, transectGUID);
 	
 				// Get any plots associated with the transect
-				var plots = db.execute('SELECT * FROM plot WHERE transect_id = ?', transectID);
+				var plots = db.execute('SELECT * FROM plot WHERE transect_guid = ?', transectGUID);
 				
 				// Copy and associate any existing plots
 				while (plots.isValidRow()) {
