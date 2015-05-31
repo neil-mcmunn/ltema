@@ -1,66 +1,79 @@
 // download a survey
 // must specify the site and protocol
-//var uuid = require('./uuid');
 
 function processDownload(cloudSurvey) {
-    //do stuff with surveyData
-    // expected fields: site, site_survey_guid, year, protocol_id, park_id, exported, transect_guid, transect_name, surveyor, other_surveyors, plot_distance,
-    //   stake_orientation, utm_zone, utm_easting, utm_northing, comments, flickr_id, plot_guid, plot_name, 
+    //do stuff with cloudSurvey
+    // expected fields: site, protocol, date_surveyed, last_modified, version_no, exported,
+    //   survey_data {transects[], plots[], plot_observations[], media[], survey_meta}
+    
    try {
     	console.log ('enter try in download');
     	var db = Ti.Database.open('ltemaDB');
-    	console.log ('database opened successfuly');
     	
     	var surveyData = cloudSurvey.survey_data;
-    	console.log('THE DOWNLOAD');
+    	var surveyMeta = surveyData.survey_meta;
+		var cloudMedia = surveyData.media;
+		var cloudTransects = surveyData.transects;
+    	var cloudPlots = surveyData.plots;
+		var plotObservations = surveyData.plot_observations;
+    	//console.log('THE DOWNLOAD');
     	//console.log(surveyData);
+    	console.log('THE DOWNLOAD SITE AND PROTOCOL');
     	console.log('site and protocol: ' + cloudSurvey.site + ' ' + cloudSurvey.protocol);
     	
+    	/*
     	var protocolIDResult = db.execute('SELECT protocol_id FROM protocol WHERE protocol_name =?', cloudSurvey.protocol);
     	var protocolID = protocolIDResult.fieldByName('protocol_id');
     	console.log ('protocol id : ' + protocolID);
+    	
     	var parkIDResult = db.execute('SELECT park_id FROM park WHERE park_name =?', cloudSurvey.site);
     	var parkID = parkIDResult.fieldByName('park_id');
     	console.log ('park id : ' + parkID);
-    	var year = cloudSurvey.last_modified.slice(0,4);
-    	console.log ('year: ' + year);
-    	
-		console.log('line 25 (download)');
-		
+	    */
+	   
+	    var protocolID = surveyMeta.protocol_id;
+	    var parkID = surveyMeta.park_id;
+	    			
 		// Check if this site has been previously surveyed
 		var previousID = db.execute('SELECT site_survey_guid FROM site_survey \
 										WHERE protocol_id = ? \
 										AND park_id = ?', protocolID, parkID);
 
 		var prevSiteGUID = previousID.fieldByName('site_survey_guid');
+		var cloudSiteSurveyGUID = surveyMeta.site_survey_guid;
 		
-		if (prevSiteGUID == null) {
-			console.log('prevSiteGUID was null');
-			prevSiteGUID = surveyData[0].site_guid;
-			console.log('guid value: ' + prevSiteGUID);
+		var siteSurveyGUID = prevSiteGUID;
+		if (siteSurveyGUID != cloudSiteSurveyGUID) {
+			console.log('old siteSurvey differs from cloud. Setting siteSurveyGUID to cloud value');
+			siteSurveyGUID = cloudSiteSurveyGUID;
 		}
 
-		console.log('id line 34 (download): ' + prevSiteID + ' and guid: ' + prevSiteGUID);
+		console.log('siteSurveyGUID line 47 (download): ' + siteSurveyGUID);
+				
+    	// compare dates between old and cloud data
+		var oldDate = db.execute('SELECT year FROM site_survey WHERE site_survey_guid = ?', siteSurveyGUID);
+		var oldYear = oldDate.fieldByName('year');
+		var cloudYear = cloudSurvey.last_modified.slice(0,4);
+    	console.log ('old year, new year: ' + oldYear + ', ' + cloudYear);
+    	
+    	var year = oldDate;    	
+    	if (cloudYear >= oldYear) {
+    		year = cloudYear;
+    		console.log ('updated year: ', year);
+    	}
+    	
+    	var cloudVersion = cloudSurvey.version_no;
+    	var deviceVersionQuery = db.execute('SELECT version_no FROM site_survey WHERE site_survey_guid = ?', siteSurveyGUID);
+		var deviceVersion = deviceVersionQuery.fieldByName('version_no');
 
-		if (!prevSiteID) {
-			// Insert the new survey
-			//var siteGUID = String(uuid.generateUUID());
-			//var results = db.execute('SELECT last_insert_rowid() as siteID');
-	
-			console.log('processDownload variable list with types: ');
-			console.log('siteID: ' + typeof siteID + ' as ' + siteID);
-			//console.log('siteGUID: ' + typeof siteGUID + ' as ' + siteGUID);
-			console.log('currentYear: ' + typeof year + ' as ' + year);
-			console.log('protocolID: ' + typeof protocolID + ' as ' + protocolID);
-			console.log('parkID: ' + typeof parkID + ' as ' + parkID);
-	
-			//db.execute('INSERT INTO site_survey (site_survey_guid, year, protocol_id, park_id) VALUES (?,?,?,?)', siteGUID, year, protocolID, parkID);
-	
-			console.log('after insert download line 50');
+		if (deviceVersion >= cloudVersion) {
+			// Inform user that device version is newer and don't change database'
+			alert('version on DEVICE is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
 
-		// Get the transects associated with the survey
 		} else {			
-			//var siteID = prevSiteID;
+			//Insert the updated survey
+			alert('version on CLOUD is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
+			
 			var siteGUID = prevSiteGUID;
 			//delete existing data
 			db.execute('DELETE FROM site_survey WHERE site_survey_guid = ?', siteGUID);
@@ -68,11 +81,21 @@ function processDownload(cloudSurvey) {
 			console.log('(download, Else clause) siteGUID: ' + typeof siteGUID + ' as ' + siteGUID);
 			//db.execute('UPDATE site_survey SET year=? WHERE site_survey_guid=?', currentYear, siteGUID);
 			db.execute('INSERT INTO site_survey (site_survey_guid, year, protocol_id, park_id) VALUES (?,?,?,?)', siteGUID, year, protocolID, parkID);
+					
+			// Copy and associate any existing transects media and id's'
+			for (var i = 0; i < cloudMedia.length; i++) {
+				var oldMediaID = cloudMedia[i].media_id;
+				var flickrID = cloudMedia[i].flickr_id;
+				
+				// insert flickr_id and extract auto-incremented media_id and store in media blob
+				db.execute('INSERT INTO media (flickr_id) VALUES (?);', flickrID);
+				var results = db.execute('SELECT last_insert_rowid() as mediaID');
+				var newMediaID = results.fieldByName('mediaID');
+				
+				cloudMedia[i].new_media_id = newMediaID;
+			}
 			
-			var transects = db.execute('SELECT * FROM transect WHERE site_survey_guid = ?', siteGUID);
-		
 			// Copy and associate any existing transects
-			var cloudTransects = surveyData.transects;
 			for (var i = 0; i < cloudTransects.length; i++) {
 				var siteGUID_FK = cloudTransect[i].site_survey_guid;
 				if (siteGUID_FK == siteGUID) {
@@ -88,18 +111,25 @@ function processDownload(cloudSurvey) {
 				var utmEasting = cloudTransects[i].utm_easting;
 				var utmNorthing = cloudTransects[i].utm_northing;
 				var tComments = cloudTransects[i].comments;
-				var transectFlickrID = cloudTransects[i].flickr_id;
+				var transectOldMediaID = cloudTransects[i].media_id;
+				
+				// use old media id from cloud to map to new media id
+				var transectNewMediaID = null;
+				for (var m = 0; m < cloudMedia.length; i++) {
+					if (transectOldMediaID == cloudMedia[m].media_id) {
+						transectNewMediaID = cloudMedia[m].new_media_id;
+						//remove this row to save time for future iterations
+						cloudMedia.splice(m, 1);
+						break;
+					}
+				}
 				
 				db.execute('INSERT INTO transect (transect_guid, transect_name, surveyor, other_surveyors, \
-					plot_distance, stake_orientation, utm_zone, utm_easting, utm_northing, comments, site_guid, flickr_id) \
-					VALUES (?,?,?,?,?,?,?,?,?,?,?)', transectGUID, transectName, surveyor, otherSurveyors, 
-					plotDistance, stakeOrientation, utmZone, utmEasting, utmNorthing, tComments, siteGUID);
-	
-				// Get any plots associated with the transect
-				var plots = db.execute('SELECT * FROM plot WHERE transect_guid = ?', transectGUID);
+					plot_distance, stake_orientation, utm_zone, utm_easting, utm_northing, comments, site_guid, media_id) \
+					VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', transectGUID, transectName, surveyor, otherSurveyors, 
+					plotDistance, stakeOrientation, utmZone, utmEasting, utmNorthing, tComments, siteGUID, transectNewMediaID);
 				
 				// Copy and associate any existing plots
-				var cloudPlots = surveyData.plots;
 				for (var j = 0; j < cloudPlots.length; j++) {
 					var transectGUID_FK = cloudPlots[j].transect_guid;
 					if (transectGUID_FK != transectGUID) {
@@ -114,14 +144,24 @@ function processDownload(cloudSurvey) {
 					var stakeDeviation = cloudPlots[j].stake_deviation;
 					var distanceDeviation = cloudPlots[j].distance_deviation;
 					var plotComments = cloudPlots[j].comments;
-					var plotFlickrID = cloudPlots[j].flickr_id;
+					var plotMediaID = cloudPlots[j].media_id;
 					
-					db.execute('INSERT INTO plot (plot_id, plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation, \
-						transect_guid, comments, flickr_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)', plotID, plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
-						utc, stakeDeviation, distanceDeviation, transectGUID, plotComments, plotFlickrID);
+					// use old media id from cloud to map to new media id
+					var plotNewMediaID = null;
+					for (var m = 0; m < cloudMedia.length; i++) {
+						if (plotOldMediaID == cloudMedia[m].media_id) {
+							plotNewMediaID = cloudMedia[m].new_media_id;
+							//remove this row to save time for future iterations
+							cloudMedia.splice(m, 1);
+							break;
+						}
+					}
+					
+					db.execute('INSERT INTO plot (plot_guid, plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation, \
+						transect_guid, comments, media_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)', plotGUID, plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
+						utc, stakeDeviation, distanceDeviation, transectGUID, plotComments, plotNewMediaID);
 						
-    					// Copy and associate any existing plot observations
-					var plotObservations = surveyData.plot_observations;
+					// Copy and associate any existing plot observations
 					for (var k = 0; k < plotObservations.length; k++) {
 						var plotGUID_FK = plotObservations[k].plot_guid;
 						if (plotGUID_FK != plotGUID) {
@@ -132,11 +172,22 @@ function processDownload(cloudSurvey) {
 						var groundCover = 0;
 						var count = plotObservations[k].count;
 						var observationComments = plotObservations[k].comments;
-						var plobsFlickrID = plotObservations[k].flickr_id;
+						var plotObsOldMediaID = plotObservations[k].media_id;
 						var speciesCode = plotObservations[k].species_code;
 					
-						db.execute('INSERT INTO plot_observation (observation_id, observation, ground_cover, count, comments, plot_guid, flickr_id, species_code) \
-							VALUES (?,?,?,?,?,?,?,?)', observationID, observation, groundCover, count, observationComments, plotGUID, plobsFlickrID, speciesCode);
+						// use old media id from cloud to map to new media id
+						var plotObsNewMediaID = null;
+						for (var m = 0; m < cloudMedia.length; i++) {
+							if (plotObsOldMediaID == cloudMedia[m].media_id) {
+								plotObsNewMediaID = cloudMedia[m].new_media_id;
+								//remove this row to save time for future iterations
+								cloudMedia.splice(m, 1);
+								break;
+							}
+						}
+					
+						db.execute('INSERT INTO plot_observation (observation_guid, observation, ground_cover, count, comments, plot_guid, media_id, species_code) \
+							VALUES (?,?,?,?,?,?,?,?)', observationGUID, observation, groundCover, count, observationComments, plotGUID, plotObsNewMediaID, speciesCode);
 						
 					}	
 				}
