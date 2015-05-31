@@ -120,7 +120,7 @@ function processDownload(cloudSurvey) {
 						transect_guid, comments, flickr_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)', plotID, plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
 						utc, stakeDeviation, distanceDeviation, transectGUID, plotComments, plotFlickrID);
 						
-					// Copy and associate any existing plot observations
+    					// Copy and associate any existing plot observations
 					var plotObservations = surveyData.plot_observations;
 					for (var k = 0; k < plotObservations.length; k++) {
 						var plotGUID_FK = plotObservations[k].plot_guid;
