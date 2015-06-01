@@ -1,6 +1,6 @@
 // upload a survey
 //
-function uploadPhotos(site, protocol) {
+function preparePhotos(site, protocol) {
 	try{
 		var db = Ti.Database.open('ltemaDB');
 	
@@ -90,6 +90,8 @@ function uploadPhotos(site, protocol) {
 	
 }
 
+
+
 function uploadSurvey (siteName, protocolName){
 	//Create arrays to hold objects relevant to this survey
 	var surveyJSON;
@@ -124,6 +126,7 @@ function formAlpineGrasslandJSON(siteName, protocolName){
 		var rows = db.execute( 'SELECT site_survey_guid, year, protocol_id, park_id \
 							FROM site_survey \
 							WHERE site_id = ? AND protocol_id = ?', siteName, protocolName); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
+
 	}
 	catch(e) {
 		var errorMessage = e.message;
@@ -139,14 +142,13 @@ function formAlpineGrasslandJSON(siteName, protocolName){
 		plot_observations : []
 		media : []
 		survey_meta : {
-			site_survey_guid :
-			year :
-			protocol_id : 
-			park_id : 
+			site_survey_guid : rows.fieldByName('site_survey_guid')
+			year : rows.fieldByName('year')
+			protocol_id : rows.fieldByName('protocol_id')
+			park_id : rows.fieldByName('park_id')
 		}
 	}
 	
-	return survey;
 }
 
 function uploadJSON() {
