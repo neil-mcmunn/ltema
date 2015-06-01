@@ -259,6 +259,7 @@ function downloadSurvey(site, protocol) {
             //call checkLocalSurveys, pass in results
             Ti.API.info("Downloading...");
             var returnArray = JSON.parse(this.responseData);
+            alert('download started');
             processDownload(returnArray);
             alert('download processed');
         };

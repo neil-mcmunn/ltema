@@ -178,7 +178,7 @@ function doneBtn(e){
 
 				console.log('id line 178 (addSiteSurvey): ');
 				console.log('variable types:');
-				console.log('siteID: ' + typeof siteID + ' as ' + siteID);
+				//console.log('siteID: ' + typeof siteID + ' as ' + siteID);
 				console.log('siteGUID: ' + typeof siteGUID + ' as ' + siteGUID);
 				console.log('currentYear: ' + typeof currentYear + ' as ' + currentYear);
 				console.log('protocolID: ' + typeof protocolID + ' as ' + protocolID);

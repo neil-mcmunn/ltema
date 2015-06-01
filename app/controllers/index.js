@@ -97,7 +97,7 @@ function checkLocalSurveys (cloudSurveys) {
 
 			rows.next();
 		}
-		console.log('index L316 localSurveys: ');
+		console.log('index L100 localSurveys: ');
 		console.log(localSurveys);
 
 		populateTable(cloudSurveys, localSurveys);
@@ -116,6 +116,7 @@ function createButtons(rows, downloadExists) {
 	console.log('createButtons line 52 rows value: ');
 	//console.log(rows);
 	console.log('downloadExists=' + downloadExists);
+	
 	//Get requested data from each row in table
 	for (var i = 0; i < rows.length; i++) {
 		var site = rows[i]['site'];
@@ -143,6 +144,7 @@ function createButtons(rows, downloadExists) {
 			var newRow = Ti.UI.createTableViewRow({
 				title: siteSurvey,
 				site: site,
+				siteGUID: siteGUID,
 				protocol: protocol, //not visible, but passed to transects screen
 				height: 60,
 				font: {fontSize: 20},
@@ -218,7 +220,7 @@ function populateTable(cloudSurveys, localSurveys) {
 			var protocolNameOnDevice = localSurveys[j]['protocol'];
 			var parkNameOnDevice = localSurveys[j]['site'];
 
-			console.log('index L338 (pd, pc, prkD, prkC): ' + protocolNameOnDevice + ' ' + protocolNameOnCloud + ' ' + parkNameOnDevice + ' ' + parkNameOnCloud);
+			console.log('index L230 (pd, pc, prkD, prkC): ' + protocolNameOnDevice + ' ' + protocolNameOnCloud + ' ' + parkNameOnDevice + ' ' + parkNameOnCloud);
 			// already downloaded
 			if ((protocolNameOnCloud == protocolNameOnDevice) && (parkNameOnCloud == parkNameOnDevice)) {
 				console.log('MATCHED! index L341 (pd, pc, prkD, prkC): ' + protocolNameOnDevice + ' ' + protocolNameOnCloud + ' ' + parkNameOnDevice + ' ' + parkNameOnCloud);
@@ -242,21 +244,25 @@ function populateTable(cloudSurveys, localSurveys) {
 
 	//check for localOnly
 	var localOnlySurveys = [];
+	console.log('index L 254 local surveys length ' + localSurveys.length);
 	for (var i = 0; i < localSurveys.length; i++) {
 		var protocolNameOnDevice = localSurveys[i]['protocol'];
 		var parkNameOnDevice = localSurveys[i]['site'];
 		var yearOnDevice = localSurveys[i]['date_surveyed'];
 		var siteGUID = localSurveys[i]['site_survey_guid'];
 
+		var matched = false;
 		for (var j = 0; j < cloudAndLocalSurveys.length; j++) {
-			var matched = false;
+			var parkNameOnCloud = cloudSurveys[j].site;
 			var protocolNameOnCloud = cloudAndLocalSurveys[j].protocol;
-			var parkNameOnCloud = cloudAndLocalSurveys[j].site;
 
+			console.log('index L262 (pd, pc, prkD, prkC): ' + protocolNameOnDevice + ' ' + protocolNameOnCloud + ' ' + parkNameOnDevice + ' ' + parkNameOnCloud);
+			
 			// if there's a match, skip to next iteration of i
 			if ((protocolNameOnCloud == protocolNameOnDevice) && (parkNameOnCloud == parkNameOnDevice)) {
+				console.log('MATCHED! index L274 (pd, prkC): ' + protocolNameOnDevice + ' ' + parkNameOnCloud);
 				matched = true;
-				continue;
+				break;
 			}
 		}
 
@@ -279,6 +285,7 @@ function populateTable(cloudSurveys, localSurveys) {
 	createButtons(cloudOnlySurveys, false);
 
 	console.log('got through createButton functions line 411 index.js');
+
 }
 
 
@@ -377,8 +384,15 @@ $.tbl.addEventListener('click', function(e) {
 
 		//row clicked, get transect view
 	} else {
-		var transects = Alloy.createController("transects", {siteGUID:e.rowData.siteGUID, parkName:e.rowData.parkName}).getView();
-		$.navGroupWin.openWindow(transects);
+		// if downloaded open transect view
+		if (e.rowData.color == 'black') {
+			var transects = Alloy.createController("transects", {siteGUID:e.rowData.siteGUID, parkName:e.rowData.parkName}).getView();
+			$.navGroupWin.openWindow(transects);
+		
+		// else do nothing
+		} else {
+			alert('must download first');
+		}
 	}
 });
 
