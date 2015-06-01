@@ -23,7 +23,7 @@ try {
 	
 	var resultRow = db.execute (	'SELECT p.park_name, t.transect_name \
 								FROM park p, transect t, site_survey s \
-								WHERE s.site_survey_id = t.site_survey_id \
+								WHERE s.site_survey_guid = t.site_survey_guid \
 								AND p.park_id = s.park_id \
 								AND t.transect_guid = ?' , transectGUID);
 	parkName = resultRow.fieldByName('park_name');
@@ -32,7 +32,6 @@ try {
 	var errorMessage = e.message;
 	Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 } finally {
-	resultRow.close();
 	db.close();
 }
 
@@ -106,7 +105,7 @@ $.tbl.addEventListener('delete', function(e) {
 							FROM site_survey s, protocol p, park prk \
 							WHERE s.protocol_id = p.protocol_id \
 							AND s.park_id = prk.park_id \
-							AND site_survey_id = ?', siteGUID);
+							AND site_survey_guid = ?', siteGUID);
 							
 		//Name the directory	
 		var year = rows.fieldByName('year');
@@ -153,9 +152,6 @@ $.tbl.addEventListener('delete', function(e) {
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
-		rows.close();
-		plotFiles.close();
-		plotObservationFiles.close();
 		db.close();
 		toggleEditBtn();
 	}
@@ -263,7 +259,6 @@ function populateTable() {
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
-		rows.close();
 		db.close();
 		toggleEditBtn();
 	}

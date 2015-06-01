@@ -77,132 +77,6 @@ function checkSurveys() {
 }
 
 function checkLocalSurveys (cloudSurveys) {
-	/*
-	 var json = {
-	 "command": "SELECT",
-	 "rowCount": 11,
-	 "oid": null,
-	 "rows": [
-	 {
-	 "site": "testSite",
-	 "protocol": "testProtocol",
-	 "date_surveyed": "2015-05-01T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "uploadSiteTest1",
-	 "protocol": "intertidal",
-	 "date_surveyed": "2015-05-04T00:00:00.000Z",
-	 "version_no": 2
-	 },
-	 {
-	 "site": "uploadSiteTest1",
-	 "protocol": "intertidal1",
-	 "date_surveyed": "2015-05-04T00:00:00.000Z",
-	 "version_no": 2
-	 },
-	 {
-	 "site": "uploadSiteTest2",
-	 "protocol": "uploadProtocolTest1",
-	 "date_surveyed": "2015-05-04T00:00:00.000Z",
-	 "version_no": 2
-	 },
-	 {
-	 "site": "uploadSiteTest1",
-	 "protocol": "uploadProtocolTest1",
-	 "date_surveyed": "2015-05-04T00:00:00.000Z",
-	 "version_no": 2
-	 },
-	 {
-	 "site": "uploadSiteTest2",
-	 "protocol": "uploadProtocolTest2",
-	 "date_surveyed": "2015-05-04T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "MacMillan Park",
-	 "protocol": "Alpine",
-	 "date_surveyed": "2015-05-25T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "Macmillan Park",
-	 "protocol": "Alpine",
-	 "date_surveyed": "2015-05-25T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "Gerald Island Park",
-	 "protocol": "Alpine",
-	 "date_surveyed": "2015-05-25T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "Sand Point Conservancy",
-	 "protocol": "Alpine",
-	 "date_surveyed": "2015-05-25T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "Victor Lake Park",
-	 "protocol": "Grassland",
-	 "date_surveyed": "2015-05-25T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "Ilgachuz Range Ecological Reserve",
-	 "protocol": "Alpine",
-	 "date_surveyed": "2015-05-25T00:00:00.000Z",
-	 "version_no": 1
-	 }
-	 ],
-	 "fields": [
-	 {
-	 "name": "site",
-	 "tableID": 524614,
-	 "columnID": 1,
-	 "dataTypeID": 1043,
-	 "dataTypeSize": -1,
-	 "dataTypeModifier": 104,
-	 "format": "text"
-	 },
-	 {
-	 "name": "protocol",
-	 "tableID": 524614,
-	 "columnID": 2,
-	 "dataTypeID": 1043,
-	 "dataTypeSize": -1,
-	 "dataTypeModifier": 104,
-	 "format": "text"
-	 },
-	 {
-	 "name": "date_surveyed",
-	 "tableID": 524614,
-	 "columnID": 4,
-	 "dataTypeID": 1082,
-	 "dataTypeSize": 4,
-	 "dataTypeModifier": -1,
-	 "format": "text"
-	 },
-	 {
-	 "name": "version_no",
-	 "tableID": 524614,
-	 "columnID": 6,
-	 "dataTypeID": 23,
-	 "dataTypeSize": 4,
-	 "dataTypeModifier": -1,
-	 "format": "text"
-	 }
-	 ],
-	 "_parsers": [
-	 null,
-	 null,
-	 null,
-	 null
-	 ],
-	 "rowAsArray": false
-	 };
-	 */
 	try {
 		//open database
 		var db = Ti.Database.open('ltemaDB');//Query - Retrieve existing sites from sqlite database
@@ -235,9 +109,6 @@ function checkLocalSurveys (cloudSurveys) {
 		db.close();
 		toggleEditBtn();
 	}
-
-
-
 }
 
 function createButtons(rows, downloadExists) {
@@ -251,6 +122,7 @@ function createButtons(rows, downloadExists) {
 		var year = rows[i]['date_surveyed'];
 		var protocol = rows[i]['protocol'];
 		var versionNo = rows[i]['version_no'];
+		var siteGUID = rows[i]['site_survey_guid'];
 
 		//create a string from each entry
 		var siteSurvey = year.slice(0,4) + ' - ' + protocol + ' - ' + site;
@@ -261,6 +133,7 @@ function createButtons(rows, downloadExists) {
 			var newRow = Ti.UI.createTableViewRow({
 				title: siteSurvey,
 				site: site,
+				siteGUID: siteGUID,
 				protocol: protocol, //not visible, but passed to transects screen
 				height: 60,
 				font: {fontSize: 20},
@@ -338,6 +211,7 @@ function populateTable(cloudSurveys, localSurveys) {
 		var protocolNameOnCloud = cloudSurveys[i].protocol;
 		var parkNameOnCloud = cloudSurveys[i].site;
 		var yearOnCloud = cloudSurveys[i].date_surveyed;
+		var cloudSiteGUID = cloudSurveys[i].site_survey_guid;
 
 		var lengthDownloadedBefore = cloudAndLocalSurveys.length;
 		for (var j = 0; j < localSurveys.length; j++) {
@@ -361,7 +235,7 @@ function populateTable(cloudSurveys, localSurveys) {
 		var lengthDownloadedAfter = cloudAndLocalSurveys.length;
 		if (lengthDownloadedAfter == lengthDownloadedBefore) {
 			// didn't match cloud to device, add to cloudOnlySurveys
-			var results = {'date_surveyed': yearOnCloud, 'protocol':protocolNameOnCloud, 'site':parkNameOnCloud};
+			var results = {'site_survey_guid': cloudSiteGUID, 'date_surveyed': yearOnCloud, 'protocol': protocolNameOnCloud, 'site': parkNameOnCloud};
 			cloudOnlySurveys.push(results);
 		}
 	}
@@ -372,6 +246,7 @@ function populateTable(cloudSurveys, localSurveys) {
 		var protocolNameOnDevice = localSurveys[i]['protocol'];
 		var parkNameOnDevice = localSurveys[i]['site'];
 		var yearOnDevice = localSurveys[i]['date_surveyed'];
+		var siteGUID = localSurveys[i]['site_survey_guid'];
 
 		for (var j = 0; j < cloudAndLocalSurveys.length; j++) {
 			var matched = false;
@@ -387,7 +262,7 @@ function populateTable(cloudSurveys, localSurveys) {
 
 		// if no match, add record to localOnly
 		if (matched == false) {
-			var results = {'date_surveyed': yearOnDevice, 'protocol': protocolNameOnDevice, 'site': parkNameOnDevice};
+			var results = {'site_survey_guid': siteGUID, 'date_surveyed': yearOnDevice, 'protocol': protocolNameOnDevice, 'site': parkNameOnDevice};
 			localOnlySurveys.push(results);
 		}
 	}
@@ -474,7 +349,7 @@ $.tbl.addEventListener('click', function(e) {
 		});
 		//download button clicked
 	} else if (e.source.buttonid == 'download') {
-		alert('Download button pressed! Calling download function with the following parameters...\n' + e.rowData.site + ' ' + e.rowData.protocol);
+		//alert('Download button pressed! Calling download function with the following parameters...\n' + e.rowData.site + ' ' + e.rowData.protocol);
 
 		var download = require('download');
 		download.downloadSurvey(e.rowData.site, e.rowData.protocol);

@@ -23,7 +23,6 @@ try {
 	var errorMessage = e.message;
 	Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 } finally {
-	results.close();
 	db.close();
 }
 
@@ -182,8 +181,6 @@ function doneBtn(e){
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	}finally{	
 		//close the result set
-		results.close();	
-		
 		//populate new plotID with zeroed-out observations
 		//insertPreviousPlotRows(db, plotGUID);
 		
@@ -239,7 +236,6 @@ function savePhoto(photo){
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
-		rows.close();
 		db.close();
 	}
 	

@@ -82,16 +82,18 @@ function processDownload(cloudSurvey) {
     	}
     	
     	var cloudVersion = cloudSurvey.version_no;
+    	console.log('cloud version: ' + cloudVersion + ', site survey guid is: ' + siteSurveyGUID);
     	var deviceVersionQuery = db.execute('SELECT version_no FROM site_survey WHERE site_survey_guid = ?', siteSurveyGUID);
 		var deviceVersion = deviceVersionQuery.fieldByName('version_no');
-
+		console.log('device version_no: ' + deviceVersion);
+		
 		if (deviceVersion >= cloudVersion) {
 			// Inform user that device version is newer and don't change database'
-			alert('version on DEVICE is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
+			//alert('version on DEVICE is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
 
 		} else {			
 			//Insert the updated survey
-			alert('version on CLOUD is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
+			//alert('version on CLOUD is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
 			
 			var siteGUID = cloudSiteSurveyGUID;
 			//delete existing data
@@ -116,10 +118,14 @@ function processDownload(cloudSurvey) {
 			
 			// Copy and associate any existing transects
 			for (var i = 0; i < cloudTransects.length; i++) {
-				var siteGUID_FK = cloudTransect[i].site_survey_guid;
-				if (siteGUID_FK == siteGUID) {
+				
+				var siteGUID_FK = cloudTransects[i].site_survey_guid;
+				if (siteGUID_FK != siteGUID) {
 					continue;
 				}
+				
+				console.log('this is transect #: ' + i);
+				
 				var transectGUID = cloudTransects[i].transect_guid;
 				var transectName = cloudTransects[i].transect_name;
 				var surveyor = cloudTransects[i].surveyor;
@@ -144,16 +150,20 @@ function processDownload(cloudSurvey) {
 				}
 				
 				db.execute('INSERT INTO transect (transect_guid, transect_name, surveyor, other_surveyors, \
-					plot_distance, stake_orientation, utm_zone, utm_easting, utm_northing, comments, site_guid, media_id) \
+					plot_distance, stake_orientation, utm_zone, utm_easting, utm_northing, comments, site_survey_guid, media_id) \
 					VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', transectGUID, transectName, surveyor, otherSurveyors, 
 					plotDistance, stakeOrientation, utmZone, utmEasting, utmNorthing, tComments, siteGUID, transectNewMediaID);
 				
 				// Copy and associate any existing plots
 				for (var j = 0; j < cloudPlots.length; j++) {
+					
 					var transectGUID_FK = cloudPlots[j].transect_guid;
 					if (transectGUID_FK != transectGUID) {
 						continue;
 					}
+					
+					console.log('this is plot #: ' + j);
+					
 					var plotGUID = cloudPlots[j].plot_guid;
 					var plotName = cloudPlots[j].plot_name;
 					var plotUtmZone = cloudPlots[j].utm_zone;
@@ -163,14 +173,16 @@ function processDownload(cloudSurvey) {
 					var stakeDeviation = cloudPlots[j].stake_deviation;
 					var distanceDeviation = cloudPlots[j].distance_deviation;
 					var plotComments = cloudPlots[j].comments;
-					var plotMediaID = cloudPlots[j].media_id;
+					var plotOldMediaID = cloudPlots[j].media_id;
 					
 					// use old media id from cloud to map to new media id
 					var plotNewMediaID = null;
-					for (var m = 0; m < cloudMedia.length; i++) {
+					for (var m = 0; m < cloudMedia.length; m++) {
+						
 						if (plotOldMediaID == cloudMedia[m].media_id) {
 							plotNewMediaID = cloudMedia[m].new_media_id;
 							//remove this row to save time for future iterations
+							console.log('inserting media ' + cloudMedia[m].new_media_id + ' into plot: ' + j);
 							cloudMedia.splice(m, 1);
 							break;
 						}
@@ -182,10 +194,14 @@ function processDownload(cloudSurvey) {
 						
 					// Copy and associate any existing plot observations
 					for (var k = 0; k < plotObservations.length; k++) {
+						
 						var plotGUID_FK = plotObservations[k].plot_guid;
 						if (plotGUID_FK != plotGUID) {
 							continue;
 						}
+						
+						console.log('this is plot obs #: ' + k);
+						
 						var observationGUID = plotObservations[k].plot_observation_guid;
 						var observation = plotObservations[k].observation;
 						var groundCover = 0;
@@ -196,16 +212,19 @@ function processDownload(cloudSurvey) {
 					
 						// use old media id from cloud to map to new media id
 						var plotObsNewMediaID = null;
-						for (var m = 0; m < cloudMedia.length; i++) {
+						for (var m = 0; m < cloudMedia.length; m++) {
+							
 							if (plotObsOldMediaID == cloudMedia[m].media_id) {
 								plotObsNewMediaID = cloudMedia[m].new_media_id;
 								//remove this row to save time for future iterations
+								console.log('inserting media ' + cloudMedia[m].new_media_id + ' into plot observation: ' + k);
+								
 								cloudMedia.splice(m, 1);
 								break;
 							}
 						}
 					
-						db.execute('INSERT INTO plot_observation (observation_guid, observation, ground_cover, count, comments, plot_guid, media_id, species_code) \
+						db.execute('INSERT INTO plot_observation (plot_observation_guid, observation, ground_cover, count, comments, plot_guid, media_id, species_code) \
 							VALUES (?,?,?,?,?,?,?,?)', observationGUID, observation, groundCover, count, observationComments, plotGUID, plotObsNewMediaID, speciesCode);
 						
 					}	
@@ -228,7 +247,7 @@ function downloadSurvey(site, protocol) {
         console.log('enter try in downloadSurvey');
 
         var url = "https://capstone-ltemac.herokuapp.com/download?park=" + encodeURIComponent(site) + "&protocol=" + protocol;
-        alert('download url: ' + url);
+        //alert('download url: ' + url);
         var httpClient = Ti.Network.createHTTPClient();
 
         httpClient.open("GET", url);
@@ -238,10 +257,10 @@ function downloadSurvey(site, protocol) {
 
         httpClient.onload = function() {
             //call checkLocalSurveys, pass in results
-            Ti.API.info("Downloaded text: " + this.responseData);
+            Ti.API.info("Downloading...");
             var returnArray = JSON.parse(this.responseData);
             processDownload(returnArray);
-            alert('successful download');
+            alert('download processed');
         };
         httpClient.onerror = function(e) {
             Ti.API.debug("STATUS: " + this.status);

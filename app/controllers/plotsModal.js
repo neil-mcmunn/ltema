@@ -75,7 +75,7 @@ try{
 							FROM site_survey s, protocol p, park prk \
 							WHERE s.protocol_id = p.protocol_id \
 							AND s.park_id = prk.park_id \
-							AND site_survey_id = ?', siteGUID);
+							AND site_survey_guid = ?', siteGUID);
 							
    //get the name of the directory	
 	var year = rows.fieldByName('year');
@@ -334,7 +334,7 @@ function savePhoto(photo){
 						FROM site_survey s, protocol p, park prk \
 						WHERE s.protocol_id = p.protocol_id \
 						AND s.park_id = prk.park_id \
-						AND site_survey_id = ?', siteGUID);
+						AND site_survey_guid = ?', siteGUID);
 		
 		//Get requested data from each row in table
 		
