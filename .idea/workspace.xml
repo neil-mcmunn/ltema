@@ -28,11 +28,9 @@
         <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="475" column="49" selection-start-line="475" selection-start-column="49" selection-end-line="475" selection-end-column="49" />
+              <caret line="350" column="49" selection-start-line="350" selection-start-column="49" selection-end-line="350" selection-end-column="49" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
-                <element signature="n#!!block;n#checkLocalSurveys#0" expanded="false" />
-                <element signature="e#2304#4729#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -41,8 +39,8 @@
       <file leaf-file-name="download.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/lib/download.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-1.7386364">
-              <caret line="32" column="7" selection-start-line="32" selection-start-column="7" selection-end-line="32" selection-end-column="7" />
+            <state vertical-scroll-proportion="-1.0045455">
+              <caret line="51" column="7" selection-start-line="51" selection-start-column="7" selection-end-line="51" selection-end-column="7" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -96,7 +94,7 @@
         <entry file="file://$PROJECT_DIR$/app/controllers/addSiteSurvey.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="270" column="14" selection-start-line="270" selection-start-column="14" selection-end-line="270" selection-end-column="14" />
+              <caret line="269" column="14" selection-start-line="269" selection-start-column="14" selection-end-line="269" selection-end-column="14" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -110,7 +108,7 @@
             <state vertical-scroll-proportion="0.0">
               <caret line="8" column="27" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="27" />
               <folding>
-                <element signature="n#!!doc" expanded="true" />
+                <marker date="1433178805822" expanded="true" signature="0:73" placeholder="/*...*/" />
               </folding>
             </state>
           </provider>
@@ -120,9 +118,9 @@
         <entry file="file://$PROJECT_DIR$/app/controllers/addPlotObservation.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="210" column="17" selection-start-line="210" selection-start-column="11" selection-end-line="210" selection-end-column="17" />
+              <caret line="211" column="17" selection-start-line="211" selection-start-column="17" selection-end-line="211" selection-end-column="17" />
               <folding>
-                <element signature="n#!!doc" expanded="true" />
+                <marker date="1433178805831" expanded="true" signature="0:82" placeholder="/*...*/" />
               </folding>
             </state>
           </provider>
@@ -359,12 +357,6 @@
       <created>1432158521230</created>
       <option name="number" value="Default" />
       <updated>1432158521230</updated>
-    </task>
-    <task id="LOCAL-00033" summary="add console.log statements">
-      <created>1432336749076</created>
-      <option name="number" value="00033" />
-      <option name="project" value="LOCAL" />
-      <updated>1432336749076</updated>
     </task>
     <task id="LOCAL-00034" summary="add console.log statements">
       <created>1432337055212</created>
@@ -654,7 +646,13 @@
       <option name="project" value="LOCAL" />
       <updated>1432933574874</updated>
     </task>
-    <option name="localTasksCounter" value="82" />
+    <task id="LOCAL-00082" summary="updating database media info">
+      <created>1433103951603</created>
+      <option name="number" value="00082" />
+      <option name="project" value="LOCAL" />
+      <updated>1433103951603</updated>
+    </task>
+    <option name="localTasksCounter" value="83" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -714,7 +712,8 @@
     <MESSAGE value="debug createButtons index.js" />
     <MESSAGE value="debug checkSurveys index.js" />
     <MESSAGE value="updating database to use guids as pseudo foreign keys" />
-    <option name="LAST_COMMIT_MESSAGE" value="updating database to use guids as pseudo foreign keys" />
+    <MESSAGE value="updating database media info" />
+    <option name="LAST_COMMIT_MESSAGE" value="updating database media info" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -738,7 +737,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="8" column="27" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="27" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <marker date="1433178805822" expanded="true" signature="0:73" placeholder="/*...*/" />
           </folding>
         </state>
       </provider>
@@ -748,7 +747,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="210" column="17" selection-start-line="210" selection-start-column="11" selection-end-line="210" selection-end-column="17" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <marker date="1433178805831" expanded="true" signature="0:82" placeholder="/*...*/" />
           </folding>
         </state>
       </provider>
@@ -773,9 +772,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="303" column="17" selection-start-line="303" selection-start-column="11" selection-end-line="303" selection-end-column="17" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -785,8 +782,6 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
-            <element signature="n#!!block;n#checkLocalSurveys#0" expanded="false" />
-            <element signature="e#2304#4729#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -806,7 +801,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="8" column="27" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="27" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <marker date="1433178805822" expanded="true" signature="0:73" placeholder="/*...*/" />
           </folding>
         </state>
       </provider>
@@ -816,7 +811,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="8" column="27" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="27" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <marker date="1433178805831" expanded="true" signature="0:82" placeholder="/*...*/" />
           </folding>
         </state>
       </provider>
@@ -841,9 +836,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="303" column="17" selection-start-line="303" selection-start-column="11" selection-end-line="303" selection-end-column="17" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -853,8 +846,6 @@
           <caret line="146" column="52" selection-start-line="146" selection-start-column="52" selection-end-line="146" selection-end-column="52" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
-            <element signature="n#!!block;n#checkLocalSurveys#0" expanded="false" />
-            <element signature="e#2304#4729#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -881,7 +872,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="8" column="27" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="27" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <marker date="1433178805822" expanded="true" signature="0:73" placeholder="/*...*/" />
           </folding>
         </state>
       </provider>
@@ -891,7 +882,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="8" column="27" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="27" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <marker date="1433178805831" expanded="true" signature="0:82" placeholder="/*...*/" />
           </folding>
         </state>
       </provider>
@@ -1028,9 +1019,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="303" column="17" selection-start-line="303" selection-start-column="11" selection-end-line="303" selection-end-column="17" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1066,7 +1055,7 @@
     <entry file="file://$PROJECT_DIR$/app/controllers/addSiteSurvey.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="270" column="14" selection-start-line="270" selection-start-column="14" selection-end-line="270" selection-end-column="14" />
+          <caret line="269" column="14" selection-start-line="269" selection-start-column="14" selection-end-line="269" selection-end-column="14" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
@@ -1109,7 +1098,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="8" column="27" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="27" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <marker date="1433178805822" expanded="true" signature="0:73" placeholder="/*...*/" />
           </folding>
         </state>
       </provider>
@@ -1117,9 +1106,9 @@
     <entry file="file://$PROJECT_DIR$/app/controllers/addPlotObservation.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="210" column="17" selection-start-line="210" selection-start-column="11" selection-end-line="210" selection-end-column="17" />
+          <caret line="211" column="17" selection-start-line="211" selection-start-column="17" selection-end-line="211" selection-end-column="17" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <marker date="1433178805831" expanded="true" signature="0:82" placeholder="/*...*/" />
           </folding>
         </state>
       </provider>
@@ -1137,19 +1126,17 @@
     <entry file="file://$PROJECT_DIR$/app/controllers/index.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="475" column="49" selection-start-line="475" selection-start-column="49" selection-end-line="475" selection-end-column="49" />
+          <caret line="350" column="49" selection-start-line="350" selection-start-column="49" selection-end-line="350" selection-end-column="49" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
-            <element signature="n#!!block;n#checkLocalSurveys#0" expanded="false" />
-            <element signature="e#2304#4729#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/lib/download.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-1.7386364">
-          <caret line="32" column="7" selection-start-line="32" selection-start-column="7" selection-end-line="32" selection-end-column="7" />
+        <state vertical-scroll-proportion="-1.0045455">
+          <caret line="51" column="7" selection-start-line="51" selection-start-column="7" selection-end-line="51" selection-end-column="7" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
