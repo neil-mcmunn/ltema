@@ -1,18 +1,18 @@
 /*
  * List screen to view, add, or delete plot observations
  * 
- * Expected Args: plotID, siteID
+ * Expected Args: plotGUID, siteGUID
  * 
  * Ground coverage must be at least 100% for the plot to be considered complete
  */
 
 var args = arguments[0];
-var plotID = args.plotID;
-$.tbl.plotID = plotID;
-var siteID = args.siteID;
+var plotGUID = args.plotGUID;
+$.tbl.plotGUID = plotGUID;
+var siteGUID = args.siteGUID;
 
 var totalPlotPercentage = 0;
-var transectID;
+var transectGUID;
 
 populateTable();
 
@@ -31,12 +31,12 @@ function populateTable() {
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Query - Observations of a plot
-		var rows = db.execute('SELECT observation_id, observation, ground_cover, comments, media_id \
+		var rows = db.execute('SELECT plot_observation_guid, observation, ground_cover, comments, media_id \
 						FROM plot_observation \
-						WHERE plot_id = ?', $.tbl.plotID); 
+						WHERE plot_guid = ?', $.tbl.plotGUID); 
 		
 		while (rows.isValidRow()) {
-			var observationID = rows.fieldByName('observation_id');	
+			var observationGUID = rows.fieldByName('plot_observation_guid');	
 			var observation = rows.fieldByName('observation');
 			var groundCover = rows.fieldByName('ground_cover');
 			var comments = rows.fieldByName('comments');  //comments and mediaID are retrieved to pass to modal
@@ -44,7 +44,7 @@ function populateTable() {
 			//Create a new row
 			var newRow = Ti.UI.createTableViewRow({
 				title : observation,
-				observationID : observationID,
+				observationGUID : observationGUID,
 				groundCover : groundCover,
 				comments: comments,
 				mediaID: mediaID,
@@ -102,10 +102,10 @@ try {
 	
 	var resultRow = db.execute (	'SELECT pa.park_name, ta.transect_name, pl.plot_name \
 								FROM park pa, transect ta, site_survey ss, plot pl \
-								WHERE ss.site_id = ta.site_id \
+								WHERE ss.site_survey_guid = ta.site_survey_guid \
 								AND pa.park_id = ss.park_id \
-								AND pl.transect_id = ta.transect_id \
-								AND pl.plot_id = ?', plotID);
+								AND pl.transect_guid = ta.transect_guid \
+								AND pl.plot_guid = ?', plotGUID);
 	parkName = resultRow.fieldByName('park_name');
 	transectName = resultRow.fieldByName('transect_name');
 	plotName = resultRow.fieldByName('plot_name');
@@ -152,7 +152,7 @@ $.tbl.addEventListener('click', function(e){
 	}
 	//info button clicked, display modal
 	if (e.source.toString() == '[object TiUIButton]') {
-		var modal = Alloy.createController("plotObservationsModalDisclosureIcon", {observationID:e.rowData.observationID, title:e.rowData.title, comments:e.rowData.comments, mediaID:e.rowData.mediaID, siteID:siteID}).getView();
+		var modal = Alloy.createController("plotObservationsModalDisclosureIcon", {observationGUID:e.rowData.observationGUID, title:e.rowData.title, comments:e.rowData.comments, mediaID:e.rowData.mediaID, siteGUID:siteGUID}).getView();
 		modal.open({
 			modal : true,
 			modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
@@ -160,7 +160,7 @@ $.tbl.addEventListener('click', function(e){
 			navBarHidden : false
 		});
 	} else {
-		var modal = Alloy.createController("plotObservationsModal", {observationID:e.rowData.observationID, title:e.rowData.title}).getView();
+		var modal = Alloy.createController("plotObservationsModal", {observationGUID:e.rowData.observationGUID, title:e.rowData.title}).getView();
 		modal.open({
 			modal : true,
 			modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
@@ -173,24 +173,24 @@ $.tbl.addEventListener('click', function(e){
 // Delete event listener
 $.tbl.addEventListener('delete', function(e) { 
 
-	var observationID = e.rowData.observationID;  //the ID to delete
+	var observationGUID = e.rowData.observationGUID;  //the ID to delete
 	
 	try {
 		//delete from database
 		var db = Ti.Database.open('ltemaDB');
 		
 		// Get the site id
-		var result = db.execute('SELECT site_id FROM transect \
-								WHERE transect_id = ?', transectID);
+		var result = db.execute('SELECT site_survey_guid FROM transect \
+								WHERE transect_guid = ?', transectGUID);
 		
-		var siteID = result.fieldByName('site_id');
+		var siteGUID = result.fieldByName('site_survey_guid');
 		
 		// Get the directory name
 		var rows = db.execute('SELECT year, protocol_name, park_name \
 							FROM site_survey s, protocol p, park prk \
 							WHERE s.protocol_id = p.protocol_id \
 							AND s.park_id = prk.park_id \
-							AND site_id = ?', siteID);
+							AND site_survey_guid = ?', siteGUID);
 							
 		//Name the directory	
 		var year = rows.fieldByName('year');
@@ -202,7 +202,7 @@ $.tbl.addEventListener('delete', function(e) {
 		//delete associated media files
 		var observationFiles = db.execute('SELECT med.media_name FROM media med, plot_observation pob \
 										WHERE med.media_id = pob.media_id \
-										AND pob.observation_id = ?', observationID);
+										AND plot_observation_guid = ?', observationGUID);
 		
 		while(observationFiles.isValidRow()) {
 			var fileName = observationFiles.fieldByName('media_name');
@@ -212,7 +212,7 @@ $.tbl.addEventListener('delete', function(e) {
 			observationFiles.next();
 		}
 		
-		db.execute('DELETE FROM plot_observation WHERE observation_id = ?', observationID);
+		db.execute('DELETE FROM plot_observation WHERE plot_observation_guid = ?', observationGUID);
 		
 		// Update the coverage total
 		totalPlotPercentage -= e.rowData.groundCover;
@@ -328,7 +328,7 @@ function addBtn(){
 	//disable add button until screen is returned to focus.  Issue #28
 	$.addObservation.enabled = false;
 	
-	var addObservation = Alloy.createController("addPlotObservation", {plotID: plotID}).getView();
+	var addObservation = Alloy.createController("addPlotObservation", {plotGUID: plotGUID}).getView();
 	var nav = Alloy.Globals.navMenu;
 	nav.openWindow(addObservation);
 }

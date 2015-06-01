@@ -1,11 +1,11 @@
 /*
  * Transect creation screen with validation
  * 
- * expected args: siteID
+ * expected args: siteGUID
  */
 
 var args = arguments[0];
-var siteID = args.siteID;
+var siteGUID = args.siteGUID;
 var uuid = require('uuid');
 
 // Initialize Variables
@@ -153,6 +153,9 @@ function doneBtn(e){
 			//Connect to database
 			var db = Ti.Database.open('ltemaDB');
 			
+			// get GUID
+			var transectGUID = uuid.generateUUID();
+			
 			//add photo name to media table
 			db.execute( 'INSERT INTO media (media_name) VALUES (?)', photoName);
 			
@@ -161,8 +164,8 @@ function doneBtn(e){
 			var mediaID = results.fieldByName('mediaID');
 			
 			//Insert Query - add row to transect table
-			db.execute(	'INSERT INTO transect (transect_name,surveyor,other_surveyors,plot_distance,stake_orientation,utm_zone,utm_easting,utm_northing,comments,site_id,media_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)', 
-						$.tsctName.value, $.srvyName.value, $.otherSrvyName.value, $.plotDist.value, pickStakeLabels[$.pickStake.index].title, utmZone, utmEasting, utmNorthing, $.comments.value, siteID, mediaID);
+			db.execute(	'INSERT INTO transect (transect_guid,transect_name,surveyor,other_surveyors,plot_distance,stake_orientation,utm_zone,utm_easting,utm_northing,comments,site_survey_guid,media_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', 
+						transectGUID, $.tsctName.value, $.srvyName.value, $.otherSrvyName.value, $.plotDist.value, pickStakeLabels[$.pickStake.index].title, utmZone, utmEasting, utmNorthing, $.comments.value, siteGUID, mediaID);
 						
 		}catch(e){
 			var errorMessage = e.message;
@@ -212,7 +215,7 @@ function savePhoto(photo){
 						FROM site_survey s, protocol p, park prk \
 						WHERE s.protocol_id = p.protocol_id \
 						AND s.park_id = prk.park_id \
-						AND site_id = ?', siteID);
+						AND site_survey_guid = ?', siteGUID);
 		
 		//Get requested data from each row in table
 		

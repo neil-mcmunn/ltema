@@ -1,11 +1,11 @@
 /*
  *  List screen to view, add, or delete plots
  * 
- * expected args: siteID, parkName
+ * expected args: siteGUID, parkName
  */
 
 var args = arguments[0];
-$.tbl.siteID = args.siteID;
+$.tbl.siteGUID = args.siteGUID;
 var parkName = args.parkName;
 
 populateTable();
@@ -22,16 +22,16 @@ function populateTable() {
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Query - Retrieve existing sites from database
-		var rows = db.execute('SELECT transect_id, transect_name, surveyor, \
+		var rows = db.execute('SELECT transect_guid, transect_name, surveyor, \
 						utm_zone, utm_easting, utm_northing, media_id \
 						FROM transect \
-						WHERE site_id = ?', $.tbl.siteID); 
+						WHERE site_survey_guid = ?', $.tbl.siteGUID); 
 		
 		//get requested data from each row in table
 		var id_counter = 0;
 		while (rows.isValidRow()) {
 			id_counter++;
-			var transectID = rows.fieldByName('transect_id');	
+			var transectGUID = rows.fieldByName('transect_guid');	
 			var transectName = rows.fieldByName('transect_name');
 			var surveyor = rows.fieldByName('surveyor');
 			var utmZone = rows.fieldByName('utm_zone');
@@ -46,7 +46,7 @@ function populateTable() {
 			//Create a new row
 				var newRow = Ti.UI.createTableViewRow({
 					title : transectDesc,
-					transectID : transectID,
+					transectGUID : transectGUID,
 					mediaID : mediaID,
 					height: 60,
 					font: {fontSize: 20}
@@ -114,7 +114,7 @@ $.tbl.addEventListener('click', function(e){
 	//check if media exists -if no photo has been taken (re-visited transect)
 	if(e.rowData.mediaID == null){
 		//alert("No Photo Found!");
-		var modal = Alloy.createController("transectsModal", {transectID:e.rowData.transectID, title:e.rowData.title}).getView();
+		var modal = Alloy.createController("transectsModal", {transectGUID:e.rowData.transectGUID, title:e.rowData.title}).getView();
 		modal.open({
 			modal : true,
 			modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
@@ -124,7 +124,7 @@ $.tbl.addEventListener('click', function(e){
 	}else{
 		//info icon clicked, get modal
 		if(e.source.toString() == '[object TiUIButton]') {
-			var modal = Alloy.createController("transectsModal", {transectID:e.rowData.transectID, title:e.rowData.title}).getView();
+			var modal = Alloy.createController("transectsModal", {transectGUID:e.rowData.transectGUID, title:e.rowData.title}).getView();
 			modal.open({
 				modal : true,
 				modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
@@ -133,7 +133,7 @@ $.tbl.addEventListener('click', function(e){
 			});
 		//row clicked, get transect view
 		} else {
-			var plots = Alloy.createController("plots", {transectID:e.rowData.transectID, siteID:$.tbl.siteID}).getView();
+			var plots = Alloy.createController("plots", {transectGUID:e.rowData.transectGUID, siteGUID:$.tbl.siteGUID}).getView();
 			var nav = Alloy.Globals.navMenu;
 			nav.openWindow(plots);
 		}
@@ -143,8 +143,8 @@ $.tbl.addEventListener('click', function(e){
 //Delete event listener
 $.tbl.addEventListener('delete', function(e) { 
 	//get the site_id of the current row being deleted
-	var currentTransectID = e.rowData.transectID;
-	var siteID = $.tbl.siteID;
+	var currentTransectGUID = e.rowData.transectGUID;
+	var siteGUID = $.tbl.siteGUID;
 	try {
 		//open database
 		var db = Ti.Database.open('ltemaDB');
@@ -154,7 +154,7 @@ $.tbl.addEventListener('delete', function(e) {
 							FROM site_survey s, protocol p, park prk \
 							WHERE s.protocol_id = p.protocol_id \
 							AND s.park_id = prk.park_id \
-							AND site_id = ?', siteID);
+							AND site_survey_guid = ?', siteGUID);
 							
 		//Name the directory	
 		var year = rows.fieldByName('year');
@@ -166,7 +166,7 @@ $.tbl.addEventListener('delete', function(e) {
 		// find any associated transect pictures and delete them
 		var transectFiles = db.execute('SELECT med.media_name FROM media med, transect tct \
 								WHERE med.media_id = tct.media_id \
-								AND tct.transect_id = ?', currentTransectID);
+								AND tct.transect_guid = ?', currentTransectGUID);
 		
 		while (transectFiles.isValidRow()) {
 			var fileName = transectFiles.fieldByName('media_name');
@@ -174,22 +174,22 @@ $.tbl.addEventListener('delete', function(e) {
 			transectFiles.next();
 		}
 		
-		var plotFiles = db.execute('SELECT plt.plot_id, med.media_name FROM media med, plot plt \
+		var plotFiles = db.execute('SELECT plt.plot_guid, med.media_name FROM media med, plot plt \
 									WHERE med.media_id = plt.media_id \
-									AND plt.transect_id = ?', currentTransectID);
+									AND plt.transect_guid = ?', currentTransectGUID);
 		
-		var plotIDs = [];
+		var plotGUIDs = [];
 		while (plotFiles.isValidRow()) {
-			plotIDs.push(plotFiles.fieldByName('plot_id'));
+			plotGUIDs.push(plotFiles.fieldByName('plot_guid'));
 			var fileName = plotFiles.fieldByName('media_name');
 			deleteImage(fileName, folder);
 			plotFiles.next();
 		}
 		
-		var pids = '(' + plotIDs + ')';
+		var pids = '(' + plotGUIDs + ')';
 		var observationFiles = db.execute('SELECT med.media_name FROM media med, plot_observation pob \
 										WHERE med.media_id = pob.media_id \
-										AND pob.plot_id IN' + pids);
+										AND pob.plot_guid IN' + pids);
 		
 		while (observationFiles.isValidRow()) {
 			var fileName = observationFiles.fieldByName('media_name');
@@ -198,7 +198,7 @@ $.tbl.addEventListener('delete', function(e) {
 		}
 		
 		//delete current row from the database
-	    var row = db.execute('DELETE FROM transect WHERE transect_id = ?', currentTransectID);
+	    var row = db.execute('DELETE FROM transect WHERE transect_guid = ?', currentTransectGUID);
 	} catch(e) {
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
@@ -277,8 +277,8 @@ function addBtn(){
 	//disable add button until screen is returned to focus.  Issue #28
 	$.addTransect.enabled = false;
 	
-	
-	var addTransect = Alloy.createController("addTransect", {siteID: $.tbl.siteID}).getView();
+	console.log('about to enter addTransect with siteGUID: ' + $.tbl.siteGUID);
+	var addTransect = Alloy.createController("addTransect", {siteGUID: $.tbl.siteGUID}).getView();
 	var nav = Alloy.Globals.navMenu;
 	nav.openWindow(addTransect);
 }

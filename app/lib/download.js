@@ -1,6 +1,10 @@
 // download a survey
 // must specify the site and protocol
 
+function flickrDownload( ) {
+	
+}
+
 function processDownload(cloudSurvey) {
     //do stuff with cloudSurvey
     // expected fields: site, protocol, date_surveyed, last_modified, version_no, exported,
@@ -16,10 +20,25 @@ function processDownload(cloudSurvey) {
 		var cloudTransects = surveyData.transects;
     	var cloudPlots = surveyData.plots;
 		var plotObservations = surveyData.plot_observations;
-    	//console.log('THE DOWNLOAD');
+    	console.log('THE DOWNLOAD');
     	//console.log(surveyData);
-    	console.log('THE DOWNLOAD SITE AND PROTOCOL');
-    	console.log('site and protocol: ' + cloudSurvey.site + ' ' + cloudSurvey.protocol);
+    	/*for (var i = 0; i < cloudMedia.length; i++) {
+    		console.log(cloudMedia[i]);
+    	}
+    	for (var i = 0; i < cloudTransects.length; i++) {
+    		console.log(cloudTransects[i]);
+    	}
+    	for (var i = 0; i < cloudPlots.length; i++) {
+    		console.log(cloudPlots[i]);
+    	}
+    	for (var i = 0; i < plotObservations.length; i++) {
+    		console.log(plotObservations[i]);
+    	}
+    	for (var i = 0; i < surveyMeta.length; i++) {
+    		console.log(surveyMeta[i]);
+    	}*/
+    	// console.log('THE DOWNLOAD SITE AND PROTOCOL');
+    	// console.log('site and protocol: ' + cloudSurvey.site + ' ' + cloudSurvey.protocol);
     	
     	/*
     	var protocolIDResult = db.execute('SELECT protocol_id FROM protocol WHERE protocol_name =?', cloudSurvey.protocol);
@@ -74,7 +93,7 @@ function processDownload(cloudSurvey) {
 			//Insert the updated survey
 			alert('version on CLOUD is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
 			
-			var siteGUID = prevSiteGUID;
+			var siteGUID = cloudSiteSurveyGUID;
 			//delete existing data
 			db.execute('DELETE FROM site_survey WHERE site_survey_guid = ?', siteGUID);
 			

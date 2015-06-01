@@ -1,11 +1,11 @@
 /*
  *  A screen to view and edit transect details 
  * 
- * expected args: transectID, title
+ * expected args: transectGUID, title
  */
 
 var args = arguments[0];
-var transectID = args.transectID;
+var transectGUID = args.transectGUID;
 var title = args.title;
 
 //initialize variables
@@ -22,9 +22,9 @@ $.stakeBar.labels = stakeBarLabels;
 try {
 	var db = Ti.Database.open('ltemaDB');
 	
-	var resultRow = db.execute(	'SELECT transect_id, transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, comments, site_id, media_id \
+	var resultRow = db.execute(	'SELECT transect_guid, transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, comments, site_survey_guid, media_id \
 							FROM transect t \
-							WHERE transect_id = ?', transectID);
+							WHERE transect_guid = ?', transectGUID);
 	
 	var transectName = resultRow.fieldByName('transect_name');
 	var surveyor = resultRow.fieldByName('surveyor');
@@ -32,7 +32,7 @@ try {
 	var plotDistance = resultRow.fieldByName('plot_distance');
 	var stakeOrientation = resultRow.fieldByName('stake_orientation');
 	var comments = resultRow.fieldByName('comments');
-	var siteID = resultRow.fieldByName('site_id');
+	var siteGUID = resultRow.fieldByName('site_survey_guid');
 	var mediaID = resultRow.fieldByName('media_id');
 	
 	//if media does not exist
@@ -65,7 +65,7 @@ try {
 							FROM site_survey s, protocol p, park prk \
 							WHERE s.protocol_id = p.protocol_id \
 							AND s.park_id = prk.park_id \
-							AND site_id = ?', siteID);
+							AND site_survey_guid = ?', siteGUID);
 							
    //get the name of the directory	
 	var year = rows.fieldByName('year');
@@ -261,11 +261,11 @@ function saveEdit(e){
 			results.close();
 			
 			//save the new information to the database with the media_id of the new photo
-			db.execute( 'UPDATE OR FAIL transect SET transect_name= ?, surveyor= ?, other_surveyors= ?, plot_distance= ?, stake_orientation= ?, comments= ?, media_id= ? WHERE transect_id= ?',
-					$.transectName.value, $.surveyor.value, $.otherSurveyors.value, $.plotDistance.value, stakeBarLabels[$.stakeBar.index].title, $.comments.value, mediaID, transectID);		
+			db.execute( 'UPDATE OR FAIL transect SET transect_name= ?, surveyor= ?, other_surveyors= ?, plot_distance= ?, stake_orientation= ?, comments= ?, media_id= ? WHERE transect_guid= ?',
+					$.transectName.value, $.surveyor.value, $.otherSurveyors.value, $.plotDistance.value, stakeBarLabels[$.stakeBar.index].title, $.comments.value, mediaID, transectGUID);		
 		}else{
-			db.execute( 'UPDATE OR FAIL transect SET transect_name= ?, surveyor= ?, other_surveyors= ?, plot_distance= ?, stake_orientation= ?, comments= ? WHERE transect_id= ?',
-					$.transectName.value, $.surveyor.value, $.otherSurveyors.value, $.plotDistance.value, stakeBarLabels[$.stakeBar.index].title, $.comments.value, transectID);
+			db.execute( 'UPDATE OR FAIL transect SET transect_name= ?, surveyor= ?, other_surveyors= ?, plot_distance= ?, stake_orientation= ?, comments= ? WHERE transect_guid= ?',
+					$.transectName.value, $.surveyor.value, $.otherSurveyors.value, $.plotDistance.value, stakeBarLabels[$.stakeBar.index].title, $.comments.value, transectGUID);
 		}
 	} catch (e){
 		var errorMessage = e.message;
@@ -331,7 +331,7 @@ function savePhoto(photo){
 						FROM site_survey s, protocol p, park prk \
 						WHERE s.protocol_id = p.protocol_id \
 						AND s.park_id = prk.park_id \
-						AND site_id = ?', siteID);
+						AND site_survey_guid = ?', siteGUID);
 		
 		//Get requested data from each row in table
 		

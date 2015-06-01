@@ -1,22 +1,22 @@
 /*
  * Plot creation screen with validation
  * 
- * expected args: transectID
+ * expected args: transectGUID
  */
 
 var args = arguments[0];
-var transectID = args.transectID;
+var transectGUID = args.transectGUID;
 var uuid = require('uuid');
 
 // Get the plot name and the transect defaults for stake orientation and plot distance
 try {
 	var db = Ti.Database.open('ltemaDB');
-	var results = db.execute('SELECT plot_id FROM plot WHERE transect_id = ?', transectID);
+	var results = db.execute('SELECT plot_guid FROM plot WHERE transect_guid = ?', transectGUID);
 	var plotNumber = results.rowCount + 1;
 	$.numberLbl.text = "P"+plotNumber;
 	
-	var results = db.execute('SELECT site_id, stake_orientation, plot_distance FROM transect WHERE transect_id = ?', transectID);
-	var siteID = results.fieldByName('site_id');
+	var results = db.execute('SELECT site_survey_guid, stake_orientation, plot_distance FROM transect WHERE transect_guid = ?', transectGUID);
+	var siteGUID = results.fieldByName('site_survey_guid');
 	var stakeOrientation = results.fieldByName('stake_orientation');
 	var plotDistance = results.fieldByName('plot_distance');
 } catch(e) {
@@ -163,6 +163,9 @@ function doneBtn(e){
 		//Connect to database
 		var db = Ti.Database.open('ltemaDB');
 		
+		// get GUID
+		var plotGUID = uuid.generateUUID();
+		
 		//add photo name to media table
 		db.execute( 'INSERT INTO media (media_name) VALUES (?)', photoName);
 		
@@ -171,8 +174,8 @@ function doneBtn(e){
 		var mediaID = results.fieldByName('mediaID');
 		
 		//Insert Query - add row to plot table
-		db.execute(	'INSERT INTO plot (plot_name,utm_zone,utm_easting,utm_northing,utc,stake_deviation,distance_deviation,comments,transect_id,media_id) VALUES (?,?,?,?,?,?,?,?,?,?)', 
-					$.numberLbl.text, utmZone, utmEasting, utmNorthing, utc, stakeOrientation, plotDistance, comments, transectID, mediaID);
+		db.execute(	'INSERT INTO plot (plot_guid,plot_name,utm_zone,utm_easting,utm_northing,utc,stake_deviation,distance_deviation,comments,transect_guid,media_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)', 
+					plotGUID, $.numberLbl.text, utmZone, utmEasting, utmNorthing, utc, stakeOrientation, plotDistance, comments, transectGUID, mediaID);
 					
 	}catch(e){
 		var errorMessage = e.message;
@@ -182,7 +185,7 @@ function doneBtn(e){
 		results.close();	
 		
 		//populate new plotID with zeroed-out observations
-		insertPreviousPlotRows(db);
+		//insertPreviousPlotRows(db, plotGUID);
 		
 		//Close the database
 		db.close();
@@ -225,7 +228,7 @@ function savePhoto(photo){
 							FROM site_survey s, protocol p, park prk \
 							WHERE s.protocol_id = p.protocol_id \
 							AND s.park_id = prk.park_id \
-							AND site_id = ?', siteID);
+							AND site_survey_guid = ?', siteGUID);
 							
 		//Name the directory	
 		var year = rows.fieldByName('year');
@@ -269,19 +272,16 @@ function savePhoto(photo){
 	}	
 }
 
+/* insertPreviousPlotRows...........
 // A new plot gets zeroed-out unique observations added from previous plots in its transect
-function insertPreviousPlotRows(db) {  //expected parameter: an open database connection
+function insertPreviousPlotRows(db, plotGUID) {  //expected parameter: an open database connection
 	try {
-		
-		//get the plotID of the row just inserted
-		var plotIDResult = db.execute('SELECT last_insert_rowid() as plotID');
-		var plotID = plotIDResult.fieldByName('plotID');
-		
+
 		//get all the plot_id's of this screen's transect
-		var plotIDs = [];
-		var plotsResult = db.execute('SELECT plot_id FROM plot WHERE transect_id = ?', transectID);
+		var plotGUIDs = [];
+		var plotsResult = db.execute('SELECT plot_guid FROM plot WHERE transect_guid = ?', transectGUID);
 		while (plotsResult.isValidRow()) {
-			plotIDs.push(plotsResult.fieldByName('plot_id'));
+			plotGUIDs.push(plotsResult.fieldByName('plot_guid'));
 			plotsResult.next();
 		}
 		
@@ -289,7 +289,7 @@ function insertPreviousPlotRows(db) {  //expected parameter: an open database co
 		var uniquePlotObservationTitles = [];
 		
 		//add current plot's titles to the unique list if indeed unique
-		var uniquesResult = db.execute ('SELECT observation FROM plot_observation WHERE plot_id = ?', plotID);
+		var uniquesResult = db.execute ('SELECT observation FROM plot_observation WHERE plot_guid = ?', plotGUID);
 		while (uniquesResult.isValidRow()) {
 			var newObs = uniquesResult.fieldByName('observation');
 			//seach for matches
@@ -306,9 +306,9 @@ function insertPreviousPlotRows(db) {  //expected parameter: an open database co
 		}
 		
 		//get the observation_id's of all plots occuring before the current plotID
-		var validPlotObservationIDs = [];
-		for (var i=0; i < plotIDs.length; i++) {
-			if (plotIDs[i] < plotID) {  //assuming all plotIDs are squential
+		var validPlotObservationGUIDs = [];
+		for (var i=0; i < plotGUIDs.length; i++) {
+			if (plotGUIDs[i] < plotGUID) {  //assuming all plotIDs are squential
 				var obsResult = db.execute('SELECT observation_id, observation FROM plot_observation WHERE plot_id = ?', plotIDs[i]);
 				while (obsResult.isValidRow()){
 					var obsID = obsResult.fieldByName('observation_id');
@@ -352,6 +352,7 @@ function insertPreviousPlotRows(db) {  //expected parameter: an open database co
 		uniquesResult.close();
 	}
 }
+*/
 
 //THUMBNAIL BUTTON - preview photo
 function previewPhoto(){

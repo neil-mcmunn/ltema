@@ -42,13 +42,13 @@ function doneSelectBtn() {
 try {
 	var db = Ti.Database.open('ltemaDB');
 	
-	var rows = db.execute('SELECT svy.site_id, prk.park_name, svy.year, pro.protocol_name \
+	var rows = db.execute('SELECT svy.site_id, svy.site_survey_guid, prk.park_name, svy.year, pro.protocol_name \
 		FROM site_survey svy, park prk, protocol pro, transect tst, plot plt, plot_observation pob \
 		WHERE svy.park_id = prk.park_id AND \
 		svy.protocol_id = pro.protocol_id AND \
-		svy.site_id = tst.site_id AND \
-		tst.transect_id = plt.transect_id AND \
-		plt.plot_id = pob.plot_id \
+		svy.site_survey_guid = tst.site_survey_guid AND \
+		tst.transect_guid = plt.transect_guid AND \
+		plt.plot_guid = pob.plot_guid \
 		GROUP BY svy.site_id');
 	
 	// Create a picker row for each site survey that can be exported
@@ -56,7 +56,7 @@ try {
 	var index = 0;
 	while (rows.isValidRow()) {	
 		
-		var siteID = rows.fieldByName('site_id');
+		var siteGUID = rows.fieldByName('site_survey_guid');
 		var year = rows.fieldByName('year');
 		var protocolName = rows.fieldByName('protocol_name');
 		var parkName = rows.fieldByName('park_name');
@@ -67,7 +67,7 @@ try {
 		// Create a new picker row
 		var newRow = Ti.UI.createPickerRow({
 			title : siteSurvey,
-			siteID : siteID
+			siteGUID : siteGUID
 		});
 		
 		data[index] = newRow;
@@ -95,7 +95,7 @@ try {
 
 // Create the CSV files for the Site Survey selected for export
 function makeCSV() {
-	var siteID = $.surveyPkr.getSelectedRow(0).siteID;
+	var siteGUID = $.surveyPkr.getSelectedRow(0).siteGUID;
 	var siteName = $.surveyPkr.getSelectedRow(0).title;
 	
 	try{
@@ -103,19 +103,19 @@ function makeCSV() {
 		var db = Ti.Database.open('ltemaDB');
 		
 		// Get the transects for the site
-		var transects = db.execute('SELECT prk.park_name, tct.transect_id, tct.transect_name, tct.surveyor, med.media_name AS transect_photo \
+		var transects = db.execute('SELECT prk.park_name, tct.transect_guid, tct.transect_name, tct.surveyor, med.media_name AS transect_photo \
 			FROM transect tct, media med, park prk, site_survey svy \
 			WHERE tct.media_id = med.media_id AND \
 			prk.park_id = svy.park_id AND \
-			svy.site_id = tct.site_id AND \
-			tct.site_id = ?', siteID);
+			svy.site_survey_guid = tct.site_survey_guid AND \
+			tct.site_survey_guid = ?', siteGUID);
 		
 		var results = [];
 		var fieldCount = transects.fieldCount();
-		var transectIDs = [];
+		var transectGUIDs = [];
 		while (transects.isValidRow()) {
 			// Get the transectIDs
-			transectIDs.push(transects.fieldByName('transect_id'));
+			transectGUIDs.push(transects.fieldByName('transect_guid'));
 			
 			// Create transect objects
 			var row = {};
@@ -128,18 +128,18 @@ function makeCSV() {
 		}
 
 		// Get the plots for the transects		
-		var tids = '(' + transectIDs + ')';
-		var plots = db.execute('SELECT plt.plot_id, plt.plot_name, plt.utm_zone, plt.utm_easting, plt.transect_id, \
+		var tids = '(' + transectGUIDs + ')';
+		var plots = db.execute('SELECT plt.plot_guid, plt.plot_name, plt.utm_zone, plt.utm_easting, plt.transect_guid, \
 			plt.utm_northing, plt.stake_deviation, plt.distance_deviation, plt.utc, med.media_name AS plot_photo\
 			FROM plot plt, media med \
 			WHERE plt.media_id = med.media_id AND \
-			plt.transect_id IN ' + tids);
+			plt.transect_guid IN ' + tids);
 		
 		fieldCount = plots.fieldCount();
-		var plotIDs = [];
+		var plotGUIDs = [];
 		while (plots.isValidRow()) {
 			// Get the plotIDs
-			plotIDs.push(plots.fieldByName('plot_id'));
+			plotGUIDs.push(plots.fieldByName('plot_guid'));
 			
 			// Create plot objects
 			var row = {};
@@ -149,8 +149,8 @@ function makeCSV() {
 			
 			// Associate with the correct transect
 			for (var i in results) {
-				if (results[i].transect_id === row.transect_id) {
-					var pid = plots.fieldByName('plot_id');
+				if (results[i].transect_guid === row.transect_guid) {
+					var pid = plots.fieldByName('plot_guid');
 					results[i][pid] = row;
 				}
 			}
@@ -159,12 +159,12 @@ function makeCSV() {
 		}
 		
 		// Get the plot observations for the plots
-		var pids = '(' + plotIDs + ')';
-		var plotObservations = db.execute('SELECT pob.observation_id, pob.species_code, pob."count", pob.comments, pob.plot_id, pob.ground_cover, med.media_name AS observation_photo \
+		var pids = '(' + plotGUIDs + ')';
+		var plotObservations = db.execute('SELECT plot_observation_guid, pob.species_code, pob."count", pob.comments, pob.plot_guid, pob.ground_cover, med.media_name AS observation_photo \
 			FROM plot_observation pob \
 			LEFT JOIN media med \
 			ON pob.media_id = med.media_id AND \
-			pob.plot_id IN '+ pids);
+			pob.plot_guid IN '+ pids);
 		
 		fieldCount = plotObservations.fieldCount();	
 		while (plotObservations.isValidRow()) {
@@ -177,8 +177,8 @@ function makeCSV() {
 			// Associate with the correct plot			
 			for (var i in results) {
 				for(var j in results[i]) {				
-					if(results[i][j].plot_id === row.plot_id) {
-						var pobid = plotObservations.fieldByName('observation_id');
+					if(results[i][j].plot_guid === row.plot_guid) {
+						var pobid = plotObservations.fieldByName('plot_observation_guid');
 						results[i][j][pobid] = row;
 					}
 				}
@@ -205,7 +205,7 @@ function makeCSV() {
 	for (var transect in results) {
 		for (var plot in results[transect]) {
 			// CSV for Sample Station output
-			if (results[transect][plot].plot_id != null) {
+			if (results[transect][plot].plot_guid != null) {
 				
 				sampleStationTxt += dq + results[transect].park_name + dq + c;
 				var ssTransectName = results[transect].transect_name;
@@ -325,12 +325,12 @@ function exportBtn() {
 $.exportWin.addEventListener("doneSending", function() { 
 	try{
 		var db = Ti.Database.open('ltemaDB');
-		var siteID = $.surveyPkr.getSelectedRow(0).siteID;
+		var siteGUID = $.surveyPkr.getSelectedRow(0).siteGUID;
 		var d = new Date();
 		var utc = d.getTime();
 		
 		// Timestamp the export in the database
-		db.execute('UPDATE OR FAIL site_survey SET exported = ? WHERE site_id = ?', utc, siteID);
+		db.execute('UPDATE OR FAIL site_survey SET exported = ? WHERE site_guid = ?', utc, siteGUID);
 	} catch(e) {
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:fileSystemError", {error: errorMessage});

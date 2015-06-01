@@ -54,7 +54,7 @@ function checkSurveys() {
 				Ti.API.info("Received text (index L39): " + this.responseData);
 				var returnArray = JSON.parse(this.responseData).rows;
 				checkLocalSurveys(returnArray);
-				alert('success');
+				//alert('success');
 			};
 			httpClient.onerror = function(e) {
 				Ti.API.debug("STATUS: " + this.status);
@@ -62,7 +62,7 @@ function checkSurveys() {
 				Ti.API.debug("ERROR:  " + e.error);
 				var cloudSurveys = [];
 				checkLocalSurveys(cloudSurveys);
-				alert('error retrieving remote data');
+				//alert('error retrieving remote data');
 			};
 
 			console.log('setRequestHeader secret, now sending');
@@ -429,7 +429,7 @@ $.siteSurveysWin.setTitleControl(titleLabel);
 //Delete event listener
 $.tbl.addEventListener('delete', function(e) {
 	//get the site_id of the current row being deleted
-	var currentSiteID = e.rowData.siteID;
+	var currentSiteGUID = e.rowData.siteGUID;
 	try{
 		//open database
 		var db = Ti.Database.open('ltemaDB');
@@ -442,7 +442,7 @@ $.tbl.addEventListener('delete', function(e) {
 		}
 
 		//delete current row from the database
-		db.execute('DELETE FROM site_survey WHERE site_id = ?', currentSiteID);
+		db.execute('DELETE FROM site_survey WHERE site_survey_guid = ?', currentSiteGUID);
 
 	} catch(e) {
 		var errorMessage = e.message;
@@ -465,7 +465,7 @@ $.tbl.addEventListener('click', function(e) {
 	}
 	//info button clicked, display modal
 	if(e.source.buttonid == 'info') {
-		var modal = Alloy.createController("siteSurveyModal", {siteID:e.rowData.siteID}).getView();
+		var modal = Alloy.createController("siteSurveyModal", {siteGUID:e.rowData.siteGUID}).getView();
 		modal.open({
 			modal : true,
 			modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
@@ -502,7 +502,7 @@ $.tbl.addEventListener('click', function(e) {
 
 		//row clicked, get transect view
 	} else {
-		var transects = Alloy.createController("transects", {siteID:e.rowData.siteID, parkName:e.rowData.parkName}).getView();
+		var transects = Alloy.createController("transects", {siteGUID:e.rowData.siteGUID, parkName:e.rowData.parkName}).getView();
 		$.navGroupWin.openWindow(transects);
 	}
 });

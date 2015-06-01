@@ -171,7 +171,7 @@ function doneBtn(e){
 
 			console.log('id line 171 (addSiteSurvey): ' + prevSiteID + ' and guid: ' + prevSiteGUID);
 
-			if (!prevSiteID) {
+			if (!prevSiteGUID) {
 				// Insert the new survey
 				var siteGUID = String(uuid.generateUUID());
 				//var results = db.execute('SELECT last_insert_rowid() as siteID');
@@ -192,11 +192,11 @@ function doneBtn(e){
 			} else {
 				console.log('enter else clause line 191 (addSiteSurvey)');
 				//updating existing site
-				var siteID = prevSiteID;
-				console.log('siteID: ' + typeof siteID + ' as ' + siteID);
-				db.execute('UPDATE site_survey SET year=? WHERE site_id=?', currentYear, siteID);
+				var siteGUID = prevSiteGUID;
+				console.log('siteGUID: ' + typeof siteGUID + ' as ' + siteGUID);
+				db.execute('UPDATE site_survey SET year=? WHERE site_survey_guid=?', currentYear, siteGUID);
 
-				var transects = db.execute('SELECT * FROM transect WHERE site_id = ?', siteID);
+				var transects = db.execute('SELECT * FROM transect WHERE site_guid = ?', siteGUID);
 			
 				// Copy and associate any existing transects
 				while (transects.isValidRow()) {
@@ -211,15 +211,14 @@ function doneBtn(e){
 					var utmEasting = transects.fieldByName('utm_easting');
 					var utmNorthing = transects.fieldByName('utm_northing');
 					var tComments = transects.fieldByName('comments');
-					var transectID = transects.fieldByName('transect_id');
 					
 					db.execute('INSERT INTO transect (transect_guid, transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
-						utm_zone, utm_easting, utm_northing, comments, site_id) \
-						VALUES (?,?,?,?,?,?,?,?,?,?,?) WHERE transect_id = ?', transectGUID, transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
-						utmEasting, utmNorthing, tComments, siteID, transectID);
+						utm_zone, utm_easting, utm_northing, comments, site_survey_guid) \
+						VALUES (?,?,?,?,?,?,?,?,?,?,?)', transectGUID, transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
+						utmEasting, utmNorthing, tComments, siteGUID);
 
 					// Get any plots associated with the transect
-					var plots = db.execute('SELECT * FROM plot WHERE transect_id = ?', transectID);
+					var plots = db.execute('SELECT * FROM plot WHERE transect_guid = ?', transectGUID);
 					
 					// Copy and associate any existing plots
 					while (plots.isValidRow()) {
@@ -232,25 +231,25 @@ function doneBtn(e){
 						var stakeDeviation = plots.fieldByName('stake_deviation');
 						var distanceDeviation = plots.fieldByName('distance_deviation');
 						var comments = plots.fieldByName('comments');
-						var plotID = plots.fieldByName('plot_id');
+						var plotGUID = plots.fieldByName('plot_guid');
 						
-						db.execute('INSERT INTO plot (plot_id, plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation, \
-							transect_id, comments) VALUES (?,?,?,?,?,?,?,?,?,?)', plotID, plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
-							utc, stakeDeviation, distanceDeviation, transectID, comments);
+						db.execute('INSERT INTO plot (plot_guid, plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation, \
+							transect_guid, comments) VALUES (?,?,?,?,?,?,?,?,?,?)', plotGUID, plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
+							utc, stakeDeviation, distanceDeviation, transectGUID, comments);
 
 						// Get any plot observations associated with the plot
-						var observations = db.execute('SELECT * FROM plot_observation WHERE plot_id = ?', plotID);
+						var observations = db.execute('SELECT * FROM plot_observation WHERE plot_guid = ?', plotGUID);
 						
 						// Copy and associate any existing plot observations
 						while (observations.isValidRow()){
-							var observationID = uuid.generateUUID();
+							var observationGUID = observations.fieldByName('plot_observation_guid');
 							var observation = observations.fieldByName('observation');
 							var groundCover = 0;
 							var count = observations.fieldByName('count');
 							var observationComments = observations.fieldByName('comments');
 						
-							db.execute('INSERT INTO plot_observation (observation_id, observation, ground_cover, count, comments, plot_id) \
-								VALUES (?,?,?,?,?,?)', observationID, observation, groundCover, count, observationComments, plotID);
+							db.execute('INSERT INTO plot_observation (plot_observation_guid, observation, ground_cover, count, comments, plot_guid) \
+								VALUES (?,?,?,?,?,?)', observationGUID, observation, groundCover, count, observationComments, plotGUID);
 							
 							observations.next();
 						}	

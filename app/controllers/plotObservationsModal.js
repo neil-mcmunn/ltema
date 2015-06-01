@@ -1,11 +1,11 @@
 /*
  * View and edit the ground cover percentage of a plot observation
  * 
- * Expected args: observationID, title
+ * Expected args: observationGUID, title
  */
 
 var args = arguments[0];
-var observationID = args.observationID;
+var observationGUID = args.observationGUID;
 var title = args.title;
 
 //Query the database, assign returned ground cover to TextField
@@ -13,10 +13,10 @@ try {
 	var db = Ti.Database.open('ltemaDB');
 	var resultRow = db.execute(	'SELECT ground_cover, count \
 						FROM plot_observation \
-						WHERE observation_id = ?', observationID);
+						WHERE plot_observation_guid = ?', observationGUID);
 	var groundCover = resultRow.fieldByName('ground_cover');
 	var count = resultRow.fieldByName('count');
-	//Set the label depending on the oberservation type
+	//Set the label depending on the observation type
 	if(count == 0){
 		$.groundCoverLbl.text = "	Cover:";
 	}
@@ -86,7 +86,7 @@ function doneBtnClick(){
 		var db = Ti.Database.open('ltemaDB');
 		db.execute( 'UPDATE plot_observation \
 					SET ground_cover = ? \
-					WHERE observation_id = ?', $.groundCover.value,observationID);		
+					WHERE plot_observation_guid = ?', $.groundCover.value,observationGUID);		
 	} catch (e){
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
