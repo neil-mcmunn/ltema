@@ -89,7 +89,6 @@ try {
 	var errorMessage = e.message;
 	Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 } finally {
-	rows.close();
 	db.close();
 }
 
@@ -189,9 +188,6 @@ function makeCSV() {
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
-		transects.close();
-		plots.close();
-		plotObservations.close();
 		db.close();
 	}
 		

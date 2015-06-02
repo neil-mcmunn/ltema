@@ -308,6 +308,16 @@ $.siteSurveysWin.setTitleControl(titleLabel);
 
 /* Event Listeners */
 
+/*
+// pull down to refresh
+$.tbl.addEventListener('refreshstart', function(e) {
+	Ti.API.info('refreshstart');
+
+	section.appendItems(genData());
+	control.endRefreshing();
+});
+*/
+
 //Delete event listener
 $.tbl.addEventListener('delete', function(e) {
 	//get the site_id of the current row being deleted
@@ -418,6 +428,10 @@ Ti.App.addEventListener("app:enableIndexExportButton", function(e) {
 	$.exportData.enabled = true;
 });
 
+Ti.App.addEventListener("app:enableIndexRefreshButton", function(e) {
+	$.refreshBtn.enabled = true;
+});
+
 
 /* Functions */
 
@@ -497,6 +511,10 @@ function exportBtn(){
 		modalStyle : Ti.UI.iPhone.MODAL_PRESENTATION_PAGESHEET,
 		navBarHidden : false
 	});
+}
+
+function refreshBtn() {
+	checkSurveys();
 }
 
 //This should always happen last
