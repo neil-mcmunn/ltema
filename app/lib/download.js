@@ -204,7 +204,7 @@ function processDownload(cloudSurvey) {
 						
 						var observationGUID = plotObservations[k].plot_observation_guid;
 						var observation = plotObservations[k].observation;
-						var groundCover = 0;
+						var groundCover = plotObservations[k].ground_cover;
 						var count = plotObservations[k].count;
 						var observationComments = plotObservations[k].comments;
 						var plotObsOldMediaID = plotObservations[k].media_id;
@@ -242,13 +242,49 @@ function processDownload(cloudSurvey) {
 
 }
 
-function downloadSurvey(site, protocol) {
+function downloadSurvey(siteSurveyGUID) {
     try {
         console.log('enter try in downloadSurvey');
+        
+        
+        var win = Ti.UI.createWindow({
+        	backgroundColor:'#fff'
+        });
+        var loadingLabel = Ti.UI.createLabel({
+        	text:'Downloading ...',
+        	top:20,
+        	left: 10,
+        });
+        win.add(loadingLabel);
+        var image = Ti.UI.createImageView({
+        	top:20,
+        	left:10
+        });
+        win.add(image);
+        var ind = Ti.UI.createProgressBar({
+        	width:200,
+        	height:50,
+        	min:0,
+        	max:1,
+        	value:0,
+        	style:Ti.UI.iPhone.ProgressBarStyle.PLAIN,
+        	top:10,
+        	message:'Downloading survey',
+        	font:{fontSize:12, fontWeight:'bold'},
+        	color:'#888'
+        });
+        win.add(ind);
+        ind.show();
+        
 
-        var url = "https://capstone-ltemac.herokuapp.com/download?park=" + encodeURIComponent(site) + "&protocol=" + protocol;
+        var url = "https://capstone-ltemac.herokuapp.com/surveys/" + siteSurveyGUID;
         //alert('download url: ' + url);
         var httpClient = Ti.Network.createHTTPClient();
+
+		httpClient.onsendstream = function(e) {
+			ind.value = e.progress;
+			Ti.API.info('ONSENDSTREAM - PROGRESS' + e.progress);
+		};
 
         httpClient.open("GET", url);
 
@@ -259,7 +295,12 @@ function downloadSurvey(site, protocol) {
             //call checkLocalSurveys, pass in results
             Ti.API.info("Downloading...");
             var returnArray = JSON.parse(this.responseData);
-            alert('download started');
+            // alert('download started');
+            
+            var f = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, 'tempData.json');
+            f.write(returnArray);
+            Ti.App.fireEvent('downloaded', {filepath:f.nativePath});
+            
             processDownload(returnArray);
             alert('download processed');
         };
@@ -274,6 +315,12 @@ function downloadSurvey(site, protocol) {
 
         httpClient.send();
 
+		Ti.App.addEventListener('downloaded', function(e) {
+			win.remove(loadingLabel);
+			alert('file downloaded, processing ...');
+			image.image = e.filepath;
+		});
+
         console.log('leaving try downloadSurvey gracefully');
     }
     catch (e) {
@@ -281,5 +328,7 @@ function downloadSurvey(site, protocol) {
         console.log('error in checkSurveys: ' + errorMessage);
     }
 }
+
+
 
 exports.downloadSurvey = downloadSurvey;
