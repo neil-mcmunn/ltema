@@ -35,11 +35,11 @@ function preparePhotos(guid) {
 
 		//Find the media_id, media_name, and flickr_id for each image related to the survey
 		//Query - Transect Media
-		var transectRows = db.execute( 'SELECT t.transect_id, t.media_id, m.media_name, m.flickr_id
-										FROM media m, transect t, site_survey s, protocol p, park pa
-										WHERE t.media_id = m.media_id
-										AND t.site_id = s.site_id
-										AND s.protocol_id = ?
+		var transectRows = db.execute( 'SELECT t.transect_id, t.media_id, m.media_name, m.flickr_id\
+										FROM media m, transect t, site_survey s, protocol p, park pa\
+										WHERE t.media_id = m.media_id\
+										AND t.site_id = s.site_id\
+										AND s.protocol_id = ?\
 										AND s.park_id = ?', protocolID, parkID);
 
 		var uploadMedia = [];
@@ -48,7 +48,7 @@ function preparePhotos(guid) {
 				mediaID : transectRows.fieldByName('media_id'),
 				flickrID : transectRows.fieldByName('flickr_id'),
 				name : transectRows.fieldByName('media_name')
-			}
+			};
 			if(media.flickrID == null || media.flickrID == undefined){
 				uploadMedia.push(media);
 			}
@@ -58,11 +58,11 @@ function preparePhotos(guid) {
 		transectRows = null;
 
 		//Query - Plot Media
-		var plotRows = db.execute( 'SELECT p.plot_id, pl.media_id, m.media_name, m.flickr_id
-									FROM media m, plot pl, site_survey s, protocol p, park pa
-									WHERE pl.media_id = m.media_id
-									AND t.site_id = s.site_id
-									AND s.protocol_id = ?
+		var plotRows = db.execute( 'SELECT p.plot_id, pl.media_id, m.media_name, m.flickr_id\
+									FROM media m, plot pl, site_survey s, protocol p, park pa\
+									WHERE pl.media_id = m.media_id\
+									AND t.site_id = s.site_id\
+									AND s.protocol_id = ?\
 									AND s.park_id = ?', protocolID, parkID);
 
 		while(plotRows.isValidRow()){
@@ -80,11 +80,11 @@ function preparePhotos(guid) {
 		plotRows = null;
 
 		//Query - Plot Observation Media
-		var observationRows = db.execute( 'SELECT o.observation_id, m.media_name, m.flickr_id
-										   FROM media m, plot_observations o, site_survey s, protocol p, park pa
-										   WHERE m.media_id = o.media_id
-										   AND o.site_id = s.site_id
-										   AND s.protocol_id = ?
+		var observationRows = db.execute( 'SELECT o.observation_id, m.media_name, m.flickr_id\
+										   FROM media m, plot_observations o, site_survey s, protocol p, park pa\
+										   WHERE m.media_id = o.media_id\
+										   AND o.site_id = s.site_id\
+										   AND s.protocol_id = ?\
 										   AND s.park_id = ?;', protocolID, parkID);
 
 		while(observationRows.isValidRow()){
@@ -154,7 +154,7 @@ function uploadPhotos (media, guid, callback){
 		};
 
 
-		signature = oauthSignature.generate('POST', url, parameters, consumerSecret, tokenSecret);
+		var signature = oauthSignature.generate('POST', url, parameters, consumerSecret, tokenSecret);
 
 		var xhr = Titanium.Network.createHTTPClient({
 			onload : function(e) {
@@ -162,8 +162,8 @@ function uploadPhotos (media, guid, callback){
 					var xml = this.responseXML;
 					var photoID = xml.getAttribute('photoid');
 					var db = Ti.Database.open('ltemaDB');
-					var rows = db.execute( 'UPDATE media
-											SET flickr_id = ?
+					var rows = db.execute( 'UPDATE media\
+											SET flickr_id = ?\
 											WHERE media_id = ?', photoID, media[n].flickrID); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
 				}
 				catch(e) {
@@ -215,7 +215,7 @@ function selectProtocol (guid){
 
 		var protocol = surveyMeta.fieldByName('protocol_name');
 	}
-	catch{
+	catch(e){
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	}
@@ -291,8 +291,8 @@ function formAlpineGrasslandJSON(guid){
 			transectRows.next();
 		}
 
-		var plotRows = db.execute( 'SELECT site_survey_guid, year, protocol_id, park_id
-									FROM site_survey
+		var plotRows = db.execute( 'SELECT site_survey_guid, year, protocol_id, park_id\
+									FROM site_survey\
 									WHERE site_id = ? AND protocol_id = ?', siteName, protocolName); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
 		while(plotRows.isValidRow()){
 			var plot = {
@@ -314,12 +314,13 @@ function formAlpineGrasslandJSON(guid){
 			plotRows.next();
 		}
 
-		var observationRows = db.execute(	'SELECT ob.observation_id, ob.plot_observation_guid, ob.observation,
-											 ob.ground_cover, ob.count, ob.comments, ob.plot_id, ob.plot_guid, ob.media_id, ob.species_code
-											 FROM plot_observation ob, plot pl, transect t, survey s
-											 WHERE ob.plot_id = pl.plot_id
-											 AND pl.transect_id = t.transect_id
-											 AND ', guid); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
+		var observationRows = db.execute(	'SELECT ob.observation_id, ob.plot_observation_guid, ob.observation,\
+											 ob.ground_cover, ob.count, ob.comments, ob.plot_id, ob.plot_guid, ob.media_id, ob.species_code\
+											 FROM plot_observation ob, plot pl, transect t, survey s\
+											 WHERE ob.plot_id = pl.plot_id\
+											 AND pl.transect_id = t.transect_id\
+											 AND ', guid); 
+											 //todo: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
 		while(observationRows.isValidRow()){
 			var observation = {
 				observation_id: observationRows.fieldByName('observation_id'),
