@@ -17,7 +17,7 @@
 				</HeaderView>
 				<FooterView id="mainFooter">
 					<View id="footerView">
-						<Button id="exportData" title="Export" onClick="exportBtn" />
+						<Button id="exportData" title="Export" onClick="exportBtn"/>
 
 						<Button id="refreshBtn" title="Refresh List" onClick="refreshBtn" />
 					</View>

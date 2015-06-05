@@ -224,7 +224,7 @@ function selectProtocol (guid){
 		case 'Grassland':
 			formAlpineGrasslandJSON(guid);
 			break;
-	  /*case 'Intertidal':
+		/*case 'Intertidal':
 			formIntertidalJSON();
 			break;*/
 		default:
