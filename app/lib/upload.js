@@ -7,7 +7,7 @@ function preparePhotos(guid) {
 	try{
 		var db = Ti.Database.open('ltemaDB');
 		
-		//Query - Resolve
+		//Get park and protocol names
 		var surveyMeta = db.execute('SELECT pa.park_name, pr.protocol_name
 									 FORM park pa, protocol pr, site_survey su
 									 WHERE pa.park_id = su.park_id
@@ -17,7 +17,7 @@ function preparePhotos(guid) {
 		var park = surveyMeta.fieldByName('park_name');
 		var protoocol = surveyMeta.fieldByName('protocol_name');
 
-		//Query - Resolve park and protocol ids from names
+		//Get IDs for the park and protocol
 		var surveyIDs = db.execute('SELECT pa.park_id, pr.protocol_id
 									FROM park pa, protocol pr, site_survey su
 									WHERE pa.park_id = su.park_id
@@ -37,23 +37,6 @@ function preparePhotos(guid) {
 										AND s.protocol_id = ?
 										AND s.park_id = ?', protocolID, parkID);
 
-		//Query - Plot Media
-		var plotRows = db.execute( 'SELECT p.plot_id, pl.media_id, m.media_name, m.flickr_id
-									FROM media m, plot pl, site_survey s, protocol p, park pa
-									WHERE pl.media_id = m.media_id
-									AND t.site_id = s.site_id
-									AND s.protocol_id = ?
-									AND s.park_id = ?', protocolID, parkID);
-
-		//Query - Plot Observation Media
-		var observationRows = db.execute( 'SELECT o.observation_id, m.media_name, m.flickr_id
-										   FROM media m, plot_observations o, site_survey s, protocol p, park pa
-										   WHERE m.media_id = o.media_id
-										   AND o.site_id = s.site_id
-										   AND s.protocol_id = ?
-										   AND s.park_id = ?;', protocolID, parkID);
-
-		//Push media that requires uploading into a single array
 		var uploadMedia = [];
 		while(transectRows.isValidRow()){
 			var media = {
@@ -66,6 +49,16 @@ function preparePhotos(guid) {
 			}
 			transectRows.next();
 		}
+		//Drop the rows from memory
+		transectRows = null;
+
+		//Query - Plot Media
+		var plotRows = db.execute( 'SELECT p.plot_id, pl.media_id, m.media_name, m.flickr_id
+									FROM media m, plot pl, site_survey s, protocol p, park pa
+									WHERE pl.media_id = m.media_id
+									AND t.site_id = s.site_id
+									AND s.protocol_id = ?
+									AND s.park_id = ?', protocolID, parkID);
 
 		while(plotRows.isValidRow()){
 			var media = {
@@ -78,6 +71,16 @@ function preparePhotos(guid) {
 			}
 			plotRows.next();
 		}
+		//Drop the rows from memory
+		plotRows = null;
+
+		//Query - Plot Observation Media
+		var observationRows = db.execute( 'SELECT o.observation_id, m.media_name, m.flickr_id
+										   FROM media m, plot_observations o, site_survey s, protocol p, park pa
+										   WHERE m.media_id = o.media_id
+										   AND o.site_id = s.site_id
+										   AND s.protocol_id = ?
+										   AND s.park_id = ?;', protocolID, parkID);
 
 		while(observationRows.isValidRow()){
 			var media = {
@@ -90,6 +93,8 @@ function preparePhotos(guid) {
 			}
 			observationRows.next();
 		}
+		//Drop the rows from memory
+		observationRows = null;
 
 	}
 	catch(e) {
@@ -100,13 +105,13 @@ function preparePhotos(guid) {
 	finally{
 		db.close();
 		//Upload all un-uploaded photos to flickr
-		uploadPhotos(uploadMedia);
+		uploadPhotos(uploadMedia, guid, selectProtocol);
 	}
 
 	
 }
 
-function uploadPhotos (media){
+function uploadPhotos (media, guid, callback){
 	for(var n = 0; n <= media.length; n++){
 		//Get a photo as a string from the filesystem
 		var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, media[n].name);
@@ -122,13 +127,13 @@ function uploadPhotos (media){
 		//Create a signature
 		var url = 'https://up.flickr.com/services/upload/';
 
+		//DO: Grab thesse from the cloud instead of hardcoding
 		//access token
-		var access_token = '72157653043488540-7736b541f64cb249';
-		//Access token secret
-		var access_secret = '637c9b9f2dbaf4f8';
+		var access_token = Ti.App.Properties.getString('access_token');;
+		var access_secret = Ti.App.Properties.getString('access_secret');
 		
-		var consumer_key = '64f42b582341e05e4ee18e90159f9fdf';
-		var consumer_secret = '2f7f3db0091886d1';
+		var consumer_key = Ti.App.Properties.getString('consumer_key');
+		var consumer_secret = Ti.App.Properties.getString('consumer_secret');
 
 		var timestamp = Date.now();
 		var nonce = uuid.generateUUID();
@@ -148,16 +153,10 @@ function uploadPhotos (media){
 
 		var xhr = Titanium.Network.createHTTPClient({
 			onload : function(e) {
-				//Handle photo guids here
-				//Get photo id from xml
-				var xml = this.responseXML;
-				var photoID = xml.getAttribute('photoid');
-
-				//Update media row to reflect flickr id
 				try{
+					var xml = this.responseXML;
+					var photoID = xml.getAttribute('photoid');
 					var db = Ti.Database.open('ltemaDB');
-				
-					//Query - Select metadata for the survey being uploaded
 					var rows = db.execute( 'UPDATE media
 											SET flickr_id = ?
 											WHERE media_id = ?', photoID, media[n].flickrID); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
@@ -168,6 +167,9 @@ function uploadPhotos (media){
 				}
 				finally{
 					db.close();
+					if(n === media.length){
+						callback(guid);
+					}
 				}
 			},
 			
@@ -179,8 +181,9 @@ function uploadPhotos (media){
 
 		xhr.open('POST', url);
 		xhr.send({
-			photo: photo
-			hidden: parameters.hidden
+			photo: photo,
+			hidden: parameters.hidden,
+			oauth_signature: signature,
 			oauth_consumer_key: consumer_key,
 			oauth_signature_method: 'HMAC-SHA1',
 			oauth_token: access_token,
@@ -190,19 +193,36 @@ function uploadPhotos (media){
 		});
 
 	}
+
+
 }
 
-function selectProtocol (siteName, protocolName){
-	//Create arrays to hold objects relevant to this survey
-	var surveyJSON;
+function selectProtocol (guid){
+	//Determine the protocol of the survey being uploaded
+	try{
+		var db = Ti.Database.open('ltemaDB');
+		
+		//Get park and protocol names
+		var surveyMeta = db.execute('SELECT pr.protocol_name
+									 FORM protocol pr, site_survey su
+									 WHERE pr.protocol_id = su.protocol_id
+									 AND su.site_survey_guid = ?', guid);
 
+		var protocol = surveyMeta.fieldByName('protocol_name');
+	}
+	catch{
+		var errorMessage = e.message;
+		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+	}
+	finally{
+		db.close();
+	}
 
-	
 	//Form data for the given protocol
-	switch(protocolName){
+	switch(protocol){
 		case 'Alpine':
 		case 'Grassland':
-			formAlpineGrasslandJSON(siteName);
+			formAlpineGrasslandJSON(guid);
 			break;
 	  /*case 'Intertidal':
 			formIntertidalJSON();
@@ -218,7 +238,7 @@ exports.uploadSurvey = uploadSurvey;
 
 //Create a JSON object representing an alpine or grassland survey
 //and then serialize it
-function formAlpineGrasslandJSON(siteName, protocolName){
+function formAlpineGrasslandJSON(guid){
 	uploadPhotos(siteName);
 
 	try{
@@ -248,6 +268,7 @@ function formAlpineGrasslandJSON(siteName, protocolName){
 	}
 	finally{
 		db.close();
+		uploadJSON(survey, guid);
 	}
 }
 
