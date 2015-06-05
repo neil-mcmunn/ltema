@@ -506,10 +506,6 @@ function loginBtn() {
 			buttonNames: ['OK']
 		});
 		
-		if (Ti.App.getString('secret')) {
-			dialog.Text = Ti.App.getString('secret');
-		}
-		
 		dialog.addEventListener('click', function(e){
 			var secret = e.text;
 			Ti.API.info('e.text: ' + secret);
