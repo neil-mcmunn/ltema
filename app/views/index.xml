@@ -2,8 +2,12 @@
 	<NavigationWindow id="navGroupWin">
 		<Window class="container" title="Site Surveys" id="siteSurveysWin">
 			<RightNavButton>
-				<Button id="editSite" title="Edit" onClick="editBtn"/>
+				<Button id="editSite" title="Edit" onClick="editBtn" />
 			</RightNavButton>
+			
+			<LeftNavButton>
+				<Button id="login" title="login" onClick="loginBtn" />
+			</LeftNavButton>
 			
 			<TableView class="table" id="tbl">
 				<HeaderView id="mainHeader">
