@@ -1,13 +1,13 @@
 /*
  *  List screen to view, add, or delete plots
  * 
- * expected args: transectID, siteID 
+ * expected args: transectGUID, siteGUID 
  */
 
 var args = arguments[0];
-var transectID = args.transectID;
-$.tbl.transectID = transectID;
-var siteID = args.siteID;
+var transectGUID = args.transectGUID;
+$.tbl.transectGUID = transectGUID;
+var siteGUID = args.siteGUID;
 
 populateTable();
 toggleAddBtn();
@@ -23,16 +23,15 @@ try {
 	
 	var resultRow = db.execute (	'SELECT p.park_name, t.transect_name \
 								FROM park p, transect t, site_survey s \
-								WHERE s.site_id = t.site_id \
+								WHERE s.site_survey_guid = t.site_survey_guid \
 								AND p.park_id = s.park_id \
-								AND t.transect_id = ?' , transectID);
+								AND t.transect_guid = ?' , transectGUID);
 	parkName = resultRow.fieldByName('park_name');
 	transectName = resultRow.fieldByName('transect_name');
 } catch (e) {
 	var errorMessage = e.message;
 	Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 } finally {
-	resultRow.close();
 	db.close();
 }
 
@@ -65,7 +64,7 @@ $.tbl.addEventListener('click', function(e){
 	
 	//check if media exists -if no photo has been taken (re-visited plot)
 	if(e.rowData.mediaID == null){
-		var modal = Alloy.createController("plotsModal", {plotID:e.rowData.plotID, title:e.rowData.title, siteID:siteID, plotName:e.rowData.plotName}).getView();
+		var modal = Alloy.createController("plotsModal", {plotGUID:e.rowData.plotGUID, title:e.rowData.title, siteGUID:siteGUID, plotName:e.rowData.plotName}).getView();
 		modal.open({
 			modal : true,
 			modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
@@ -76,7 +75,7 @@ $.tbl.addEventListener('click', function(e){
 	
 	//info button clicked, display modal
 	if(e.source.toString() == '[object TiUIButton]') {
-		var modal = Alloy.createController("plotsModal", {plotID:e.rowData.plotID, title:e.rowData.title, siteID:siteID, plotName:e.rowData.plotName}).getView();
+		var modal = Alloy.createController("plotsModal", {plotGUID:e.rowData.plotGUID, title:e.rowData.title, siteGUID:siteGUID, plotName:e.rowData.plotName}).getView();
 		modal.open({
 			modal : true,
 			modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
@@ -86,7 +85,7 @@ $.tbl.addEventListener('click', function(e){
 	//row clicked, get transect view
 	}else{  
 		//open plot observations
-		var observations = Alloy.createController("plotObservations", {plotID:e.rowData.plotID, siteID:siteID}).getView();
+		var observations = Alloy.createController("plotObservations", {plotGUID:e.rowData.plotGUID, siteGUID:siteGUID}).getView();
 		var nav = Alloy.Globals.navMenu;
 		nav.openWindow(observations);   
 	}
@@ -96,7 +95,7 @@ $.tbl.addEventListener('click', function(e){
 //Delete - event listener
 $.tbl.addEventListener('delete', function(e) { 
 	//get the plot_id of the current row to be deleted
-	var currentPlotID = e.rowData.plotID;
+	var currentPlotGUID = e.rowData.plotGUID;
 	try{
 		//open database
 		var db = Ti.Database.open('ltemaDB');
@@ -106,7 +105,7 @@ $.tbl.addEventListener('delete', function(e) {
 							FROM site_survey s, protocol p, park prk \
 							WHERE s.protocol_id = p.protocol_id \
 							AND s.park_id = prk.park_id \
-							AND site_id = ?', siteID);
+							AND site_survey_guid = ?', siteGUID);
 							
 		//Name the directory	
 		var year = rows.fieldByName('year');
@@ -119,7 +118,7 @@ $.tbl.addEventListener('delete', function(e) {
 		var plotFiles = db.execute('SELECT media_name \
 												FROM media m, plot p \
 												WHERE m.media_id = p.media_id \
-												AND p.plot_id = ? ', currentPlotID);
+												AND p.plot_guid = ? ', currentPlotGUID);
 		
 		var fileName = plotFiles.fieldByName('media_name');
 		deleteImage(fileName, folder);
@@ -127,7 +126,7 @@ $.tbl.addEventListener('delete', function(e) {
 		var plotObservationFiles = db.execute('SELECT media_name \
 												FROM media m, plot_observation po \
 												WHERE m.media_id = po.media_id \
-												AND po.plot_id = ? ', currentPlotID);
+												AND po.plot_guid = ? ', currentPlotGUID);
 		
 		while (plotObservationFiles.isValidRow()) {
 			var fileName = plotObservationFiles.fieldByName('media_name');
@@ -136,7 +135,7 @@ $.tbl.addEventListener('delete', function(e) {
 		}
 		
 		//delete current row from the database
-		db.execute('DELETE FROM plot WHERE plot_id = ?', currentPlotID);
+		db.execute('DELETE FROM plot WHERE plot_guid = ?', currentPlotGUID);
 		
 		// Make the last row editable
 		if ($.tbl.data[0]) {
@@ -153,9 +152,6 @@ $.tbl.addEventListener('delete', function(e) {
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
-		rows.close();
-		plotFiles.close();
-		plotObservationFiles.close();
 		db.close();
 		toggleEditBtn();
 	}
@@ -174,13 +170,13 @@ function populateTable() {
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Query - Retrieve existing plots from database
-		var rows = db.execute('SELECT plot_id, plot_name, utm_zone, utm_easting, utm_northing, media_id \
+		var rows = db.execute('SELECT plot_guid, plot_name, utm_zone, utm_easting, utm_northing, media_id \
 							FROM plot \
-							WHERE transect_id = ?', $.tbl.transectID);
+							WHERE transect_guid = ?', $.tbl.transectGUID);
 		
 		//Get requested data from each row in table
 		while (rows.isValidRow()) {	
-			var plotID = rows.fieldByName('plot_id');
+			var plotGUID = rows.fieldByName('plot_guid');
 			var plotName = rows.fieldByName('plot_name');
 			var utmZone = rows.fieldByName('utm_zone');
 			var utmEasting = rows.fieldByName('utm_easting');
@@ -189,7 +185,7 @@ function populateTable() {
 			
 			var groundCoverRows = db.execute('SELECT sum(ground_cover) \
 											FROM plot_observation \
-											WHERE plot_id = ?', plotID);
+											WHERE plot_guid = ?', plotGUID);
 							
 			var totalGroundCover = groundCoverRows.fieldByName('sum(ground_cover)');
 			
@@ -205,7 +201,7 @@ function populateTable() {
 				var newRow = Ti.UI.createTableViewRow({
 					title : plotDesc,
 					plotName : plotName,
-					plotID : plotID,
+					plotGUID : plotGUID,
 					mediaID : mediaID,
 					height: 60,
 					font: {fontSize: 20},
@@ -263,7 +259,6 @@ function populateTable() {
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
-		rows.close();
 		db.close();
 		toggleEditBtn();
 	}
@@ -291,7 +286,7 @@ function addBtn(){
 	$.addPlot.enabled = false;
 		
 	//Navigation to addPlot
-	var addPlot = Alloy.createController("addPlot", {transectID: $.tbl.transectID}).getView();
+	var addPlot = Alloy.createController("addPlot", {transectGUID: $.tbl.transectGUID}).getView();
 	var nav = Alloy.Globals.navMenu;
 	nav.openWindow(addPlot);
 }		

@@ -5,19 +5,19 @@
 
 //get siteID from calling window
 var args = arguments[0];
-var siteID = args.siteID;
+var siteGUID = args.siteGUID;
 
 //Query the database for values associated with the siteID
 try {
 	var db = Ti.Database.open('ltemaDB');
 	
 	var row = db.execute(
-		'SELECT site_id, year, protocol_name, park_name, biome_name, exported \
+		'SELECT site_survey_guid, year, protocol_name, park_name, biome_name, exported \
 		FROM site_survey s, protocol p, park prk, biome bio \
 		WHERE p.biome_id = bio.biome_id \
 		AND s.protocol_id = p.protocol_id \
 		AND s.park_id = prk.park_id \
-		AND site_id = ?', siteID);
+		AND site_survey_guid = ?', siteGUID);
 						
 	var siteYear = row.fieldByName('year');
 	var protocolName = row.fieldByName('protocol_name');
@@ -26,20 +26,20 @@ try {
 	var exported = row.fieldByName('exported');
 	
 	var transectsResult = db.execute (
-		'SELECT transect_id, transect_name, utm_easting, utm_northing, media_id \
+		'SELECT transect_guid, transect_name, utm_easting, utm_northing, media_id \
 		FROM transect \
-		WHERE site_id = ?', siteID);
+		WHERE site_survey_guid = ?', siteGUID);
 	
 	var surveyTransects = [];
 	var index = 0;
 	while (transectsResult.isValidRow()) {
-		var transectID = transectsResult.fieldByName('transect_id');
+		var transectGUID = transectsResult.fieldByName('transect_guid');
 		var transectName = transectsResult.fieldByName('transect_name');
 		var utmEasting = transectsResult.fieldByName('utm_easting');
 		var utmNorthing = transectsResult.fieldByName('utm_northing');
 		var mediaID = transectsResult.fieldByName('media_id');
 		// count # of plots in this survey
-		var numPlotsResult = db.execute ('SELECT plot_id FROM plot WHERE transect_id = ?', transectID);
+		var numPlotsResult = db.execute ('SELECT plot_guid FROM plot WHERE transect_guid = ?', transectGUID);
 		var numPlots = numPlotsResult.getRowCount();
 		numPlotsResult.close();
 		
@@ -57,8 +57,8 @@ try {
 	var errorMessage = e.message;
 	Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 } finally {
-	transectsResult.close();
-	row.close();
+	//transectsResult.close();
+	//row.close();
 	db.close();
 }
 

@@ -1,13 +1,13 @@
 /*
  *  A screen to view and edit plot details 
  * 
- * expected args: plotID, title, siteID, plotName
+ * expected args: plotGUID, title, siteGUID, plotName
  */
 
 var args = arguments[0];
-var plotID = args.plotID;
+var plotGUID = args.plotGUID;
 var plotTitle = args.title;
-var siteID = args.siteID;
+var siteGUID = args.siteGUID;
 var plotName = args.plotName;
 
 //initialize variables
@@ -29,9 +29,9 @@ $.modalWin.setTitleControl(titleLabel);
 try{
 	var db = Ti.Database.open('ltemaDB');
 	
-	var results = db.execute('SELECT plot_name, utm_zone, utm_northing, utm_easting, utc, stake_deviation, distance_deviation, transect_id, media_id, comments \
+	var results = db.execute('SELECT plot_name, utm_zone, utm_northing, utm_easting, utc, stake_deviation, distance_deviation, transect_guid, media_id, comments \
 	 						 FROM plot \
-	 						 WHERE plot_id = ?', plotID);
+	 						 WHERE plot_guid = ?', plotGUID);
 	
 	
 	//var plotName = results.fieldByName('plot_name');
@@ -41,7 +41,7 @@ try{
 	var utc = results.fieldByName('utc');
 	var stakeOrientation = results.fieldByName('stake_deviation');
 	var plotDistance = results.fieldByName('distance_deviation');
-	//var transectID = results.fieldByName('transect_id');			
+	var transectGUID = results.fieldByName('transect_guid');			
 	var mediaID = results.fieldByName('media_id');		
 	var comments = results.fieldByName('comments');			
 	
@@ -75,7 +75,7 @@ try{
 							FROM site_survey s, protocol p, park prk \
 							WHERE s.protocol_id = p.protocol_id \
 							AND s.park_id = prk.park_id \
-							AND site_id = ?', siteID);
+							AND site_survey_guid = ?', siteGUID);
 							
    //get the name of the directory	
 	var year = rows.fieldByName('year');
@@ -274,12 +274,12 @@ function saveEdit(e){
 			var mediaID = results.fieldByName('mediaID');
 		
 			//Insert Query - update row in plot table
-			db.execute(	'UPDATE OR FAIL plot SET stake_deviation = ?, distance_deviation = ?, media_id = ?, comments = ? WHERE plot_id = ?', 
-						stakeOrientation, plotDistance, mediaID, comments, plotID);
+			db.execute(	'UPDATE OR FAIL plot SET stake_deviation = ?, distance_deviation = ?, media_id = ?, comments = ? WHERE plot_guid = ?', 
+						stakeOrientation, plotDistance, mediaID, comments, plotGUID);
 		}else{
 			//Insert Query - update row in plot table
-			db.execute(	'UPDATE OR FAIL plot SET stake_deviation = ?, distance_deviation = ?, comments = ? WHERE plot_id = ?', 
-						stakeOrientation, plotDistance, comments, plotID);
+			db.execute(	'UPDATE OR FAIL plot SET stake_deviation = ?, distance_deviation = ?, comments = ? WHERE plot_guid = ?', 
+						stakeOrientation, plotDistance, comments, plotGUID);
 		}		
 	}catch(e){
 		Ti.API.error(e.toString());	
@@ -334,7 +334,7 @@ function savePhoto(photo){
 						FROM site_survey s, protocol p, park prk \
 						WHERE s.protocol_id = p.protocol_id \
 						AND s.park_id = prk.park_id \
-						AND site_id = ?', siteID);
+						AND site_survey_guid = ?', siteGUID);
 		
 		//Get requested data from each row in table
 		

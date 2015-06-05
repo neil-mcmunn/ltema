@@ -1,23 +1,23 @@
 /*
  * Plot observations creation screen with validation
  * 
- * expected args: plotID
+ * expected args: plotGUID
  */
 
 var args = arguments[0];
-var plotID = args.plotID;
+var plotGUID = args.plotGUID;
 var uuid = require('uuid');
 
 // Get the siteID
-var siteID;
+var siteGUID;
 try{
 	var db = Ti.Database.open('ltemaDB');
 	
-	var rows = db.execute('SELECT tct.site_id FROM transect tct, plot plt \
-							WHERE tct.transect_id = plt.transect_id \
-							AND plt.plot_id = ?', plotID);
+	var rows = db.execute('SELECT tct.site_survey_guid FROM transect tct, plot plt \
+							WHERE tct.transect_guid = plt.transect_guid \
+							AND plt.plot_guid = ?', plotGUID);
 	
-	siteID = rows.fieldByName('site_id');
+	siteGUID = rows.fieldByName('site_survey_guid');
 } catch(e) {
 	var errorMessage = e.message;
 	Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
@@ -191,9 +191,10 @@ function doneBtn(e){
 	try{
 		//Connect to database
 		var db = Ti.Database.open('ltemaDB');
+		var plotObsGUID = uuid.generateUUID();
 		
-		db.execute('INSERT INTO plot_observation (observation, ground_cover, count, comments, plot_id, media_id, species_code) \
-				VALUES (?,?,?,?,?,?,?)', observation, percentCoverage, count, comments, plotID, mediaID, speciesCode);
+		db.execute('INSERT INTO plot_observation (plot_observation_guid, observation, ground_cover, count, comments, plot_guid, media_id, species_code) \
+				VALUES (?,?,?,?,?,?,?,?)', plotObsGUID, observation, percentCoverage, count, comments, plotGUID, mediaID, speciesCode);
 					
 	}catch(e){
 		var errorMessage = e.message;
@@ -240,7 +241,7 @@ function savePhoto(photo){
 							FROM site_survey s, protocol p, park prk \
 							WHERE s.protocol_id = p.protocol_id \
 							AND s.park_id = prk.park_id \
-							AND site_id = ?', siteID);
+							AND site_survey_guid = ?', siteGUID);
 							
 		//Name the directory	
 		var year = rows.fieldByName('year');

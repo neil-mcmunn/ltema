@@ -1,22 +1,22 @@
 /*
  * View details of a plot observation
  * 
- * Expected args: observationID, title, comments, mediaID
+ * Expected args: observationGUID, title, comments, mediaID
  */
 
 var args = arguments[0];
-var observationID = args.observationID;
+var observationGUID = args.observationGUID;
 var title = args.title;
 var comments = args.comments;
 var mediaID = args.mediaID;
-var siteID = args.siteID;
+var siteGUID = args.siteGUID;
 
 //Query the database, assign returned ground cover to TextField
 try {
 	var db = Ti.Database.open('ltemaDB');
 	var resultRow = db.execute(	'SELECT ground_cover, count \
 						FROM plot_observation \
-						WHERE observation_id = ?', observationID);
+						WHERE plot_observation_guid = ?', observationGUID);
 	var groundCover = resultRow.fieldByName('ground_cover');
 	var count = resultRow.fieldByName('count');
 	//var mediaID = resultRow.fieldByName('media_id');
@@ -43,7 +43,7 @@ try {
 							FROM site_survey s, protocol p, park prk \
 							WHERE s.protocol_id = p.protocol_id \
 							AND s.park_id = prk.park_id \
-							AND site_id = ?', siteID);
+							AND site_survey_guid = ?', siteGUID);
 							
    //get the name of the directory	
 	var year = rows.fieldByName('year');

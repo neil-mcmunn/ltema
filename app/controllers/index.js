@@ -32,19 +32,10 @@ function checkSurveys() {
 
 	} else {
 		try {
-
-			console.log('enter try');
-
-			var url = "https://capstone-ltemac.herokuapp.com/getSurveys";
-			console.log('create httpClient object');
+			var url = "https://capstone-ltemac.herokuapp.com/surveys";
 			var httpClient = Ti.Network.createHTTPClient();
-
-			console.log('httpClient object created');
-
-			console.log('httpClient opening now');
 			// the 'false' optional parameter makes this a synchronous call
 			httpClient.open("GET", url);
-			console.log('httpClient opened');
 
 			httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
 			httpClient.setRequestHeader('Content-Type', 'application/json');
@@ -54,7 +45,7 @@ function checkSurveys() {
 				Ti.API.info("Received text (index L39): " + this.responseData);
 				var returnArray = JSON.parse(this.responseData).rows;
 				checkLocalSurveys(returnArray);
-				alert('success');
+				alert('successful checksurveys');
 			};
 			httpClient.onerror = function(e) {
 				Ti.API.debug("STATUS: " + this.status);
@@ -62,7 +53,7 @@ function checkSurveys() {
 				Ti.API.debug("ERROR:  " + e.error);
 				var cloudSurveys = [];
 				checkLocalSurveys(cloudSurveys);
-				alert('error retrieving remote data');
+				alert('error retrieving survey list, server offline');
 			};
 
 			console.log('setRequestHeader secret, now sending');
@@ -77,136 +68,10 @@ function checkSurveys() {
 }
 
 function checkLocalSurveys (cloudSurveys) {
-	/*
-	 var json = {
-	 "command": "SELECT",
-	 "rowCount": 11,
-	 "oid": null,
-	 "rows": [
-	 {
-	 "site": "testSite",
-	 "protocol": "testProtocol",
-	 "date_surveyed": "2015-05-01T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "uploadSiteTest1",
-	 "protocol": "intertidal",
-	 "date_surveyed": "2015-05-04T00:00:00.000Z",
-	 "version_no": 2
-	 },
-	 {
-	 "site": "uploadSiteTest1",
-	 "protocol": "intertidal1",
-	 "date_surveyed": "2015-05-04T00:00:00.000Z",
-	 "version_no": 2
-	 },
-	 {
-	 "site": "uploadSiteTest2",
-	 "protocol": "uploadProtocolTest1",
-	 "date_surveyed": "2015-05-04T00:00:00.000Z",
-	 "version_no": 2
-	 },
-	 {
-	 "site": "uploadSiteTest1",
-	 "protocol": "uploadProtocolTest1",
-	 "date_surveyed": "2015-05-04T00:00:00.000Z",
-	 "version_no": 2
-	 },
-	 {
-	 "site": "uploadSiteTest2",
-	 "protocol": "uploadProtocolTest2",
-	 "date_surveyed": "2015-05-04T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "MacMillan Park",
-	 "protocol": "Alpine",
-	 "date_surveyed": "2015-05-25T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "Macmillan Park",
-	 "protocol": "Alpine",
-	 "date_surveyed": "2015-05-25T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "Gerald Island Park",
-	 "protocol": "Alpine",
-	 "date_surveyed": "2015-05-25T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "Sand Point Conservancy",
-	 "protocol": "Alpine",
-	 "date_surveyed": "2015-05-25T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "Victor Lake Park",
-	 "protocol": "Grassland",
-	 "date_surveyed": "2015-05-25T00:00:00.000Z",
-	 "version_no": 1
-	 },
-	 {
-	 "site": "Ilgachuz Range Ecological Reserve",
-	 "protocol": "Alpine",
-	 "date_surveyed": "2015-05-25T00:00:00.000Z",
-	 "version_no": 1
-	 }
-	 ],
-	 "fields": [
-	 {
-	 "name": "site",
-	 "tableID": 524614,
-	 "columnID": 1,
-	 "dataTypeID": 1043,
-	 "dataTypeSize": -1,
-	 "dataTypeModifier": 104,
-	 "format": "text"
-	 },
-	 {
-	 "name": "protocol",
-	 "tableID": 524614,
-	 "columnID": 2,
-	 "dataTypeID": 1043,
-	 "dataTypeSize": -1,
-	 "dataTypeModifier": 104,
-	 "format": "text"
-	 },
-	 {
-	 "name": "date_surveyed",
-	 "tableID": 524614,
-	 "columnID": 4,
-	 "dataTypeID": 1082,
-	 "dataTypeSize": 4,
-	 "dataTypeModifier": -1,
-	 "format": "text"
-	 },
-	 {
-	 "name": "version_no",
-	 "tableID": 524614,
-	 "columnID": 6,
-	 "dataTypeID": 23,
-	 "dataTypeSize": 4,
-	 "dataTypeModifier": -1,
-	 "format": "text"
-	 }
-	 ],
-	 "_parsers": [
-	 null,
-	 null,
-	 null,
-	 null
-	 ],
-	 "rowAsArray": false
-	 };
-	 */
 	try {
 		//open database
 		var db = Ti.Database.open('ltemaDB');//Query - Retrieve existing sites from sqlite database
-		var rows = db.execute('SELECT site_id, site_survey_guid, year, protocol_name, park_name \
+		var rows = db.execute('SELECT site_survey_guid, year, protocol_name, park_name \
 						FROM site_survey s, protocol p, park prk \
 						WHERE s.protocol_id = p.protocol_id \
 						AND s.park_id = prk.park_id ');
@@ -215,15 +80,14 @@ function checkLocalSurveys (cloudSurveys) {
 		while (rows.isValidRow()){
 			var protocolName = rows.fieldByName('protocol_name');
 			var parkName = rows.fieldByName('park_name');
-			var siteID = rows.fieldByName('site_id');
 			var siteGUID = rows.fieldByName('site_survey_guid');
 			var year = rows.fieldByName('year');
-			var results = {'site_id': siteID, 'site_survey_guid' : siteGUID, 'date_surveyed' : year, 'protocol' : protocolName, 'site' : parkName};
+			var results = {'site_survey_guid' : siteGUID, 'date_surveyed' : year, 'protocol' : protocolName, 'site' : parkName};
 			localSurveys.push(results);
 
 			rows.next();
 		}
-		console.log('index L316 localSurveys: ');
+		console.log('index L100 localSurveys: ');
 		console.log(localSurveys);
 
 		populateTable(cloudSurveys, localSurveys);
@@ -235,93 +99,8 @@ function checkLocalSurveys (cloudSurveys) {
 		db.close();
 		toggleEditBtn();
 	}
-
-
-
 }
 
-function createButtons(rows, downloadExists) {
-	console.log('enter createButtons');
-	console.log('createButtons line 52 rows value: ');
-	//console.log(rows);
-	console.log('downloadExists=' + downloadExists);
-	//Get requested data from each row in table
-	for (var i = 0; i < rows.length; i++) {
-		var site = rows[i]['site'];
-		var year = rows[i]['date_surveyed'];
-		var protocol = rows[i]['protocol'];
-		var versionNo = rows[i]['version_no'];
-
-		//create a string from each entry
-		var siteSurvey = year.slice(0,4) + ' - ' + protocol + ' - ' + site;
-		console.log('createButtons siteSurvey: ' + siteSurvey);
-
-		//create a new row (gray out if not downloaded)
-		if (downloadExists) {
-			var newRow = Ti.UI.createTableViewRow({
-				title: siteSurvey,
-				site: site,
-				protocol: protocol, //not visible, but passed to transects screen
-				height: 60,
-				font: {fontSize: 20},
-				color: 'black'
-			});
-		} else {
-			var newRow = Ti.UI.createTableViewRow({
-				title: siteSurvey,
-				site: site,
-				protocol: protocol, //not visible, but passed to transects screen
-				height: 60,
-				font: {fontSize: 20},
-				color: 'gray'
-			});
-		}
-		//create and add info icon for the row
-		var infoButton = Ti.UI.createButton({
-			style : Titanium.UI.iPhone.SystemButton.DISCLOSURE,
-			right : 15,
-			height: 60,
-			width: 60,
-			buttonid: 'info'
-		});
-		var downloadButton = Ti.UI.createButton({
-			backgroundImage:'icons/download.png',
-			backgroundFocusedImage: 'icons/download_clicked.png',
-			backgroundSelectedImage: 'icons/download_clicked.png',
-			right : 75,
-			height: 60,
-			width: 60,
-			buttonid: 'download'
-		});
-		var uploadButton = Ti.UI.createButton({
-			backgroundImage:'icons/upload.png',
-			backgroundFocusedImage: 'icons/upload_clicked.png',
-			backgroundSelectedImage: 'icons/upload_clicked.png',
-			right : 135,
-			height: 60,
-			width: 60,
-			buttonid: 'upload'
-		});
-		var exportButton = Ti.UI.createButton({
-			backgroundImage:'icons/export.png',
-			backgroundFocusedImage: 'icons/export_clicked.png',
-			backgroundSelectedImage: 'icons/export_clicked.png',
-			right : 195,
-			height: 60,
-			width: 60,
-			buttonid: 'export'
-		});
-
-		newRow.add(infoButton);
-		newRow.add(downloadButton);
-		newRow.add(uploadButton);
-		newRow.add(exportButton);
-
-		//Add row to the table view
-		$.tbl.appendRow(newRow);
-	}
-
-}
 
 function populateTable(cloudSurveys, localSurveys) {
 	$.addSite.enabled = true;
@@ -334,34 +113,29 @@ function populateTable(cloudSurveys, localSurveys) {
 	var cloudAndLocalSurveys = [];
 
 	// check for cloudOnly and cloudAndLocal
-	for (var i = 0; i < cloudSurveys.length; i++) {
-		var protocolNameOnCloud = cloudSurveys[i].protocol;
-		var parkNameOnCloud = cloudSurveys[i].site;
+	for (var i = 0, len = cloudSurveys.length; i < len; i++) {
 		var yearOnCloud = cloudSurveys[i].date_surveyed;
-
-		var lengthDownloadedBefore = cloudAndLocalSurveys.length;
-		for (var j = 0; j < localSurveys.length; j++) {
-			var protocolNameOnDevice = localSurveys[j]['protocol'];
-			var parkNameOnDevice = localSurveys[j]['site'];
-
-			console.log('index L338 (pd, pc, prkD, prkC): ' + protocolNameOnDevice + ' ' + protocolNameOnCloud + ' ' + parkNameOnDevice + ' ' + parkNameOnCloud);
+		var cloudSiteGUID = cloudSurveys[i].site_survey_guid;
+		var matched = false;
+		
+		for (var j = 0, localLen = localSurveys.length; j < localLen; j++) {
+			var localSiteGUID = localSurveys[j].site_survey_guid;
+			var yearOnDevice = localSurveys[j].date_surveyed;
+			
 			// already downloaded
-			if ((protocolNameOnCloud == protocolNameOnDevice) && (parkNameOnCloud == parkNameOnDevice)) {
-				console.log('MATCHED! index L341 (pd, pc, prkD, prkC): ' + protocolNameOnDevice + ' ' + protocolNameOnCloud + ' ' + parkNameOnDevice + ' ' + parkNameOnCloud);
-				var siteID = localSurveys[j]['site_id'];
-				var siteGUID = localSurveys[j]['site_survey_guid'];
-				var yearOnDevice = localSurveys[j]['date_surveyed'];
-				var results = {'site_id':siteID, 'site_survey_guid': siteGUID, 'date_surveyed': yearOnDevice, 'protocol':protocolNameOnDevice, 'site':parkNameOnDevice};
-
+			if (cloudSiteGUID === localSiteGUID) {
+				var results = {'site_survey_guid': localSiteGUID, 'date_surveyed': yearOnDevice};
 				cloudAndLocalSurveys.push(results);
+				matched = true;
 				break;
 			}
 		}
 		//check if there were matches 
-		var lengthDownloadedAfter = cloudAndLocalSurveys.length;
-		if (lengthDownloadedAfter == lengthDownloadedBefore) {
+		if (!matched) {
 			// didn't match cloud to device, add to cloudOnlySurveys
-			var results = {'date_surveyed': yearOnCloud, 'protocol':protocolNameOnCloud, 'site':parkNameOnCloud};
+			var cloudParkID = cloudSurveys[i].park_id;
+			var cloudProtocolID = cloudSurveys[i].protocol_id;
+			var results = {'site_survey_guid': cloudSiteGUID, 'date_surveyed': yearOnCloud, 'park_id':cloudParkID, 'protocol_id':cloudProtocolID};
 			cloudOnlySurveys.push(results);
 		}
 	}
@@ -369,34 +143,30 @@ function populateTable(cloudSurveys, localSurveys) {
 	//check for localOnly
 	var localOnlySurveys = [];
 	for (var i = 0; i < localSurveys.length; i++) {
-		var protocolNameOnDevice = localSurveys[i]['protocol'];
-		var parkNameOnDevice = localSurveys[i]['site'];
-		var yearOnDevice = localSurveys[i]['date_surveyed'];
-
+		var localSiteGUID = localSurveys[i]['site_survey_guid'];
+		var matched = false;
+		
 		for (var j = 0; j < cloudAndLocalSurveys.length; j++) {
-			var matched = false;
-			var protocolNameOnCloud = cloudAndLocalSurveys[j].protocol;
-			var parkNameOnCloud = cloudAndLocalSurveys[j].site;
-
+			var cloudAndLocalSiteGUID = cloudAndLocalSurveys[j].site_survey_guid;
 			// if there's a match, skip to next iteration of i
-			if ((protocolNameOnCloud == protocolNameOnDevice) && (parkNameOnCloud == parkNameOnDevice)) {
+			if (cloudAndLocalSiteGUID === localSiteGUID) {
 				matched = true;
-				continue;
+				break;
 			}
 		}
-
 		// if no match, add record to localOnly
-		if (matched == false) {
-			var results = {'date_surveyed': yearOnDevice, 'protocol': protocolNameOnDevice, 'site': parkNameOnDevice};
+		if (!matched) {
+			var yearOnDevice = localSurveys[i]['date_surveyed'];
+			var results = {'site_survey_guid': localSiteGUID, 'date_surveyed': yearOnDevice};
 			localOnlySurveys.push(results);
 		}
 	}
 
-	console.log ('cloudOnlySurveys line 401 index.js: ');
-	console.log(cloudOnlySurveys.length);
-	console.log ('cloudAndLocalSurveys line 404 index.js: ');
+	console.log ('cloudOnlySurveys line 181 index.js: ');
+	console.log(cloudOnlySurveys);
+	console.log ('cloudAndLocalSurveys line 183 index.js: ');
 	console.log(cloudAndLocalSurveys);
-	console.log ('localOnlySurveys line 404 index.js: ');
+	console.log ('localOnlySurveys line 185 index.js: ');
 	console.log(localOnlySurveys);
 
 	createButtons(localOnlySurveys, true);
@@ -404,8 +174,119 @@ function populateTable(cloudSurveys, localSurveys) {
 	createButtons(cloudOnlySurveys, false);
 
 	console.log('got through createButton functions line 411 index.js');
+
 }
 
+
+function createButtons(rows, downloadExists) {
+	
+	try {
+		var db = Ti.Database.open('ltemaDB');
+		
+		//Get requested data from each row in table
+		for (var i = 0; i < rows.length; i++) {
+			var year = rows[i].date_surveyed;
+			var versionNo = rows[i].version_no;
+			var siteGUID = rows[i].site_survey_guid;
+			
+			// get park and protocol names based on siteGUID if confirmed on device
+			//    also create a new row (gray out if not downloaded)
+			if (downloadExists) {
+				var protocolResults = db.execute('SELECT protocol_name FROM site_survey s, protocol p WHERE s.protocol_id = p.protocol_id AND s.site_survey_guid =?', siteGUID);
+				var protocol = protocolResults.fieldByName('protocol_name');
+				
+				var siteResults = db.execute('SELECT park_name FROM site_survey s, park p WHERE s.park_id = p.park_id AND s.site_survey_guid =?', siteGUID);
+				var site = siteResults.fieldByName('park_name');
+				
+				//create a string from each entry
+				//var siteSurvey = year.slice(0,4) + ' - ' + protocol + ' - ' + site;
+				var siteSurvey = protocol + ' - ' + site;
+				var newRow = Ti.UI.createTableViewRow({
+					title: siteSurvey,
+					site: site,
+					siteGUID: siteGUID,
+					protocol: protocol, //not visible, but passed to transects screen
+					height: 60,
+					font: {fontSize: 20},
+					color: 'black'
+				});
+			// otherwise use park and protocol id's from cloud
+			} else {
+				var protocolResults = db.execute('SELECT protocol_name FROM protocol WHERE protocol_id =?', rows[i].protocol_id);
+				var protocol = protocolResults.fieldByName('protocol_name');
+				
+				var siteResults = db.execute('SELECT park_name FROM park WHERE park_id =?', rows[i].park_id);
+				var site = siteResults.fieldByName('park_name');
+				
+				//create a string from each entry
+				//var siteSurvey = year.slice(0,4) + ' - ' + protocol + ' - ' + site;
+				var siteSurvey = protocol + ' - ' + site;
+				var newRow = Ti.UI.createTableViewRow({
+					title: siteSurvey,
+					site: site,
+					siteGUID: siteGUID,
+					protocol: protocol, //not visible, but passed to transects screen
+					height: 60,
+					font: {fontSize: 20},
+					color: 'gray'
+				});
+			}
+			
+			console.log('createButtons siteSurvey: ' + siteSurvey);
+	
+			//create and add info icon for the row
+			var infoButton = Ti.UI.createButton({
+				style : Titanium.UI.iPhone.SystemButton.DISCLOSURE,
+				right : 15,
+				height: 60,
+				width: 60,
+				buttonid: 'info'
+			});
+			var downloadButton = Ti.UI.createButton({
+				backgroundImage:'icons/download.png',
+				backgroundFocusedImage: 'icons/download_clicked.png',
+				backgroundSelectedImage: 'icons/download_clicked.png',
+				right : 75,
+				height: 60,
+				width: 60,
+				buttonid: 'download'
+			});
+			var uploadButton = Ti.UI.createButton({
+				backgroundImage:'icons/upload.png',
+				backgroundFocusedImage: 'icons/upload_clicked.png',
+				backgroundSelectedImage: 'icons/upload_clicked.png',
+				right : 135,
+				height: 60,
+				width: 60,
+				buttonid: 'upload'
+			});
+			var exportButton = Ti.UI.createButton({
+				backgroundImage:'icons/export.png',
+				backgroundFocusedImage: 'icons/export_clicked.png',
+				backgroundSelectedImage: 'icons/export_clicked.png',
+				right : 195,
+				height: 60,
+				width: 60,
+				buttonid: 'export'
+			});
+	
+			newRow.add(infoButton);
+			newRow.add(downloadButton);
+			newRow.add(uploadButton);
+			newRow.add(exportButton);
+	
+			//Add row to the table view
+			$.tbl.appendRow(newRow);
+		}
+	} catch(e) {
+		var errorMessage = e.message;
+		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+	} finally {
+		db.close();
+		toggleEditBtn();
+	}
+	
+}
 
 /* Nav Bar Label */
 
@@ -426,10 +307,20 @@ $.siteSurveysWin.setTitleControl(titleLabel);
 
 /* Event Listeners */
 
+/*
+// pull down to refresh
+$.tbl.addEventListener('refreshstart', function(e) {
+	Ti.API.info('refreshstart');
+
+	section.appendItems(genData());
+	control.endRefreshing();
+});
+*/
+
 //Delete event listener
 $.tbl.addEventListener('delete', function(e) {
 	//get the site_id of the current row being deleted
-	var currentSiteID = e.rowData.siteID;
+	var currentSiteGUID = e.rowData.siteGUID;
 	try{
 		//open database
 		var db = Ti.Database.open('ltemaDB');
@@ -442,7 +333,7 @@ $.tbl.addEventListener('delete', function(e) {
 		}
 
 		//delete current row from the database
-		db.execute('DELETE FROM site_survey WHERE site_id = ?', currentSiteID);
+		db.execute('DELETE FROM site_survey WHERE site_survey_guid = ?', currentSiteGUID);
 
 	} catch(e) {
 		var errorMessage = e.message;
@@ -465,7 +356,7 @@ $.tbl.addEventListener('click', function(e) {
 	}
 	//info button clicked, display modal
 	if(e.source.buttonid == 'info') {
-		var modal = Alloy.createController("siteSurveyModal", {siteID:e.rowData.siteID}).getView();
+		var modal = Alloy.createController("siteSurveyModal", {siteGUID:e.rowData.siteGUID}).getView();
 		modal.open({
 			modal : true,
 			modalTransitionStyle : Ti.UI.iPhone.MODAL_TRANSITION_STYLE_COVER_VERTICAL,
@@ -474,10 +365,10 @@ $.tbl.addEventListener('click', function(e) {
 		});
 		//download button clicked
 	} else if (e.source.buttonid == 'download') {
-		alert('Download button pressed! Calling download function with the following parameters...\n' + e.rowData.site + ' ' + e.rowData.protocol);
+		//alert('Download button pressed! Calling download function with the following parameters...\n' + e.rowData.site + ' ' + e.rowData.protocol);
 
 		var download = require('download');
-		download.downloadSurvey(e.rowData.site, e.rowData.protocol);
+		download.downloadSurvey(e.rowData.siteGUID);
 
 		//upload button clicked
 	} else if (e.source.buttonid == 'upload') {
@@ -502,8 +393,15 @@ $.tbl.addEventListener('click', function(e) {
 
 		//row clicked, get transect view
 	} else {
-		var transects = Alloy.createController("transects", {siteID:e.rowData.siteID, parkName:e.rowData.parkName}).getView();
-		$.navGroupWin.openWindow(transects);
+		// if downloaded open transect view
+		if (e.rowData.color == 'black') {
+			var transects = Alloy.createController("transects", {siteGUID:e.rowData.siteGUID, parkName:e.rowData.parkName}).getView();
+			$.navGroupWin.openWindow(transects);
+		
+		// else do nothing
+		} else {
+			alert('must download first ------>');
+		}
 	}
 });
 
@@ -527,6 +425,10 @@ Ti.App.addEventListener("app:enableIndexAddButton", function(e) {
 
 Ti.App.addEventListener("app:enableIndexExportButton", function(e) {
 	$.exportData.enabled = true;
+});
+
+Ti.App.addEventListener("app:enableIndexRefreshButton", function(e) {
+	$.refreshBtn.enabled = true;
 });
 
 
@@ -608,6 +510,10 @@ function exportBtn(){
 		modalStyle : Ti.UI.iPhone.MODAL_PRESENTATION_PAGESHEET,
 		navBarHidden : false
 	});
+}
+
+function refreshBtn() {
+	checkSurveys();
 }
 
 //This should always happen last
