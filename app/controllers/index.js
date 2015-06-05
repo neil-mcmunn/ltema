@@ -427,6 +427,10 @@ Ti.App.addEventListener("app:enableIndexExportButton", function(e) {
 	$.exportData.enabled = true;
 });
 
+Ti.App.addEventListener("app:enableIndexLoginButton", function(e) {
+	$.login.enabled = true;
+});
+
 Ti.App.addEventListener("app:enableIndexRefreshButton", function(e) {
 	$.refreshBtn.enabled = true;
 });
@@ -488,6 +492,99 @@ function editBtn(e){
 		$.addSite.enabled = true;
 		$.exportData.enabled = true;
 	}
+}
+
+function loginBtn() {
+	// get user to input secret (authentication)
+	var win = Ti.UI.createWindow({
+		title:'Click to login'
+	});
+	win.addEventListener('click', function(e){
+		var dialog = Ti.UI.createAlertDialog({
+			title: "Enter Secret",
+			style: Ti.UI.iPhone.AlertDialogStyle.PLAIN_TEXT_INPUT,
+			buttonNames: ['OK']
+		});
+		
+		dialog.addEventListener('click', function(e){
+			var secret = e.text;
+			Ti.API.info('e.text: ' + secret);
+			var regex = /^[01]{1}\w{4}-\w{5}-\w{5}-\w{5}-\w{5}$/;
+			if (secret.match(regex)){
+				authenticate(secret);
+			} else {
+				alert('bad secret format');
+			}
+		});
+		dialog.show();
+	});
+	win.open();
+}
+
+function authenticate(secret){
+	console.log('enter authenticate function');
+
+	// check for network
+	if (Titanium.Network.networkType == Titanium.Network.NETWORK_NONE){
+		var alertDialog = Titanium.UI.createAlertDialog({
+			title: 'WARNING!',
+			message: 'Your device is not online.',
+			buttonNames: ['OK']
+		});
+		alertDialog.show();
+
+	} else {
+		try {
+			var url = "https://capstone-ltemac.herokuapp.com/imageStorageKey";
+			var httpClient = Ti.Network.createHTTPClient();
+			httpClient.open("GET", url);
+
+			httpClient.setRequestHeader('secret', secret);
+			httpClient.setRequestHeader('Content-Type', 'application/json');
+
+			httpClient.onload = function() {
+				if (this.status === 200) {
+					Ti.API.info("Received text (index L547): " + this.responseData);
+					var returnArray = JSON.parse(this.responseData);
+					checkAuthLevel(returnArray);
+					alert('successful auth check');
+				} else {
+					alert('invalid status code response: ' + this.status);
+				}
+			};
+			httpClient.onerror = function(e) {
+				Ti.API.debug("STATUS: " + this.status);
+				Ti.API.debug("TEXT:   " + this.responseText);
+				Ti.API.debug("ERROR:  " + e.error);
+				alert('error validating credentials, server offline');
+			};
+			httpClient.send();
+		} catch (e) {
+			var errorMessage = e.message;
+			console.log('error in authentication function: ' + errorMessage);
+		}
+	}
+}
+
+// check with cloud and then set persistent variables
+function checkAuthLevel(json) {
+	var authLevel = json.auth_level;
+	var flickrAccessToken = json.access_token;
+	var flickrAccessSecret = json.access_secret;
+	var flickrConsumerKey = json.consumer_key;
+	var flickrConsumerSecret = json.consumer_secret;
+	
+	if (authLevel == 1 || authLevel == 9){
+		//set authLevel into Titanium variable, accessable by getString('auth_level')
+		Ti.App.Properties.setString('auth_level',authLevel);
+	} else {
+		console.log('authLevel not valid: ' + authLevel);
+		return;
+	}
+	Ti.App.Properties.setString('access_token',flickrAccessToken);
+	Ti.App.Properties.setString('access_secret',flickrAccessSecret);
+	Ti.App.Properties.setString('consumer_key',flickrConsumerKey);
+	Ti.App.Properties.setString('consumer_secret',flickrConsumerSecret);
 }
 
 //Navigate to site survey creation screen
