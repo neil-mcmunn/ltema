@@ -20,36 +20,9 @@ function processDownload(cloudSurvey) {
 		var cloudTransects = surveyData.transects;
     	var cloudPlots = surveyData.plots;
 		var plotObservations = surveyData.plot_observations;
+    	
     	console.log('THE DOWNLOAD');
-    	//console.log(surveyData);
-    	/*for (var i = 0; i < cloudMedia.length; i++) {
-    		console.log(cloudMedia[i]);
-    	}
-    	for (var i = 0; i < cloudTransects.length; i++) {
-    		console.log(cloudTransects[i]);
-    	}
-    	for (var i = 0; i < cloudPlots.length; i++) {
-    		console.log(cloudPlots[i]);
-    	}
-    	for (var i = 0; i < plotObservations.length; i++) {
-    		console.log(plotObservations[i]);
-    	}
-    	for (var i = 0; i < surveyMeta.length; i++) {
-    		console.log(surveyMeta[i]);
-    	}*/
-    	// console.log('THE DOWNLOAD SITE AND PROTOCOL');
-    	// console.log('site and protocol: ' + cloudSurvey.site + ' ' + cloudSurvey.protocol);
-    	
-    	/*
-    	var protocolIDResult = db.execute('SELECT protocol_id FROM protocol WHERE protocol_name =?', cloudSurvey.protocol);
-    	var protocolID = protocolIDResult.fieldByName('protocol_id');
-    	console.log ('protocol id : ' + protocolID);
-    	
-    	var parkIDResult = db.execute('SELECT park_id FROM park WHERE park_name =?', cloudSurvey.site);
-    	var parkID = parkIDResult.fieldByName('park_id');
-    	console.log ('park id : ' + parkID);
-	    */
-	   
+
 	    var protocolID = surveyMeta.protocol_id;
 	    var parkID = surveyMeta.park_id;
 	    			

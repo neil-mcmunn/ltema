@@ -13,7 +13,7 @@ function preparePhotos(guid) {
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Get park and protocol names
-		var surveyMeta = db.execute('SELECT pa.park_name, pr.protocol_name' +
+		var surveyMeta = db.execute('SELECT pa.park_id, pa.park_name, pr.protocol_id, pr.protocol_name' +
 									 'FORM park pa, protocol pr, site_survey su' +
 									 'WHERE pa.park_id = su.park_id' +
 									 'AND pr.protocol_id = su.park_id' +
@@ -21,20 +21,49 @@ function preparePhotos(guid) {
 
 		var park = surveyMeta.fieldByName('park_name');
 		var protoocol = surveyMeta.fieldByName('protocol_name');
-
-		//Get IDs for the park and protocol
-		var surveyIDs = db.execute('SELECT pa.park_id, pr.protocol_id' +
-									'FROM park pa, protocol pr, site_survey su' +
-									'WHERE pa.park_id = su.park_id' +
-									'AND pr.protocol_id = su.protocol_id' +
-									'AND pa.park_name = ?' +
-									'AND pr.protocol_name = ?', park, protocol);
-
 		var protocolID = surveyIDs.fieldByName('protocol_id');
 		var parkID = surveyIDs.fieldByName('park_id');
 
+
+		var uploadMedia = [];
+		var transects = db.execute('SELECT transect_guid, media_id FROM transect WHERE site_survey_guid = ?', guid);
+			
+		// Copy and associate any existing transects
+		while (transects.isValidRow()) {
+			var transectGUID = transects.fieldByName('transect_guid');
+			var transectMediaID = transects.fieldByName('media_id');
+			
+			uploadMedia.push(transectMediaID);
+			
+			// Get any plots associated with the transect
+			var plots = db.execute('SELECT plot_guid, media_id FROM plot WHERE transect_guid = ?', transectGUID);
+			
+			// Copy and associate any existing plots
+			while (plots.isValidRow()) {
+				var plotMediaID = plots.fieldByName('media_id');
+				var plotGUID = plots.fieldByName('plot_guid');
+				
+				uploadMedia.push(plotMediaID);
+				
+				// Get any plot observations associated with the plot
+				var observations = db.execute('SELECT plot_observation_guid, media_id FROM plot_observation WHERE plot_guid = ?', plotGUID);
+				
+				// Copy and associate any existing plot observations
+				while (observations.isValidRow()){
+					var observationGUID = observations.fieldByName('plot_observation_guid');
+					var observationMediaID = observations.fieldByName('media_id');
+					
+					uploadMedia.push(observationMediaID);
+					
+					observations.next();
+				}	
+				plots.next();
+			}
+			transects.next();
+		}
 		//Find the media_id, media_name, and flickr_id for each image related to the survey
 		//Query - Transect Media
+		/*
 		var transectRows = db.execute( 'SELECT t.transect_id, t.media_id, m.media_name, m.flickr_id' +
 										'FROM media m, transect t, site_survey s, protocol p, park pa' +
 										'WHERE t.media_id = m.media_id' +
@@ -61,9 +90,8 @@ function preparePhotos(guid) {
 		var plotRows = db.execute( 'SELECT p.plot_id, pl.media_id, m.media_name, m.flickr_id' +
 									'FROM media m, plot pl, site_survey s, protocol p, park pa' +
 									'WHERE pl.media_id = m.media_id' +
-									'AND t.site_id = s.site_id' +
-									'AND s.protocol_id = ?' +
-									'AND s.park_id = ?', protocolID, parkID);
+									'AND .site_survey_guid = s.site_guid' +
+									'AND t.site_survey_guid = ?', guid);
 
 		while(plotRows.isValidRow()){
 			var media = {
@@ -80,11 +108,11 @@ function preparePhotos(guid) {
 		plotRows = null;
 
 		//Query - Plot Observation Media
-		var observationRows = db.execute( 'SELECT o.observation_id, m.media_name, m.flickr_id' +
-										   'FROM media m, plot_observations o, site_survey s, protocol p, park pa' +
+		var observationRows = db.execute( 'SELECT m.media_id, m.media_name, m.flickr_id' +
+										   'FROM media m, plot_observations o, transect t, site_survey s' +
 										   'WHERE m.media_id = o.media_id' +
-										   'AND o.site_id = s.site_id' +
-										   'AND s.protocol_id = ?' +
+										   'AND o.transect_id = s.transect_id' +
+										   'AND t.protocol_id = ?' +
 										   'AND s.park_id = ?;', protocolID, parkID);
 
 		while(observationRows.isValidRow()){
@@ -100,7 +128,7 @@ function preparePhotos(guid) {
 		}
 		//Drop the rows from memory
 		observationRows = null;
-
+		*/
 	}
 	catch(e) {
 		uploadMedia = undefined;
@@ -251,7 +279,7 @@ function formAlpineGrasslandJSON(guid){
 		//Query - Select metadata for the survey being uploaded
 		var metaRows = db.execute( 'SELECT site_survey_guid, year, protocol_id, park_id' +
 								'FROM site_survey' +
-								'WHERE site_survey_guid ?', guid); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
+								'WHERE site_survey_guid ?', guid);
 
 		var survey = {
 			transects : [],
@@ -266,13 +294,10 @@ function formAlpineGrasslandJSON(guid){
 			}
 		};
 
-		var transectRows = db.execute( 'SELECT t.transect_id, t.transect_guid, t.transect_name, t.surveyor, t.other_surveyors, t.plot_distance,' +
-										't.stake_orientation, t.utm_zone, t.utm_easting, t.utm_northing, t.comments, t.site_ids, t.site_survey_guid, t.media_id' +
-										'FROM transect t' +
-										'WHERE t.site_survey_guid = ?', guid); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
+		var transectRows = db.execute( 'SELECT * FROM transect WHERE site_survey_guid = ?', guid);
+		
 		while(transectRows.isValidRow()){
 			var transect = {
-				transect_id: transectRows.fieldByName('transect_id'),
 				transect_guid: transectRows.fieldByName('transect_guid'),
 				transect_name: transectRows.fieldByName('transect_name'),
 				surveyor: transectRows.fieldByName('surveyor'),
@@ -283,116 +308,79 @@ function formAlpineGrasslandJSON(guid){
 				utm_easting: transectRows.fieldByName('utm_easting'),
 				utm_northing: transectRows.fieldByName('utm_northing'),
 				comments: transectRows.fieldByName('comments'),
-				site_ids: transectRows.fieldByName('site_ids'),
 				site_survey_guid: transectRows.fieldByName('site_survey_guid'),
 				media_id: transectRows.fieldByName('media_id')
 			};
 			survey.transects.push(transect);
 			transectRows.next();
+
+			var plotRows = db.execute('SELECT * FROM plot WHERE transect_guid = ?', transect.transect_guid);
+			
+			while(plotRows.isValidRow()){
+				var plot = {
+					plot_guid: plotRows.fieldByName('plot_guid'),
+					plot_name: plotRows.fieldByName('plot_name'),
+					utm_zone: plotRows.fieldByName('utm_zone'),
+					utm_northing: plotRows.fieldByName('utm_northing'),
+					utm_easting: plotRows.fieldByName('utm_easting'),
+					utc: plotRows.fieldByName('utc'),
+					stake_deviation: plotRows.fieldByName('stake_deviation'),
+					distance_deviation: plotRows.fieldByName('distance_deviation'),
+					transect_guid: plotRows.fieldByName('transect_guid'),
+					media_id: plotRows.fieldByName('media_id'),
+					comment: plotRows.fieldByName('comment')
+				};
+				survey.plots.push(plot);
+				plotRows.next();
+
+				var observationRows = db.execute('SELECT * FROM plot_observation WHERE plot_guid = ?', plot.plot_guid); 
+				
+				while(observationRows.isValidRow()){
+					var observation = {
+						plot_observation_guid: observationRows.fieldByName('plot_observation_guid'),
+						observation: observationRows.fieldByName('observation'),
+						ground_cover: observationRows.fieldByName('ground_cover'),
+						count: observationRows.fieldByName('count'),
+						comments: observationRows.fieldByName('comments'),
+						plot_guid: observationRows.fieldByName('plot_guid'),
+						media_id: observationRows.fieldByName('media_id'),
+						species_code: observationRows.fieldByName('species_code')
+					};
+					survey.plot_observations.push(observation);
+					observationRows.next();
+				}
+			}
 		}
 
-		var plotRows = db.execute( 'SELECT pl.plot_id, pl.plot_guid, pl.plot_name, pl.utm_zone,' +
-									'pl.utm_northing, pl.utm_easting, pl.utc, pl.stake_deviation,' +
-									'pl.distance_deviation, pl.transect_id, pl.transect_guid, pl.media_id, pl.comment, ' +
-									'FROM transect t, plot pl' +
-									'WHERE pl.transect_id = t.transect_id' +
-									'AND t.site_survey_guid = ?', guid); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
-									
-		while(plotRows.isValidRow()){
-			var plot = {
-				plot_id: plotRows.fieldByName('plot_id'),
-				plot_guid: plotRows.fieldByName('plot_guid'),
-				plot_name: plotRows.fieldByName('plot_name'),
-				utm_zone: plotRows.fieldByName('utm_zone'),
-				utm_northing: plotRows.fieldByName('utm_northing'),
-				utm_easting: plotRows.fieldByName('utm_easting'),
-				utc: plotRows.fieldByName('utc'),
-				stake_deviation: plotRows.fieldByName('stake_deviation'),
-				distance_deviation: plotRows.fieldByName('distance_deviation'),
-				transect_id: plotRows.fieldByName('transect_id'),
-				transect_guid: plotRows.fieldByName('transect_guid'),
-				media_id: plotRows.fieldByName('media_id'),
-				comment: plotRows.fieldByName('comment')
-			};
-			survey.plots.push(plot);
-			plotRows.next();
+		var mediaIDs = [];
+		for (var i = 0, t = survey.transects.length; i < t; i++) {
+			var mediaID = survey.transects[i].media_id;
+			mediaIDs.push(mediaID);
 		}
-
-		var observationRows = db.execute(	'SELECT ob.observation_id, ob.plot_observation_guid, ob.observation,' +
-											'ob.ground_cover, ob.count, ob.comments, ob.plot_id, ob.plot_guid, ob.media_id, ob.species_code' +
-											 'FROM plot_observation ob, plot pl, transect t' +
-											 'WHERE ob.plot_guid = pl.plot_guid' +
-											 'AND pl.transect_guid = t.transect_guid' +
-											 'AND t.site_survey_guid = ?', guid); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
-		while(observationRows.isValidRow()){
-			var observation = {
-				observation_id: observationRows.fieldByName('observation_id'),
-				plot_observation_guid: observationRows.fieldByName('plot_observation_guid'),
-				observation: observationRows.fieldByName('observation'),
-				ground_cover: observationRows.fieldByName('ground_cover'),
-				count: observationRows.fieldByName('count'),
-				comments: observationRows.fieldByName('comments'),
-				plot_id: observationRows.fieldByName('plot_id'),
-				plot_guid: observationRows.fieldByName('plot_guid'),
-				media_id: observationRows.fieldByName('media_id'),
-				species_code: observationRows.fieldByName('species_code')
-			};
-			survey.plot_observations.push(observation);
-			observationRows.next();
+		for (var i = 0, t = survey.plots.length; i < t; i++) {
+			var mediaID = survey.plots[i].media_id;
+			mediaIDs.push(mediaID);
 		}
-
-		var transectMedia = db.execute( 'SELECT m.media_id, m.media_name, m.flickr_id' +
-										'FROM media m, transect t, site_survey s, protocol p, park pa' +
-										'WHERE t.media_id = m.media_id' +
-										'AND t.site_survey_guid = ?', guid);
-
-		var plotMedia = db.execute( 'SELECT m.media_id, m.media_name, m.flickr_id' +
-									'FROM media m, plot pl, site_survey s, protocol p, park pa' +
-									'WHERE pl.media_id = m.media_id' +
-									'AND pl.transect_id = t.transect_id' +
-									'AND t.site_survey_guid = ?', guid);
-
-		var observationMedia = db.execute( 'SELECT m.media_id, m.media_name, m.flickr_id' +
-										    'FROM media m, plot_observations o, site_survey s, plot pl, transect t' +
-										    'WHERE m.media_id = o.media_id' +
-										    'AND o.plot_id = pl.plot_id' +
-										    'AND pl.transect_id = t.transect_id' +
-										    'AND t.site_survey_guid = ?;', guid);
-
-		while(transectMedia.isValidRow()){
+		for (var i = 0, t = survey.plot_observations.length; i < t; i++) {
+			var mediaID = survey.plot_observations[i].media_id;
+			mediaIDs.push(mediaID);
+		}
+		
+		for (var i = 0, m = mediaIDs.length; i < m; i++) {
+			var mediaInfo = db.execute('SELECT media_id, media_name, flickr_id FROM media WHERE media_id = ?', mediaIDs[i]);
+			
 			var media = {
-				media_id: mediaRows.fieldByName('media_id'),
-				media_name: mediaRows.fieldByName('media_name'),
-				flickr_id: mediaRows.fieldByName('flickr_id')
+				media_id: mediaInfo.fieldByName('media_id'),
+				media_name: mediaInfo.fieldByName('media_name'),
+				flickr_id: mediaInfo.fieldByName('flickr_id')
 			};
 			survey.media.push(media);
-			transectMedia.next();
 		}
-		while(plotMedia.isValidRow()){
-			var media = {
-				media_id: mediaRows.fieldByName('media_id'),
-				media_name: mediaRows.fieldByName('media_name'),
-				flickr_id: mediaRows.fieldByName('flickr_id')
-			};
-			survey.media.push(media);
-			plotMedia.next();
-		}
-		while(observationMedia.isValidRow()){
-			var media = {
-				media_id: mediaRows.fieldByName('media_id'),
-				media_name: mediaRows.fieldByName('media_name'),
-				flickr_id: mediaRows.fieldByName('flickr_id')
-			};
-			survey.media.push(media);
-			observationMedia.next();
-		}
-
-	}
-	catch(e) {
+		
+	} catch(e) {
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-	}
-	finally{
+	} finally{
 		db.close();
 		uploadJSON(survey, guid);
 	}

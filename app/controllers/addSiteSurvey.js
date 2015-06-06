@@ -196,7 +196,7 @@ function doneBtn(e){
 				console.log('siteGUID: ' + typeof siteGUID + ' as ' + siteGUID);
 				db.execute('UPDATE site_survey SET year=? WHERE site_survey_guid=?', currentYear, siteGUID);
 
-				var transects = db.execute('SELECT * FROM transect WHERE site_guid = ?', siteGUID);
+				var transects = db.execute('SELECT * FROM transect WHERE site_survey_guid = ?', siteGUID);
 			
 				// Copy and associate any existing transects
 				while (transects.isValidRow()) {
