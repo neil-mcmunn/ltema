@@ -219,44 +219,29 @@ function downloadSurvey(siteSurveyGUID) {
     try {
         console.log('enter try in downloadSurvey');
         
-        
-        var win = Ti.UI.createWindow({
-        	backgroundColor:'#fff'
-        });
-        var loadingLabel = Ti.UI.createLabel({
-        	text:'Downloading ...',
-        	top:20,
-        	left: 10,
-        });
-        win.add(loadingLabel);
-        var image = Ti.UI.createImageView({
-        	top:20,
-        	left:10
-        });
-        win.add(image);
-        var ind = Ti.UI.createProgressBar({
-        	width:200,
-        	height:50,
-        	min:0,
-        	max:1,
-        	value:0,
-        	style:Ti.UI.iPhone.ProgressBarStyle.PLAIN,
-        	top:10,
-        	message:'Downloading survey',
-        	font:{fontSize:12, fontWeight:'bold'},
-        	color:'#888'
-        });
-        win.add(ind);
-        ind.show();
-        
+		//Define the current window
+		var myWin = Ti.UI.currentWindow;
+
+		//Define progress bar
+		var progressBar = Titanium.UI.createProgressBar({
+			width:300,      //describes the width
+			height:50,      //describes the height
+			min:0,            //Minimum position
+			max:1,           //Maximum value for the progress
+			value:0,
+			message:'File downloading...',
+			font:{fontSize:12, fontWeight:'bold'}
+		});
+
+		//Add the progress bar to the current window
+		myWin.add(progressBar);
 
         var url = "https://capstone-ltemac.herokuapp.com/surveys/" + siteSurveyGUID;
         //alert('download url: ' + url);
         var httpClient = Ti.Network.createHTTPClient();
 
-		httpClient.onsendstream = function(e) {
-			ind.value = e.progress;
-			Ti.API.info('ONSENDSTREAM - PROGRESS' + e.progress);
+		httpClient.ondatastream = function(e) {
+			progressBar.value = e.progress;
 		};
 
         httpClient.open("GET", url);
@@ -268,11 +253,6 @@ function downloadSurvey(siteSurveyGUID) {
             //call checkLocalSurveys, pass in results
             Ti.API.info("Downloading...");
             var returnArray = JSON.parse(this.responseData);
-            // alert('download started');
-            
-            var f = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, 'tempData.json');
-            f.write(returnArray);
-            Ti.App.fireEvent('downloaded', {filepath:f.nativePath});
             
             processDownload(returnArray);
             alert('download processed');
@@ -287,12 +267,6 @@ function downloadSurvey(siteSurveyGUID) {
         };
 
         httpClient.send();
-
-		Ti.App.addEventListener('downloaded', function(e) {
-			win.remove(loadingLabel);
-			alert('file downloaded, processing ...');
-			image.image = e.filepath;
-		});
 
         console.log('leaving try downloadSurvey gracefully');
     }
