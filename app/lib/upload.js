@@ -49,7 +49,7 @@ function preparePhotos(guid) {
 				flickrID : transectRows.fieldByName('flickr_id'),
 				name : transectRows.fieldByName('media_name')
 			};
-			if(media.flickrID == null || media.flickrID == undefined){
+			if(!media.flickrID){
 				uploadMedia.push(media);
 			}
 			transectRows.next();
@@ -71,7 +71,7 @@ function preparePhotos(guid) {
 				flickrID : plotRows.fieldByName('flickr_id'),
 				name : plotRows.fieldByName('media_name')
 			};
-			if(media.flickrID == null || media.flickrID == undefined){
+			if(!media.flickrID){
 				uploadMedia.push(media);
 			}
 			plotRows.next();
@@ -93,7 +93,7 @@ function preparePhotos(guid) {
 				flickrID : observationRows.fieldByName('flickr_id'),
 				name : observationRows.fieldByName('media_name')
 			};
-			if(media.flickrID == null || media.flickrID == undefined){
+			if(!media.flickrID){
 				uploadMedia.push(media);
 			}
 			observationRows.next();
@@ -239,7 +239,6 @@ function selectProtocol (guid){
 	
 	//POST data to cloud
 }
-exports.uploadSurvey = uploadSurvey;
 
 //Create a JSON object representing an alpine or grassland survey
 //and then serialize it
@@ -460,3 +459,4 @@ function varsAssigned(object){
 	return true;
 }
 
+exports.uploadSurvey = preparePhotos;

@@ -56,9 +56,9 @@ function checkSurveys() {
 				alert('error retrieving survey list, server offline');
 			};
 
-			console.log('setRequestHeader secret, now sending');
+			//console.log('setRequestHeader secret, now sending');
 			httpClient.send();
-			console.log('httpClient object has been sent');
+			//console.log('httpClient object has been sent');
 		}
 		catch (e) {
 			var errorMessage = e.message;
@@ -87,8 +87,8 @@ function checkLocalSurveys (cloudSurveys) {
 
 			rows.next();
 		}
-		console.log('index L100 localSurveys: ');
-		console.log(localSurveys);
+		//console.log('index L100 localSurveys: ');
+		//console.log(localSurveys);
 
 		populateTable(cloudSurveys, localSurveys);
 
@@ -162,18 +162,18 @@ function populateTable(cloudSurveys, localSurveys) {
 		}
 	}
 
-	console.log ('cloudOnlySurveys line 181 index.js: ');
-	console.log(cloudOnlySurveys);
-	console.log ('cloudAndLocalSurveys line 183 index.js: ');
-	console.log(cloudAndLocalSurveys);
-	console.log ('localOnlySurveys line 185 index.js: ');
-	console.log(localOnlySurveys);
+	// console.log ('cloudOnlySurveys line 181 index.js: ');
+	// console.log(cloudOnlySurveys);
+	// console.log ('cloudAndLocalSurveys line 183 index.js: ');
+	// console.log(cloudAndLocalSurveys);
+	// console.log ('localOnlySurveys line 185 index.js: ');
+	// console.log(localOnlySurveys);
 
 	createButtons(localOnlySurveys, true);
 	createButtons(cloudAndLocalSurveys, true);
 	createButtons(cloudOnlySurveys, false);
 
-	console.log('got through createButton functions line 411 index.js');
+	//console.log('got through createButton functions line 411 index.js');
 
 }
 
@@ -232,7 +232,7 @@ function createButtons(rows, downloadExists) {
 				});
 			}
 			
-			console.log('createButtons siteSurvey: ' + siteSurvey);
+			//console.log('createButtons siteSurvey: ' + siteSurvey);
 	
 			//create and add info icon for the row
 			var infoButton = Ti.UI.createButton({
