@@ -6,12 +6,44 @@
 //Run these two commands to reset db if testing delete functions
 //var yourDb = Titanium.Database.open('ltemaDB');
 //yourDb.remove();
-
 //Initially remove the event that triggers the GPS location to be continuously captured
 
 Ti.Geolocation.removeEventListener('location', function(e) {});
+
 //Prompt the user to allow applicaiton to use location services
 Titanium.Geolocation.getCurrentPosition(function(e) {});
+
+
+
+/* example pull to refresh from github https://github.com/Nyvra/titanium-appcelerator-pull-to-refresh */
+Ti.include("lib/date.js");
+Ti.include("lib/pulltorefresh.js");
+
+var pullToRefresh = PullToRefresh.createPullToRefresh({
+	backgroundColor:"#CCC",
+	labelColor:"#000",
+	action: function() {
+		setTimeout(function() {
+			refreshBtn();
+		}, 500)
+	}
+});
+
+Ti.tbl.headerPullView = pullToRefresh;
+
+Ti.tbl.addEventListener("scroll",function(e) {
+	PullToRefresh._scroll(e);
+});
+
+Ti.tbl.addEventListener("scrollEnd",function(e) {
+	PullToRefresh._begin(e, this);
+});
+
+PullToRefresh._end(function() {
+	tableView.setContentInsets({top:0},{animated:true});
+});
+
+
 
 checkSurveys();
 
@@ -436,6 +468,10 @@ Ti.App.addEventListener("app:enableIndexRefreshButton", function(e) {
 });
 
 
+//Ti.login.addEventListener('click', function(e) {
+//	loginBtn();
+//})
+
 /* Functions */
 
 //Enable or Disable the Edit and Add buttons based on row count
@@ -496,29 +532,23 @@ function editBtn(e){
 
 function loginBtn() {
 	// get user to input secret (authentication)
-	var win = Ti.UI.createWindow({
-		title:'Click to login'
+	var dialog = Ti.UI.createAlertDialog({
+		title: "Enter Secret",
+		style: Ti.UI.iPhone.AlertDialogStyle.PLAIN_TEXT_INPUT,
+		buttonNames: ['OK']
 	});
-	win.addEventListener('click', function(e){
-		var dialog = Ti.UI.createAlertDialog({
-			title: "Enter Secret",
-			style: Ti.UI.iPhone.AlertDialogStyle.PLAIN_TEXT_INPUT,
-			buttonNames: ['OK']
-		});
 		
-		dialog.addEventListener('click', function(e){
-			var secret = e.text;
-			Ti.API.info('e.text: ' + secret);
-			var regex = /^[01]{1}\w{4}-\w{5}-\w{5}-\w{5}-\w{5}$/;
-			if (secret.match(regex)){
-				authenticate(secret);
-			} else {
-				alert('bad secret format');
-			}
-		});
-		dialog.show();
+	dialog.addEventListener('click', function(e){
+		var secret = e.text;
+		Ti.API.info('e.text: ' + secret);
+		var regex = /^[01]{1}\w{4}-\w{5}-\w{5}-\w{5}-\w{5}$/;
+		if (secret.match(regex)){
+			authenticate(secret);
+		} else {
+			alert('bad secret format');
+		}
 	});
-	win.open();
+	dialog.show();
 }
 
 function authenticate(secret){
