@@ -546,7 +546,7 @@ function authenticate(secret){
 				if (this.status === 200) {
 					Ti.API.info("Received text (index L547): " + this.responseData);
 					var returnArray = JSON.parse(this.responseData);
-					checkAuthLevel(returnArray);
+					checkAuthLevel(returnArray, secret);
 					alert('successful auth check');
 				} else {
 					alert('invalid status code response: ' + this.status);
@@ -567,7 +567,7 @@ function authenticate(secret){
 }
 
 // check with cloud and then set persistent variables
-function checkAuthLevel(json) {
+function checkAuthLevel(json, secret) {
 	var authLevel = json.auth_level;
 	var flickrAccessToken = json.access_token;
 	var flickrAccessSecret = json.access_secret;
@@ -581,6 +581,7 @@ function checkAuthLevel(json) {
 		console.log('authLevel not valid: ' + authLevel);
 		return;
 	}
+	Ti.App.Properties.setString('secret',secret);
 	Ti.App.Properties.setString('access_token',flickrAccessToken);
 	Ti.App.Properties.setString('access_secret',flickrAccessSecret);
 	Ti.App.Properties.setString('consumer_key',flickrConsumerKey);

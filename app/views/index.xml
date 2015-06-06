@@ -4,11 +4,9 @@
 			<RightNavButton>
 				<Button id="editSite" title="Edit" onClick="editBtn" />
 			</RightNavButton>
-			
 			<LeftNavButton>
 				<Button id="login" title="login" onClick="loginBtn" />
 			</LeftNavButton>
-			
 			<TableView class="table" id="tbl">
 				<HeaderView id="mainHeader">
 					<View id="headerView">
@@ -17,7 +15,7 @@
 				</HeaderView>
 				<FooterView id="mainFooter">
 					<View id="footerView">
-						<Button id="exportData" title="Export" onClick="exportBtn" />
+						<Button id="exportData" title="Export" onClick="exportBtn"/>
 
 						<Button id="refreshBtn" title="Refresh List" onClick="refreshBtn" />
 					</View>

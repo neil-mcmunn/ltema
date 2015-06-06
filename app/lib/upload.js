@@ -1,6 +1,6 @@
 // upload a survey
 
-var uuid = require('uuid.js');
+var uuid = require('uuid');
 var OAuthSig = require('oauth-signature');
 
 Ti.App.addEventListener("app:dataBaseError", function(e) {
@@ -154,7 +154,7 @@ function uploadPhotos (media, guid, callback){
 		};
 
 
-		signature = oauthSignature.generate('POST', url, parameters, consumerSecret, tokenSecret);
+		var signature = oauthSignature.generate('POST', url, parameters, consumerSecret, tokenSecret);
 
 		var xhr = Titanium.Network.createHTTPClient({
 			onload : function(e) {
@@ -162,8 +162,8 @@ function uploadPhotos (media, guid, callback){
 					var xml = this.responseXML;
 					var photoID = xml.getAttribute('photoid');
 					var db = Ti.Database.open('ltemaDB');
-					var rows = db.execute( 'UPDATE media
-											SET flickr_id = ?
+					var rows = db.execute( 'UPDATE media\
+											SET flickr_id = ?\
 											WHERE media_id = ?', photoID, media[n].flickrID); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
 				}
 				catch(e) {
@@ -229,7 +229,7 @@ function selectProtocol (guid){
 		case 'Grassland':
 			formAlpineGrasslandJSON(guid);
 			break;
-	  /*case 'Intertidal':
+		/*case 'Intertidal':
 			formIntertidalJSON();
 			break;*/
 		default:
@@ -264,8 +264,8 @@ function formAlpineGrasslandJSON(guid){
 				year : metaRows.fieldByName('year'),
 				protocol_id : metaRows.fieldByName('protocol_id'),
 				park_id : metaRows.fieldByName('park_id')
-			};
-		}
+			}
+		};
 
 		var transectRows = db.execute( 'SELECT t.transect_id, t.transect_guid, t.transect_name, t.surveyor, t.other_surveyors, t.plot_distance,' +
 										't.stake_orientation, t.utm_zone, t.utm_easting, t.utm_northing, t.comments, t.site_ids, t.site_survey_guid, t.media_id' +
@@ -298,6 +298,7 @@ function formAlpineGrasslandJSON(guid){
 									'FROM transect t, plot pl' +
 									'WHERE pl.transect_id = t.transect_id' +
 									'AND t.site_survey_guid = ?', guid); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
+									
 		while(plotRows.isValidRow()){
 			var plot = {
 				plot_id: plotRows.fieldByName('plot_id'),
@@ -412,31 +413,35 @@ function uploadJSON(survey, guid) {
 		var url = 'https://capstone-ltemac.herokuapp.com/surveys';
 		var httpClient = Ti.Network.createHTTPClient();
 		httpClient.open("POST", url);
-		httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'););
+		httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'));
 		httpClient.setRequestHeader('Content-Type', 'application/json');
 
 		httpClient.onload = function() {
 			if (this.status === 200) {
-				Ti.API.info("Upload Successful: " + this.responseData);
+				Ti.API.debug("Upload Successful: " + this.responseData);
 			} else {
 				alert('Upload Failed: ' + this.status);
 			}
-		}
+		};
 		httpClient.onerror = function(e) {
 			Ti.API.debug("STATUS: " + this.status);
 			Ti.API.debug("TEXT:   " + this.responseText);
 			Ti.API.debug("ERROR:  " + e.error);
-		}
-		var currentDate = new Date()
+		};
+		var currentDate = new Date();
 		var now = currentDate.toISOString();
 
-		httpClient.send(JSON.stringify({
-			site: survey.site_survey.site_survey_guid
-			protocol: survey.site_survey.protocol_id
-			survey_data: survey
-			date_surveyed: now 
-			version_no: survey.site_survey.version_no
-		}));
+		httpClient.send(
+				JSON.stringify(
+					{
+						site: survey.site_survey.site_survey_guid,
+						protocol: survey.site_survey.protocol_id,
+						survey_data: survey,
+						date_surveyed: now,
+						version_no: survey.site_survey.version_no
+					}
+				)
+		);
 	}
 	catch(e){
 		var errorMessage = e.message;
