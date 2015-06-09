@@ -7,6 +7,7 @@
 var pickBiomeLabels = [];
 var pickProtocolLabels = [];
 var uuid = require('uuid');
+var resurvey = require('resurvey');
 
 // Populate the biome TabbedBar with database-derived labels
 try {
@@ -108,7 +109,7 @@ function doneBtn(e){
 	e.source.enabled = false;
 	
 	var errorFlag = false;
-	if (($.parkSrch.value == "") || ($.parkSrch.value == null) && ($.parkSrch.value == "") || ($.parkSrch.value == null)) {
+	if (($.parkSrch.value == "") || ($.parkSrch.value == null)) {
 		$.parkSrchError.text = "* Please select a park";
 		$.parkSrchError.visible = true;
 		errorFlag = true;
@@ -160,7 +161,7 @@ function doneBtn(e){
 			var protocolID = protocolResult.fieldByName('protocol_id');
 			var parkResult = db.execute('SELECT park_id FROM park WHERE park_name =?', $.parkSrch.value);
 			var parkID = parkResult.fieldByName('park_id');
-			
+						
 			// Check if this site has been previously surveyed
 			var previousID = db.execute('SELECT site_id, site_survey_guid FROM site_survey \
 											WHERE protocol_id = ? \
@@ -175,21 +176,14 @@ function doneBtn(e){
 				// Insert the new survey
 				var siteGUID = String(uuid.generateUUID());
 				//var results = db.execute('SELECT last_insert_rowid() as siteID');
-
-				console.log('id line 178 (addSiteSurvey): ');
-				console.log('variable types:');
-				//console.log('siteID: ' + typeof siteID + ' as ' + siteID);
-				console.log('siteGUID: ' + typeof siteGUID + ' as ' + siteGUID);
-				console.log('currentYear: ' + typeof currentYear + ' as ' + currentYear);
-				console.log('protocolID: ' + typeof protocolID + ' as ' + protocolID);
-				console.log('parkID: ' + typeof parkID + ' as ' + parkID);
-
-				db.execute('INSERT INTO site_survey (site_survey_guid, year, protocol_id, park_id) VALUES (?,?,?,?)', siteGUID, currentYear, protocolID, parkID);
-
-				console.log('after insert line 181');
+				db.execute('INSERT INTO site_survey (site_survey_guid, year, protocol_id, park_id, version_no) VALUES (?,?,?,?,?)', siteGUID, currentYear, protocolID, parkID, 1);
 
 			// Get the transects associated with the survey
 			} else {
+				db.close();
+				resurvey.resurvey(prevSiteGUID, db);
+				
+				/*
 				console.log('enter else clause line 191 (addSiteSurvey)');
 				//updating existing site
 				var siteGUID = prevSiteGUID;
@@ -260,6 +254,7 @@ function doneBtn(e){
 				//observations.close();
 				//plots.close();
 				//transects.close();
+				*/
 			}
 					
 		} catch (e){
@@ -331,12 +326,31 @@ function auto_complete(search_term) {
 	
 				while (rows.isValidRow()) {
 					var parkName = rows.fieldByName('park_name');
+					
+					/*
+					var park_id;
+					var results = db.execute('SELECT s.park_id, park_name, protocol_name FROM site_survey s, park prk, protocol p WHERE s.park_id = prk.park_id AND s.protocol_id = p.protocol_id');
+					while(results.isValidRow()){
+						var prk = results.fieldByName('park_name');
+						var protocol = results.fieldByName('protocol_name');
+						if (parkName === prk) {
+							parkName += ' (ON DEVICE as ' + protocol + ')';
+							var parkID = results.fieldByName('park_id');
+						}
+						results.next();
+					}
 	
+					//create a new row
+					var newRow = Ti.UI.createTableViewRow({
+						title : {'title': parkName, 'value':parkID}
+					});
+					*/
+					
 					//create a new row
 					var newRow = Ti.UI.createTableViewRow({
 						title : parkName
 					});
-	
+					
 					//Add row to the table view
 					autocomplete_table.appendRow(newRow);
 					rows.next();

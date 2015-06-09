@@ -10,25 +10,27 @@ Ti.App.addEventListener("app:dataBaseError", function(e) {
 
 function preparePhotos(guid) {
 	try{
-		var db = Ti.Database.open('ltemaDB');
+		console.log('enter preparePhotos');
 		
+		var db = Ti.Database.open('ltemaDB');
+		/*
 		//Get park and protocol names
-		var surveyMeta = db.execute('SELECT pa.park_id, pa.park_name, pr.protocol_id, pr.protocol_name' +
-									 'FORM park pa, protocol pr, site_survey su' +
-									 'WHERE pa.park_id = su.park_id' +
-									 'AND pr.protocol_id = su.park_id' +
+		var surveyMeta = db.execute('SELECT pa.park_id, pa.park_name, pr.protocol_id, pr.protocol_name ' +
+									 'FROM park pa, protocol pr, site_survey su ' +
+									 'WHERE pa.park_id = su.park_id ' +
+									 'AND pr.protocol_id = su.park_id ' +
 									 'AND su.site_survey_guid = ?', guid);
 
 		var park = surveyMeta.fieldByName('park_name');
-
-		var uploadMedia = [];
+*/
+		var mediaIDs = [];
 		var transects = db.execute('SELECT transect_guid, media_id FROM transect WHERE site_survey_guid = ?', guid);
 			
 		// Copy and associate any existing transects media
 		while (transects.isValidRow()) {
 			var transectGUID = transects.fieldByName('transect_guid');
 			var transectMediaID = transects.fieldByName('media_id');
-			uploadMedia.push(transectMediaID);
+			mediaIDs.push(transectMediaID);
 			
 			// Get any plots associated with the transect
 			var plots = db.execute('SELECT plot_guid, media_id FROM plot WHERE transect_guid = ?', transectGUID);
@@ -37,7 +39,7 @@ function preparePhotos(guid) {
 			while (plots.isValidRow()) {
 				var plotMediaID = plots.fieldByName('media_id');
 				var plotGUID = plots.fieldByName('plot_guid');
-				uploadMedia.push(plotMediaID);
+				mediaIDs.push(plotMediaID);
 				
 				// Get any plot observations associated with the plot
 				var observations = db.execute('SELECT media_id FROM plot_observation WHERE plot_guid = ?', plotGUID);
@@ -45,13 +47,26 @@ function preparePhotos(guid) {
 				// Copy and associate any existing plot observations media
 				while (observations.isValidRow()){
 					var observationMediaID = observations.fieldByName('media_id');
-					uploadMedia.push(observationMediaID);
+					mediaIDs.push(observationMediaID);
 					
 					observations.next();
 				}	
 				plots.next();
 			}
 			transects.next();
+		}
+		
+		var uploadMedia = [];
+		for (var i = 0, m = mediaIDs.length; i < m; i++) {
+			var mediaResults = db.execute('SELECT * FROM media WHERE media_id = ?', mediaIDs[i].media_id);
+			
+			var mediaID = mediaResults.fieldByName('media_id');
+			var mediaName = mediaResults.fieldByName('media_name');
+			var flickrID = mediaResults.fieldByName('flickr_id');
+			
+			var results = {'media_id':mediaID, 'media_name':mediaName, 'flickr_id':flickrID};
+			
+			uploadMedia.push(results);
 		}
 
 
@@ -70,9 +85,11 @@ function preparePhotos(guid) {
 }
 
 function uploadPhotos (media, guid, callback){
-	for(var n = 0; n <= media.length; n++){
+	console.log('enter uploadPhotos');
+	
+	for(var n = 0; n < media.length; n++){
 		//Get a photo as a string from the filesystem
-		var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, media[n].name);
+		var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, media[n].media_name);
 		var blob = file.read();
 		
 		//Base64 encode the file
@@ -156,15 +173,31 @@ function uploadPhotos (media, guid, callback){
 function selectProtocol (guid){
 	//Determine the protocol of the survey being uploaded
 	try{
+		console.log('enter selectProtocol');
+		
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Get park and protocol names
-		var surveyMeta = db.execute('SELECT pr.protocol_name' +
-									 'FORM protocol pr, site_survey su' +
-									 'WHERE pr.protocol_id = su.protocol_id' +
+		var surveyMeta = db.execute('SELECT pr.protocol_name ' +
+									 'FROM protocol pr, site_survey su ' +
+									 'WHERE pr.protocol_id = su.protocol_id ' +
 									 'AND su.site_survey_guid = ?', guid);
 
 		var protocol = surveyMeta.fieldByName('protocol_name');
+		
+		//Form data for the given protocol
+		switch(protocol){
+			case 'Alpine':
+			case 'Grassland':
+				formAlpineGrasslandJSON(guid);
+				break;
+			/*case 'Intertidal':
+				formIntertidalJSON();
+				break;*/
+			default:
+				console.log('ERROR: Given protocol does not support upload.');
+				break;
+		}
 	}
 	catch(e){
 		var errorMessage = e.message;
@@ -173,47 +206,32 @@ function selectProtocol (guid){
 	finally{
 		db.close();
 	}
-
-	//Form data for the given protocol
-	switch(protocol){
-		case 'Alpine':
-		case 'Grassland':
-			formAlpineGrasslandJSON(guid);
-			break;
-		/*case 'Intertidal':
-			formIntertidalJSON();
-			break;*/
-		default:
-			console.log('ERROR: Given protocol does not support upload.');
-			break;
-	}
-	
 	//POST data to cloud
 }
 
 //Create a JSON object representing an alpine or grassland survey
 //and then serialize it
 function formAlpineGrasslandJSON(guid){
-	uploadPhotos(siteName);
-
 	try{
+		console.log('enter formAlpineGrasslandJSON');
+		
 		var db = Ti.Database.open('ltemaDB');
 	
 		//Query - Select metadata for the survey being uploaded
-		var metaRows = db.execute( 'SELECT site_survey_guid, year, protocol_id, park_id' +
-								'FROM site_survey' +
-								'WHERE site_survey_guid ?', guid);
+		var metaRows = db.execute( 'SELECT * FROM site_survey WHERE site_survey_guid = ?', guid);
 
+		var year = new Date();
 		var survey = {
 			transects : [],
 			plots : [],
 			plot_observations : [],
 			media : [],
 			survey_meta : {
-				site_survey_guid : metaRows.fieldByName('site_survey_guid'),
-				year : metaRows.fieldByName('year'),
-				protocol_id : metaRows.fieldByName('protocol_id'),
-				park_id : metaRows.fieldByName('park_id')
+				site_survey_guid : guid,
+				protocol : metaRows.fieldByName('protocol_id'),
+				park : metaRows.fieldByName('park_id'),
+				version_no : metaRows.fieldByName('version_no'),
+				date_surveyed : year.toISOString()
 			}
 		};
 		var mediaIDs = [];
@@ -238,7 +256,6 @@ function formAlpineGrasslandJSON(guid){
 			};
 			mediaIDs.push(transect.media_id);
 			survey.transects.push(transect);
-			transectRows.next();
 
 			var plotRows = db.execute('SELECT * FROM plot WHERE transect_guid = ?', transect.transect_guid);
 			
@@ -254,11 +271,10 @@ function formAlpineGrasslandJSON(guid){
 					distance_deviation: plotRows.fieldByName('distance_deviation'),
 					transect_guid: plotRows.fieldByName('transect_guid'),
 					media_id: plotRows.fieldByName('media_id'),
-					comment: plotRows.fieldByName('comment')
+					comments: plotRows.fieldByName('comments')
 				};
 				mediaIDs.push(plot.media_id);
 				survey.plots.push(plot);
-				plotRows.next();
 
 				var observationRows = db.execute('SELECT * FROM plot_observation WHERE plot_guid = ?', plot.plot_guid); 
 				
@@ -277,7 +293,9 @@ function formAlpineGrasslandJSON(guid){
 					survey.plot_observations.push(observation);
 					observationRows.next();
 				}
+				plotRows.next();
 			}
+			transectRows.next();
 		}
 
 		// query for each media row associated with this survey, then add to survey object
@@ -313,15 +331,19 @@ function formIntertidalJSON(){
 //Push a survey object to the cloud using its guid
 function uploadJSON(survey, guid) {
 	try{
+		console.log('enter uploadJSON');
+		
 		var url = 'https://capstone-ltemac.herokuapp.com/surveys';
 		var httpClient = Ti.Network.createHTTPClient();
 		httpClient.open("POST", url);
+		//httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'));
+		// httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
 		httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'));
 		httpClient.setRequestHeader('Content-Type', 'application/json');
 
 		httpClient.onload = function() {
 			if (this.status === 200) {
-				Ti.API.debug("Upload Successful: " + this.responseData);
+				Ti.API.info("Upload Successful: " + this.responseData);
 			} else {
 				alert('Upload Failed: ' + this.status);
 			}
@@ -330,6 +352,7 @@ function uploadJSON(survey, guid) {
 			Ti.API.debug("STATUS: " + this.status);
 			Ti.API.debug("TEXT:   " + this.responseText);
 			Ti.API.debug("ERROR:  " + e.error);
+			alert('upload failed');
 		};
 		var currentDate = new Date();
 		var now = currentDate.toISOString();
@@ -337,13 +360,17 @@ function uploadJSON(survey, guid) {
 		httpClient.send(
 				JSON.stringify(
 					{
-						site_survey_guid: survey.survey_meta.site_survey_guid,
+						guid: survey.survey_meta.site_survey_guid,
+						park: survey.survey_meta.park,
+						protocol: survey.survey_meta.protocol,
 						survey_data: survey,
-						date_surveyed: now,
+						date_surveyed: survey.survey_meta.date_surveyed,
 						version_no: survey.survey_meta.version_no
 					}
 				)
 		);
+		
+		console.log('uploadJSON httpClient sent');
 	}
 	catch(e){
 		var errorMessage = e.message;
@@ -362,4 +389,4 @@ function varsAssigned(object){
 	return true;
 }
 
-exports.uploadSurvey = preparePhotos;
+exports.uploadSurvey = selectProtocol;

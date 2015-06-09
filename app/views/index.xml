@@ -5,7 +5,7 @@
 				<Button id="editSite" title="Edit" onClick="editBtn" />
 			</RightNavButton>
 			<LeftNavButton>
-				<Button id="login" title="login" onClick="loginBtn" />
+				<Button id="login" title="Login" onClick="loginBtn" />
 			</LeftNavButton>
 			<TableView class="table" id="tbl">
 				<HeaderView id="mainHeader">
