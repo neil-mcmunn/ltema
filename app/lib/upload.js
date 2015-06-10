@@ -1,5 +1,5 @@
 // upload a survey
-
+var sha1 = require('sha1');
 var uuid = require('uuid');
 var OAuthSig = require('oauth-signature');
 
@@ -106,8 +106,15 @@ function uploadPhotos (media, guid, callback){
 			oauth_version:'1.0'
 		};
 
+		//Build the oauth_signature and hash it with HMAC-SHA1 & Base64 encoding
+		var signature = createSignature(parameters, url);
+		var shaObj = new jsSHA(signature, 'TEXT')
+		var hmac = shaObj.getHMAC(key, 'TEXT', 'SHA-1', 'B64');
+		console.log(hmac);
+		signature = hmac;
 
-		var signature = oauthSignature.generate('POST', url, parameters, consumerSecret, tokenSecret);
+		parameters.oauth_signature = signature
+		parameters.photo = photo;
 
 		var xhr = Titanium.Network.createHTTPClient({
 			onload : function(e) {
@@ -360,6 +367,37 @@ function varsAssigned(object){
 	}
 
 	return true;
+}
+
+function createSignature(params, url){
+	function printParameters(params){
+		//var params = params || {one:1,two:2,three:3};
+
+		var keys = Object.getOwnPropertyNames(params).sort();
+
+		//Generate a string for each key-value pair
+		var pairs = [];
+		for(var key in keys){
+			pairs.push(keys[key] + '=' + params[keys[key]]);
+		}
+
+		params = '';
+
+		//Combine all key-value pairs into a single string
+		for(var pair in pairs){
+			params = params + pairs[pair] + '&';
+		}
+		//Remove the extra "&" from the above loop
+		params = params.slice(0, -1);
+		//console.log('Signature Params: ' + params)
+		return params;
+	}
+
+	//Combine the 3 signature component and URI encode them
+	var sig = encodeURIComponent('POST')	+"&" + encodeURIComponent(url) + '&' + encodeURIComponent(printParameters(params));
+	//sig = hmacsha1encode(sig);
+	//sig = base64encode(sig);
+	return sig;
 }
 
 exports.uploadSurvey = preparePhotos;
