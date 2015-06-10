@@ -132,9 +132,9 @@ function uploadPhotos (media, guid, callback){
 					var xml = this.responseXML;
 					var photoID = xml.getAttribute('photoid');
 					var db = Ti.Database.open('ltemaDB');
-					var rows = db.execute( 'UPDATE media\
-											SET flickr_id = ?\
-											WHERE media_id = ?', photoID, media[n].flickrID); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
+					var rows = db.execute( 'UPDATE media \
+											SET flickr_id = ? \
+											WHERE media_id = ?', photoID, media[n].media_id); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
 				}
 				catch(e) {
 					var errorMessage = e.message;
@@ -389,4 +389,4 @@ function varsAssigned(object){
 	return true;
 }
 
-exports.uploadSurvey = selectProtocol;
+exports.uploadSurvey = preparePhotos;

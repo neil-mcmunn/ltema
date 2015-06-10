@@ -1,8 +1,107 @@
 // download a survey
-// must specify the site and protocol
+// must specify the site_survey_guid
 
-function flickrDownload( ) {
+function savePhoto(photoObj){
+	// 
+	try {
+		var db = Ti.Database.open('ltemaDB');
+		
+		var flickrID = photoObj.file;
+		var mediaName = flickrID + '.png';
+		
+		db.execute('UPDATE TABLE media SET media_name = ? WHERE flickr_id = ?', mediaName, flickrID);
+		
+	} catch (e) {
+		var errorMessage = e.message;
+		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+	} finally {
+		db.close();
+	};
+}
+
+function processImageDownload(filename, url, fn_end, fn_progress ) {
+    var file_obj = {file:filename, url:url, path: null};
+ 
+    var file = Titanium.Filesystem.getFile(Titanium.Filesystem.applicationDataDirectory,filename);
+    if ( file.exists() ) {
+        file_obj.path = Titanium.Filesystem.applicationDataDirectory+Titanium.Filesystem.separator;
+        fn_end(file_obj);
+    } else {
+        if ( Titanium.Network.online ) {
+            var c = Titanium.Network.createHTTPClient();
+ 
+            c.setTimeout(10000);
+            c.onload = function() {
+                 if (c.status == 200 ) {
+
+                    var f = Titanium.Filesystem.getFile(Titanium.Filesystem.applicationDataDirectory,filename);
+                    f.write(this.responseData);
+                    file_obj.path = Titanium.Filesystem.applicationDataDirectory+Titanium.Filesystem.separator;
+                } else {
+                    file_obj.error = 'file not found'; // to set some errors codes
+                }
+                fn_end(file_obj);
+            };
+            
+            c.ondatastream = function(e) {
+                if ( fn_progress ) fn_progress(e.progress);
+            };
+            
+            c.error = function(e) {
+                file_obj.error = e.error;
+                fn_end(file_obj);
+            };
+            c.open('GET',url);
+		    c.send();           
+		    
+		} else {
+		    file_obj.error = 'no internet';
+            fn_end(file_obj);
+        }
+    }
+}
+
+function flickrDownload(media) {
+	 
+	 for (var i = 0, m = media.length; i < m; i++) {
+	 	var flickrID = media[i].flickr_id;
+	 	
+	 	if (flickrID) {
+	 		try{
+		 			
+		 		var url = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=" + Ti.App.Properties.getString('consumer_key') + "&photo_id=" + flickrID;
+		 		
+		 		var httpClient = Ti.Network.createHTTPClient();
 	
+	        	httpClient.open("GET", url);
+	        	
+	        	httpClient.onload = function() {
+	        		var xmlResponse = Ti.XML.parseString(this.responseData);
+	        		var xmlSizes = xmlResponse.getElementsByTagName('size');
+	        		for (var j = 0, x = xmlSizes.length; j < x; j++) {
+	        			var currentNode = xmlSizes.items(j).getAttributes();
+	        			
+	        			if (currentNode.getNamedItem('label').getNodeValue() === 'Large') {
+	        				var imgSource = currentNode.getNamedItem('source').getNodeValue();
+	        				console.log(imgSource);
+	        				processImageDownload(flickrID, imgSource, savePhoto);
+	        			}
+	        		}
+	        		console.log(xmlResponse);
+	        	};
+	        	
+	        	httpClient.onerror = function () {
+	        		console.log('flickrDownload onerror, ' + flickrID);
+	        	};
+	        	
+	        	httpClient.send();
+	        	
+	 		} catch (e) {
+		        var errorMessage = e.message;
+		        console.log('error in flickrDownload: ' + errorMessage);
+    		}
+ 		}
+ 	}
 }
 
 function processDownload(cloudSurvey, siteSurveyGUID) {
@@ -44,7 +143,7 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 			siteSurveyGUID = cloudSiteSurveyGUID;
 		}
 
-		console.log('siteSurveyGUID line 47 (download): ' + siteSurveyGUID);
+		console.log('siteSurveyGUID line 169 (download): ' + siteSurveyGUID);
 				
     	// compare dates between old and cloud data
 		var oldDate = db.execute('SELECT year FROM site_survey WHERE site_survey_guid = ?', siteSurveyGUID);
@@ -93,6 +192,9 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 				
 				cloudMedia[i].new_media_id = newMediaID;
 			}
+			
+			// copy of unmodified array to search through only if super-user
+			var photoCloudMedia = cloudMedia;
 			
 			// Copy and associate any existing transects
 			for (var i = 0; i < cloudTransects.length; i++) {
@@ -207,6 +309,9 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 						
 					}	
 				}
+				
+				// download flickr media
+				flickrDownload(photoCloudMedia);
 			}
 		}
 				
