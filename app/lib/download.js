@@ -1,11 +1,110 @@
 // download a survey
-// must specify the site and protocol
+// must specify the site_survey_guid
 
-function flickrDownload( ) {
-	
+function savePhoto(photoObj){
+	// 
+	try {
+		var db = Ti.Database.open('ltemaDB');
+		
+		var flickrID = photoObj.file;
+		var mediaName = flickrID + '.png';
+		
+		db.execute('UPDATE TABLE media SET media_name = ? WHERE flickr_id = ?', mediaName, flickrID);
+		
+	} catch (e) {
+		var errorMessage = e.message;
+		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+	} finally {
+		db.close();
+	};
 }
 
-function processDownload(cloudSurvey) {
+function processImageDownload(filename, url, fn_end, fn_progress ) {
+    var file_obj = {file:filename, url:url, path: null};
+ 
+    var file = Titanium.Filesystem.getFile(Titanium.Filesystem.applicationDataDirectory,filename);
+    if ( file.exists() ) {
+        file_obj.path = Titanium.Filesystem.applicationDataDirectory+Titanium.Filesystem.separator;
+        fn_end(file_obj);
+    } else {
+        if ( Titanium.Network.online ) {
+            var c = Titanium.Network.createHTTPClient();
+ 
+            c.setTimeout(10000);
+            c.onload = function() {
+                 if (c.status == 200 ) {
+
+                    var f = Titanium.Filesystem.getFile(Titanium.Filesystem.applicationDataDirectory,filename);
+                    f.write(this.responseData);
+                    file_obj.path = Titanium.Filesystem.applicationDataDirectory+Titanium.Filesystem.separator;
+                } else {
+                    file_obj.error = 'file not found'; // to set some errors codes
+                }
+                fn_end(file_obj);
+            };
+            
+            c.ondatastream = function(e) {
+                if ( fn_progress ) fn_progress(e.progress);
+            };
+            
+            c.error = function(e) {
+                file_obj.error = e.error;
+                fn_end(file_obj);
+            };
+            c.open('GET',url);
+		    c.send();           
+		    
+		} else {
+		    file_obj.error = 'no internet';
+            fn_end(file_obj);
+        }
+    }
+}
+
+function flickrDownload(media) {
+	 
+	 for (var i = 0, m = media.length; i < m; i++) {
+	 	var flickrID = media[i].flickr_id;
+	 	
+	 	if (flickrID) {
+	 		try{
+		 			
+		 		var url = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=" + Ti.App.Properties.getString('consumer_key') + "&photo_id=" + flickrID;
+		 		
+		 		var httpClient = Ti.Network.createHTTPClient();
+	
+	        	httpClient.open("GET", url);
+	        	
+	        	httpClient.onload = function() {
+	        		var xmlResponse = Ti.XML.parseString(this.responseData);
+	        		var xmlSizes = xmlResponse.getElementsByTagName('size');
+	        		for (var j = 0, x = xmlSizes.length; j < x; j++) {
+	        			var currentNode = xmlSizes.items(j).getAttributes();
+	        			
+	        			if (currentNode.getNamedItem('label').getNodeValue() === 'Large') {
+	        				var imgSource = currentNode.getNamedItem('source').getNodeValue();
+	        				console.log(imgSource);
+	        				processImageDownload(flickrID, imgSource, savePhoto);
+	        			}
+	        		}
+	        		console.log(xmlResponse);
+	        	};
+	        	
+	        	httpClient.onerror = function () {
+	        		console.log('flickrDownload onerror, ' + flickrID);
+	        	};
+	        	
+	        	httpClient.send();
+	        	
+	 		} catch (e) {
+		        var errorMessage = e.message;
+		        console.log('error in flickrDownload: ' + errorMessage);
+    		}
+ 		}
+ 	}
+}
+
+function processDownload(cloudSurvey, siteSurveyGUID) {
     //do stuff with cloudSurvey
     // expected fields: site, protocol, date_surveyed, last_modified, version_no, exported,
     //   survey_data {transects[], plots[], plot_observations[], media[], survey_meta}
@@ -22,17 +121,21 @@ function processDownload(cloudSurvey) {
 		var plotObservations = surveyData.plot_observations;
     	
     	console.log('THE DOWNLOAD');
-
-	    var protocolID = surveyMeta.protocol_id;
-	    var parkID = surveyMeta.park_id;
+		console.log(cloudSurvey);
+	    var protocolID = cloudSurvey.protocol_id;
+	    var parkID = cloudSurvey.park_id;
 	    			
 		// Check if this site has been previously surveyed
 		var previousID = db.execute('SELECT site_survey_guid FROM site_survey \
 										WHERE protocol_id = ? \
 										AND park_id = ?', protocolID, parkID);
 
+		var guidPassedFromDownloadFn = siteSurveyGUID;
 		var prevSiteGUID = previousID.fieldByName('site_survey_guid');
 		var cloudSiteSurveyGUID = surveyMeta.site_survey_guid;
+		console.log('download: ' + guidPassedFromDownloadFn);
+		console.log('prevGUID: ' + prevSiteGUID);
+		console.log('cloudGUID:' + cloudSiteSurveyGUID);
 		
 		var siteSurveyGUID = prevSiteGUID;
 		if (siteSurveyGUID != cloudSiteSurveyGUID) {
@@ -40,7 +143,7 @@ function processDownload(cloudSurvey) {
 			siteSurveyGUID = cloudSiteSurveyGUID;
 		}
 
-		console.log('siteSurveyGUID line 47 (download): ' + siteSurveyGUID);
+		console.log('siteSurveyGUID line 169 (download): ' + siteSurveyGUID);
 				
     	// compare dates between old and cloud data
 		var oldDate = db.execute('SELECT year FROM site_survey WHERE site_survey_guid = ?', siteSurveyGUID);
@@ -62,11 +165,11 @@ function processDownload(cloudSurvey) {
 		
 		if (deviceVersion >= cloudVersion) {
 			// Inform user that device version is newer and don't change database'
-			//alert('version on DEVICE is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
+			alert('version on DEVICE is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
 
 		} else {			
 			//Insert the updated survey
-			//alert('version on CLOUD is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
+			alert('version on CLOUD is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
 			
 			var siteGUID = cloudSiteSurveyGUID;
 			//delete existing data
@@ -74,8 +177,9 @@ function processDownload(cloudSurvey) {
 			
 			console.log('(download, Else clause) siteGUID: ' + typeof siteGUID + ' as ' + siteGUID);
 			//db.execute('UPDATE site_survey SET year=? WHERE site_survey_guid=?', currentYear, siteGUID);
-			db.execute('INSERT INTO site_survey (site_survey_guid, year, protocol_id, park_id) VALUES (?,?,?,?)', siteGUID, year, protocolID, parkID);
-					
+			db.execute('INSERT INTO site_survey (site_survey_guid, year, protocol_id, park_id, version_no) VALUES (?,?,?,?,?)', 
+												siteGUID, year, protocolID, parkID, cloudVersion);
+			
 			// Copy and associate any existing transects media and id's'
 			for (var i = 0; i < cloudMedia.length; i++) {
 				var oldMediaID = cloudMedia[i].media_id;
@@ -89,14 +193,17 @@ function processDownload(cloudSurvey) {
 				cloudMedia[i].new_media_id = newMediaID;
 			}
 			
+			// copy of unmodified array to search through only if super-user
+			var photoCloudMedia = cloudMedia;
+			
 			// Copy and associate any existing transects
 			for (var i = 0; i < cloudTransects.length; i++) {
-				
+				/*
 				var siteGUID_FK = cloudTransects[i].site_survey_guid;
 				if (siteGUID_FK != siteGUID) {
 					continue;
 				}
-				
+				*/
 				console.log('this is transect #: ' + i);
 				
 				var transectGUID = cloudTransects[i].transect_guid;
@@ -202,6 +309,9 @@ function processDownload(cloudSurvey) {
 						
 					}	
 				}
+				
+				// download flickr media
+				flickrDownload(photoCloudMedia);
 			}
 		}
 				
@@ -218,7 +328,7 @@ function processDownload(cloudSurvey) {
 function downloadSurvey(siteSurveyGUID) {
     try {
         console.log('enter try in downloadSurvey');
-        
+        /*
 		//Define the current window
 		var myWin = Ti.UI.currentWindow;
 
@@ -235,26 +345,29 @@ function downloadSurvey(siteSurveyGUID) {
 
 		//Add the progress bar to the current window
 		myWin.add(progressBar);
+		
+		
+		httpClient.ondatastream = function(e) {
+			progressBar.value = e.progress;
+		};
+
+		*/
 
         var url = "https://capstone-ltemac.herokuapp.com/surveys/" + siteSurveyGUID;
         //alert('download url: ' + url);
         var httpClient = Ti.Network.createHTTPClient();
 
-		httpClient.ondatastream = function(e) {
-			progressBar.value = e.progress;
-		};
-
         httpClient.open("GET", url);
 
-        httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
+        // httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
+        httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'));
         httpClient.setRequestHeader('Content-Type', 'application/json');
 
         httpClient.onload = function() {
             //call checkLocalSurveys, pass in results
             Ti.API.info("Downloading...");
             var returnArray = JSON.parse(this.responseData);
-            
-            processDownload(returnArray);
+            processDownload(returnArray, siteSurveyGUID);
             alert('download processed');
         };
         httpClient.onerror = function(e) {
@@ -262,7 +375,7 @@ function downloadSurvey(siteSurveyGUID) {
             Ti.API.debug("TEXT:   " + this.responseText);
             Ti.API.debug("ERROR:  " + e.error);
             var cloudSurveys = [];
-            processDownload(cloudSurveys);
+            processDownload(cloudSurveys, siteSurveyGUID);
             alert('error retrieving remote data');
         };
 
@@ -272,7 +385,7 @@ function downloadSurvey(siteSurveyGUID) {
     }
     catch (e) {
         var errorMessage = e.message;
-        console.log('error in checkSurveys: ' + errorMessage);
+        console.log('error in downloadSurvey: ' + errorMessage);
     }
 }
 

@@ -16,8 +16,8 @@ Titanium.Geolocation.getCurrentPosition(function(e) {});
 
 
 /* example pull to refresh from github https://github.com/Nyvra/titanium-appcelerator-pull-to-refresh */
-Ti.include("lib/date.js");
-Ti.include("lib/pulltorefresh.js");
+/*Ti.include("date.js");
+Ti.include("pulltorefresh.js");
 
 var pullToRefresh = PullToRefresh.createPullToRefresh({
 	backgroundColor:"#CCC",
@@ -29,21 +29,25 @@ var pullToRefresh = PullToRefresh.createPullToRefresh({
 	}
 });
 
-Ti.tbl.headerPullView = pullToRefresh;
+$.tbl.headerPullView = pullToRefresh;
 
-Ti.tbl.addEventListener("scroll",function(e) {
+$.tbl.addEventListener("scroll",function(e) {
 	PullToRefresh._scroll(e);
 });
 
-Ti.tbl.addEventListener("scrollEnd",function(e) {
+$.tbl.addEventListener("scrollEnd",function(e) {
 	PullToRefresh._begin(e, this);
 });
 
 PullToRefresh._end(function() {
-	tableView.setContentInsets({top:0},{animated:true});
+	$.tbl.setContentInsets({top:0},{animated:true});
 });
+*/
 
-
+console.log('getString');
+console.log(Ti.App.Properties.getString('secret'));
+console.log('authLevel getString');
+console.log(Ti.App.Properties.getString('auth_level'));
 
 checkSurveys();
 
@@ -69,7 +73,9 @@ function checkSurveys() {
 			// the 'false' optional parameter makes this a synchronous call
 			httpClient.open("GET", url);
 
-			httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
+			//httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
+			httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'));
+			
 			httpClient.setRequestHeader('Content-Type', 'application/json');
 
 			httpClient.onload = function() {
@@ -77,7 +83,7 @@ function checkSurveys() {
 				Ti.API.info("Received text (index L39): " + this.responseData);
 				var returnArray = JSON.parse(this.responseData).rows;
 				checkLocalSurveys(returnArray);
-				alert('successful checksurveys');
+				//alert('successful checksurveys');
 			};
 			httpClient.onerror = function(e) {
 				Ti.API.debug("STATUS: " + this.status);
@@ -85,7 +91,11 @@ function checkSurveys() {
 				Ti.API.debug("ERROR:  " + e.error);
 				var cloudSurveys = [];
 				checkLocalSurveys(cloudSurveys);
-				alert('error retrieving survey list, server offline');
+				if (this.status === 400) {
+					alert('please login')
+				} else {
+					alert('error retrieving survey list, server offline');
+				}
 			};
 
 			//console.log('setRequestHeader secret, now sending');
@@ -100,6 +110,7 @@ function checkSurveys() {
 }
 
 function checkLocalSurveys (cloudSurveys) {
+	console.log('enter checkLocalSurveys');
 	try {
 		//open database
 		var db = Ti.Database.open('ltemaDB');//Query - Retrieve existing sites from sqlite database
@@ -119,8 +130,8 @@ function checkLocalSurveys (cloudSurveys) {
 
 			rows.next();
 		}
-		//console.log('index L100 localSurveys: ');
-		//console.log(localSurveys);
+		// console.log('index L100 localSurveys: ');
+		// console.log(localSurveys);
 
 		populateTable(cloudSurveys, localSurveys);
 
@@ -135,6 +146,7 @@ function checkLocalSurveys (cloudSurveys) {
 
 
 function populateTable(cloudSurveys, localSurveys) {
+	console.log('enter populateTable (index)');
 	$.addSite.enabled = true;
 	//Clear the table if there is anything in it
 	var rd = [];
@@ -175,7 +187,7 @@ function populateTable(cloudSurveys, localSurveys) {
 	//check for localOnly
 	var localOnlySurveys = [];
 	for (var i = 0; i < localSurveys.length; i++) {
-		var localSiteGUID = localSurveys[i]['site_survey_guid'];
+		var localSiteGUID = localSurveys[i].site_survey_guid;
 		var matched = false;
 		
 		for (var j = 0; j < cloudAndLocalSurveys.length; j++) {
@@ -210,10 +222,15 @@ function populateTable(cloudSurveys, localSurveys) {
 }
 
 
-function createButtons(rows, downloadExists) {
-	
+function createButtons(rows, isDownloaded) {
+	//console.log('enter createButtons');
 	try {
 		var db = Ti.Database.open('ltemaDB');
+		
+		var superUser = false;
+		if (parseInt(Ti.App.Properties.getString('auth_level')) === 9) {
+			superUser = true;
+		}
 		
 		//Get requested data from each row in table
 		for (var i = 0; i < rows.length; i++) {
@@ -223,7 +240,7 @@ function createButtons(rows, downloadExists) {
 			
 			// get park and protocol names based on siteGUID if confirmed on device
 			//    also create a new row (gray out if not downloaded)
-			if (downloadExists) {
+			if (isDownloaded) {
 				var protocolResults = db.execute('SELECT protocol_name FROM site_survey s, protocol p WHERE s.protocol_id = p.protocol_id AND s.site_survey_guid =?', siteGUID);
 				var protocol = protocolResults.fieldByName('protocol_name');
 				
@@ -232,7 +249,7 @@ function createButtons(rows, downloadExists) {
 				
 				//create a string from each entry
 				//var siteSurvey = year.slice(0,4) + ' - ' + protocol + ' - ' + site;
-				var siteSurvey = protocol + ' - ' + site;
+				var siteSurvey = protocol + ' - ' + site.slice(0, 30);
 				var newRow = Ti.UI.createTableViewRow({
 					title: siteSurvey,
 					site: site,
@@ -252,7 +269,7 @@ function createButtons(rows, downloadExists) {
 				
 				//create a string from each entry
 				//var siteSurvey = year.slice(0,4) + ' - ' + protocol + ' - ' + site;
-				var siteSurvey = protocol + ' - ' + site;
+				var siteSurvey = protocol + ' - ' + site.slice(0, 30);
 				var newRow = Ti.UI.createTableViewRow({
 					title: siteSurvey,
 					site: site,
@@ -301,12 +318,17 @@ function createButtons(rows, downloadExists) {
 				width: 60,
 				buttonid: 'export'
 			});
-	
+			
 			newRow.add(infoButton);
 			newRow.add(downloadButton);
-			newRow.add(uploadButton);
-			newRow.add(exportButton);
-	
+			
+			if (isDownloaded && superUser) {
+				newRow.add(uploadButton);
+				newRow.add(exportButton);
+			} else if (isDownloaded) {
+				newRow.add(uploadButton);	
+			}
+			
 			//Add row to the table view
 			$.tbl.appendRow(newRow);
 		}
@@ -407,7 +429,7 @@ $.tbl.addEventListener('click', function(e) {
 		alert('Upload button pressed! Calling upload function...');
 
 		var upload = require('upload');
-		upload.uploadSurvey();
+		upload.uploadSurvey(e.rowData.siteGUID);
 
 		//export button clicked
 	} else if (e.source.buttonid == 'export') {
@@ -427,7 +449,7 @@ $.tbl.addEventListener('click', function(e) {
 	} else {
 		// if downloaded open transect view
 		if (e.rowData.color == 'black') {
-			var transects = Alloy.createController("transects", {siteGUID:e.rowData.siteGUID, parkName:e.rowData.parkName}).getView();
+			var transects = Alloy.createController("transects", {siteGUID:e.rowData.siteGUID, parkName:e.rowData.site}).getView();
 			$.navGroupWin.openWindow(transects);
 		
 		// else do nothing
@@ -460,7 +482,13 @@ Ti.App.addEventListener("app:enableIndexExportButton", function(e) {
 });
 
 Ti.App.addEventListener("app:enableIndexLoginButton", function(e) {
+	
 	$.login.enabled = true;
+	if (! Ti.App.Properties.getString('secret') || ! Ti.App.Properties.getString('auth_level')) {
+		$.login.title = "Login";
+	} else {
+		$.login.title = "Logout";
+	}
 });
 
 Ti.App.addEventListener("app:enableIndexRefreshButton", function(e) {
@@ -532,23 +560,33 @@ function editBtn(e){
 
 function loginBtn() {
 	// get user to input secret (authentication)
-	var dialog = Ti.UI.createAlertDialog({
-		title: "Enter Secret",
-		style: Ti.UI.iPhone.AlertDialogStyle.PLAIN_TEXT_INPUT,
-		buttonNames: ['OK']
-	});
-		
-	dialog.addEventListener('click', function(e){
-		var secret = e.text;
-		Ti.API.info('e.text: ' + secret);
-		var regex = /^[01]{1}\w{4}-\w{5}-\w{5}-\w{5}-\w{5}$/;
-		if (secret.match(regex)){
-			authenticate(secret);
-		} else {
-			alert('bad secret format');
-		}
-	});
-	dialog.show();
+	
+	var loggedIn = Ti.App.Properties.getString('secret') === null ? false : true;
+	
+	if ( ! loggedIn) {
+		var dialog = Ti.UI.createAlertDialog({
+			title: "Enter Secret",
+			style: Ti.UI.iPhone.AlertDialogStyle.PLAIN_TEXT_INPUT,
+			buttonNames: ['OK']
+		});
+			
+		dialog.addEventListener('click', function(e){
+			var secret = e.text;
+			Ti.API.info('e.text: ' + secret);
+			var regex = /^[01]{1}\w{4}-\w{5}-\w{5}-\w{5}-\w{5}$/;
+			if (secret.match(regex)){
+				authenticate(secret);
+			} else {
+				alert('bad secret format');
+			}
+		});
+		dialog.show();
+	// already logged in
+	} else {
+		$.login.title = "Login";
+		Ti.App.Properties.setString('auth_level',null);
+		Ti.App.Properties.setString('secret',null);
+	}		
 }
 
 function authenticate(secret){
@@ -577,6 +615,7 @@ function authenticate(secret){
 					Ti.API.info("Received text (index L547): " + this.responseData);
 					var returnArray = JSON.parse(this.responseData);
 					checkAuthLevel(returnArray, secret);
+					$.login.title = "Logout";
 					alert('successful auth check');
 				} else {
 					alert('invalid status code response: ' + this.status);
@@ -607,6 +646,10 @@ function checkAuthLevel(json, secret) {
 	if (authLevel == 1 || authLevel == 9){
 		//set authLevel into Titanium variable, accessable by getString('auth_level')
 		Ti.App.Properties.setString('auth_level',authLevel);
+		Ti.App.Properties.setString('secret',secret);
+		
+		//refresh survey list
+		refreshBtn();
 	} else {
 		console.log('authLevel not valid: ' + authLevel);
 		return;

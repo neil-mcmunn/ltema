@@ -109,7 +109,7 @@ var PullToRefresh = {
 		PullToRefresh._activityIndicator.hide();
 		PullToRefresh._arrow.show();
 	}
-}
+};
 
 exports = exports || {};
 
