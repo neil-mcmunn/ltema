@@ -482,7 +482,13 @@ Ti.App.addEventListener("app:enableIndexExportButton", function(e) {
 });
 
 Ti.App.addEventListener("app:enableIndexLoginButton", function(e) {
+	
 	$.login.enabled = true;
+	if (! Ti.App.Properties.getString('secret') || ! Ti.App.Properties.getString('auth_level')) {
+		$.login.title = "Login";
+	} else {
+		$.login.title = "Logout";
+	}
 });
 
 Ti.App.addEventListener("app:enableIndexRefreshButton", function(e) {
@@ -554,23 +560,33 @@ function editBtn(e){
 
 function loginBtn() {
 	// get user to input secret (authentication)
-	var dialog = Ti.UI.createAlertDialog({
-		title: "Enter Secret",
-		style: Ti.UI.iPhone.AlertDialogStyle.PLAIN_TEXT_INPUT,
-		buttonNames: ['OK']
-	});
-		
-	dialog.addEventListener('click', function(e){
-		var secret = e.text;
-		Ti.API.info('e.text: ' + secret);
-		var regex = /^[01]{1}\w{4}-\w{5}-\w{5}-\w{5}-\w{5}$/;
-		if (secret.match(regex)){
-			authenticate(secret);
-		} else {
-			alert('bad secret format');
-		}
-	});
-	dialog.show();
+	
+	var loggedIn = Ti.App.Properties.getString('secret') === null ? false : true;
+	
+	if ( ! loggedIn) {
+		var dialog = Ti.UI.createAlertDialog({
+			title: "Enter Secret",
+			style: Ti.UI.iPhone.AlertDialogStyle.PLAIN_TEXT_INPUT,
+			buttonNames: ['OK']
+		});
+			
+		dialog.addEventListener('click', function(e){
+			var secret = e.text;
+			Ti.API.info('e.text: ' + secret);
+			var regex = /^[01]{1}\w{4}-\w{5}-\w{5}-\w{5}-\w{5}$/;
+			if (secret.match(regex)){
+				authenticate(secret);
+			} else {
+				alert('bad secret format');
+			}
+		});
+		dialog.show();
+	// already logged in
+	} else {
+		$.login.title = "Login";
+		Ti.App.Properties.setString('auth_level',null);
+		Ti.App.Properties.setString('secret',null);
+	}		
 }
 
 function authenticate(secret){
@@ -599,6 +615,7 @@ function authenticate(secret){
 					Ti.API.info("Received text (index L547): " + this.responseData);
 					var returnArray = JSON.parse(this.responseData);
 					checkAuthLevel(returnArray, secret);
+					$.login.title = "Logout";
 					alert('successful auth check');
 				} else {
 					alert('invalid status code response: ' + this.status);
@@ -630,6 +647,9 @@ function checkAuthLevel(json, secret) {
 		//set authLevel into Titanium variable, accessable by getString('auth_level')
 		Ti.App.Properties.setString('auth_level',authLevel);
 		Ti.App.Properties.setString('secret',secret);
+		
+		//refresh survey list
+		refreshBtn();
 	} else {
 		console.log('authLevel not valid: ' + authLevel);
 		return;
