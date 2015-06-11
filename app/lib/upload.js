@@ -1,7 +1,6 @@
 // upload a survey
-var sha1 = require('sha1');
+var jsSHA = require('sha1');
 var uuid = require('uuid');
-var OAuthSig = require('oauth-signature');
 
 Ti.App.addEventListener("app:dataBaseError", function(e) {
 	//TODO: handle a database error for the app
@@ -58,7 +57,8 @@ function preparePhotos(guid) {
 		
 		var uploadMedia = [];
 		for (var i = 0, m = mediaIDs.length; i < m; i++) {
-			var mediaResults = db.execute('SELECT * FROM media WHERE media_id = ?', mediaIDs[i].media_id);
+			//console.log('media IDs: ' + mediaIDs[i].media_id);
+			var mediaResults = db.execute('SELECT * FROM media WHERE media_id = ?', mediaIDs[i]);
 			
 			var mediaID = mediaResults.fieldByName('media_id');
 			var mediaName = mediaResults.fieldByName('media_name');
@@ -71,7 +71,7 @@ function preparePhotos(guid) {
 
 
 		//Upload all un-uploaded photos to flickr
-		uploadPhotos(uploadMedia, guid, selectProtocol);
+		uploadPhotos(uploadMedia, guid);
 
 	} catch(e) {
 		uploadMedia = undefined;
@@ -80,27 +80,59 @@ function preparePhotos(guid) {
 	} finally{
 		db.close();
 	}
-
-	
 }
 
 function uploadPhotos (media, guid, callback){
 	console.log('enter uploadPhotos');
+	console.log(media);
+	
+	try {
+		var db = Ti.Database.open('ltemaDB');
+		
+		var dirInfo = db.execute('SELECT s.year, p.protocol_name, prk.park_name \
+						FROM site_survey s, protocol p, park prk \
+						WHERE s.protocol_id = p.protocol_id \
+						AND s.park_id = prk.park_id \
+						AND site_survey_guid = ?', guid);
+						
+		var year = dirInfo.fieldByName('year');
+		var protocolName = dirInfo.fieldByName('protocol_name');
+		var parkName = dirInfo.fieldByName('park_name');
+		
+	} catch(e) {
+		var errorMessage = e.message;
+		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+	} finally{
+		db.close();
+	}
 	
 	for(var n = 0; n < media.length; n++){
+		if ( ! media[n].media_name) {
+			continue;
+		}
+		
+		var mediaName = media[n].media_name;
+		var mediaID = media[n].media_id;
+		
+		console.log(media[n].media_name);
 		//Get a photo as a string from the filesystem
-		var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, media[n].media_name);
+		var dir = year + ' - ' + protocolName + ' - ' + parkName; 
+		var imageDir = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, dir);
+		console.log(imageDir.resolve());
+		var file = Ti.Filesystem.getFile(imageDir.resolve(), mediaName);
 		var blob = file.read();
 		
+		console.log('upload line 120 and blob.text: ' + blob);
 		//Base64 encode the file
-		var photo = Titanium.Utils.base64encode(blob.text);
-
+		var photo = Titanium.Utils.base64encode(blob);
+		console.log('upload line 123');
+		
 		//Remove the file from memory
 		file = null;
 		blob = null;
 
 		//Create a signature
-		var url = 'https://up.flickr.com/services/upload/';
+		var url = 'https://api.flickr.com/services/upload';
 
 		//DO: Grab these from the cloud instead of hardcoding
 		//access token
@@ -122,46 +154,61 @@ function uploadPhotos (media, guid, callback){
 			ouath_nonce: nonce,
 			oauth_version:'1.0'
 		};
-
+		
+		console.log('upload line 153');
+		
 		//Build the oauth_signature and hash it with HMAC-SHA1 & Base64 encoding
 		var signature = createSignature(parameters, url);
-		var shaObj = new jsSHA(signature, 'TEXT')
+		var shaObj = new jsSHA(signature, 'TEXT');
 		var hmac = shaObj.getHMAC(key, 'TEXT', 'SHA-1', 'B64');
 		console.log(hmac);
 		signature = hmac;
 
-		parameters.oauth_signature = signature
+		parameters.oauth_signature = signature;
 		parameters.photo = photo;
 
 		var xhr = Titanium.Network.createHTTPClient({
 			onload : function(e) {
 				try{
-					var xml = this.responseXML;
-					var photoID = xml.getAttribute('photoid');
+					console.log('upload onload line 168');
+					
+					// var xml = this.responseXML;
+					//var xml = Ti.XML.parseString(this.responseXML);
+					var xml = this.responseData;
+					console.log('Got XML from flickr: ' + xml);
+					// var photoID = xml.getAttribute('photoid');
+					var photoID = xml.getElementsByTagName('photoid');
+					console.log('photoID is: ' + photoID);
 					var db = Ti.Database.open('ltemaDB');
 					var rows = db.execute( 'UPDATE media \
 											SET flickr_id = ? \
-											WHERE media_id = ?', photoID, media[n].media_id); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
+											WHERE media_id = ?', photoID, mediaID); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
+					
+					console.log('end onload gracefully in uploadPhotos');
 				}
 				catch(e) {
 					var errorMessage = e.message;
 					Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 				}
 				finally{
-					db.close();
+					//db.close();
 					if(n === media.length){
-						callback(guid);
+						selectProtocol(guid);
 					}
 				}
 			},
 			
 			onerror : function(e) {
-				//handle errors
+				console.log('Something bad happened.' + this.status);
 			},
 			timeout : 30000
 		});
-
+		
+		console.log('Opening http connection.');
+		
 		xhr.open('POST', url);
+		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+		console.log('Sending post request.');
 		xhr.send({
 			photo: photo,
 			hidden: parameters.hidden,
@@ -404,14 +451,14 @@ function createSignature(params, url){
 
 		//Generate a string for each key-value pair
 		var pairs = [];
-		for(var key in keys){
+		for(key in keys){
 			pairs.push(keys[key] + '=' + params[keys[key]]);
 		}
 
-		params = '';
+		params = '&';
 
 		//Combine all key-value pairs into a single string
-		for(var pair in pairs){
+		for(pair in pairs){
 			params = params + pairs[pair] + '&';
 		}
 		//Remove the extra "&" from the above loop
@@ -424,6 +471,7 @@ function createSignature(params, url){
 	var sig = encodeURIComponent('POST')	+"&" + encodeURIComponent(url) + '&' + encodeURIComponent(printParameters(params));
 	//sig = hmacsha1encode(sig);
 	//sig = base64encode(sig);
+	console.log('createSignature: ' + sig);
 	return sig;
 }
 
