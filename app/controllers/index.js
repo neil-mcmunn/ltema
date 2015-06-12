@@ -285,7 +285,9 @@ function createButtons(rows, isDownloaded) {
 	
 			//create and add info icon for the row
 			var infoButton = Ti.UI.createButton({
-				style : Titanium.UI.iPhone.SystemButton.DISCLOSURE,
+				backgroundImage:'icons/info.png',
+				backgroundFocusedImage: 'icons/info_clicked.png',
+				backgroundSelectedImage: 'icons/info_clicked.png',
 				right : 15,
 				height: 60,
 				width: 60,
@@ -654,7 +656,6 @@ function checkAuthLevel(json, secret) {
 		console.log('authLevel not valid: ' + authLevel);
 		return;
 	}
-	Ti.App.Properties.setString('secret',secret);
 	Ti.App.Properties.setString('access_token',flickrAccessToken);
 	Ti.App.Properties.setString('access_secret',flickrAccessSecret);
 	Ti.App.Properties.setString('consumer_key',flickrConsumerKey);

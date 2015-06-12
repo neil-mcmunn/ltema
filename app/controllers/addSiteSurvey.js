@@ -311,10 +311,51 @@ function auto_complete(search_term) {
 		try {
 			var db = Ti.Database.open('ltemaDB');
 			
-			//Query - Retrieve matching park names from database
 			var rows = db.execute('SELECT park_name ' + 'FROM park ' + 'WHERE park_name LIKE ?', search_term + '%');
+			//check if any results are returned
+			if (rows.getRowCount() <= 0) {
+				//TODO: determine if the user can create a new park name, and how to implement
+				//for now, the next line is commented out, close() allows the user to enter an invalid park name
+				//win.close();
+			} else {
+				win.open();
+				
+				while (rows.isValidRow()) {
+					var parkName = rows.fieldByName('park_name');
+					
+					//create a new row
+					var newRow = Ti.UI.createTableViewRow({
+						title : parkName,
+						color : 'gray'
+					});
+					
+					// check if downloaded already
+					var park_id;
+					var results = db.execute('SELECT s.park_id, park_name, protocol_name FROM site_survey s, park prk, protocol p WHERE s.park_id = prk.park_id AND s.protocol_id = p.protocol_id');
+					while(results.isValidRow()){
+						var prk = results.fieldByName('park_name');
+						var protocol = results.fieldByName('protocol_name');
+						if (parkName === prk) {
+							parkName += ' ***ON DEVICE as ' + protocol + '***';
+							var parkID = results.fieldByName('park_id');
+							newRow.title = parkName;
+							newRow.color = 'black';
+						}
+						results.next();
+					}
+					
+					//Add row to the table view
+					autocomplete_table.appendRow(newRow);
+					rows.next();
+				}
+			}
 			
-			//Ti.API.info(rows.getRowCount());
+			/*
+			//Query - Retrieve all parks to match with downloaded parks
+			var rows = db.execute('SELECT park_name FROM park');
+			
+			// store matches to avoid duplicating
+			var matchArray = [];
 			
 			//check if any results are returned
 			if (rows.getRowCount() <= 0) {
@@ -327,35 +368,62 @@ function auto_complete(search_term) {
 				while (rows.isValidRow()) {
 					var parkName = rows.fieldByName('park_name');
 					
-					/*
-					var park_id;
-					var results = db.execute('SELECT s.park_id, park_name, protocol_name FROM site_survey s, park prk, protocol p WHERE s.park_id = prk.park_id AND s.protocol_id = p.protocol_id');
-					while(results.isValidRow()){
-						var prk = results.fieldByName('park_name');
-						var protocol = results.fieldByName('protocol_name');
-						if (parkName === prk) {
-							parkName += ' (ON DEVICE as ' + protocol + ')';
-							var parkID = results.fieldByName('park_id');
-						}
-						results.next();
-					}
-	
-					//create a new row
-					var newRow = Ti.UI.createTableViewRow({
-						title : {'title': parkName, 'value':parkID}
-					});
-					*/
-					
-					//create a new row
-					var newRow = Ti.UI.createTableViewRow({
-						title : parkName
-					});
-					
-					//Add row to the table view
-					autocomplete_table.appendRow(newRow);
+					//var park_id;
+					//var alreadyDownloadedSurveys = db.execute('SELECT s.park_id, park_name, protocol_name FROM site_survey s, park prk, protocol p WHERE s.park_id = prk.park_id AND s.protocol_id = p.protocol_id');
+					var alreadyDownloadedSurveys = db.execute('SELECT park_name FROM site_survey s, park prk WHERE s.park_id = prk.park_id AND s.site_survey_guid IS NOT NULL');
+					while(alreadyDownloadedSurveys.isValidRow()){
+						var downloadedParkName = alreadyDownloadedSurveys.fieldByName('park_name');
+						//var protocol = results.fieldByName('protocol_name');
+						if (parkName === downloadedParkName) {
+							//parkName += ' (ON DEVICE as ' + protocol + ')';
+							//var parkID = results.fieldByName('park_id');//create a new row
+							var newRow = Ti.UI.createTableViewRow({
+								title : parkName,
+								fontWeight : 'bold',
+								color : 'black'
+							});
+							//Add row to the table view
+							autocomplete_table.appendRow(newRow);
+						} 
+						alreadyDownloadedSurveys.next();
+					} 
 					rows.next();
 				}
 			}
+			
+			var rows = db.execute('SELECT park_name ' + 'FROM park ' + 'WHERE park_name LIKE ?', search_term + '%');
+
+			//check if any results are returned
+			if (rows.getRowCount() <= 0) {
+				//TODO: determine if the user can create a new park name, and how to implement
+				//for now, the next line is commented out, close() allows the user to enter an invalid park name
+				//win.close();
+			} else {
+				win.open();
+	
+				while (rows.isValidRow()) {
+					var parkName = rows.fieldByName('park_name');
+					
+					//var results = db.execute('SELECT s.park_id, park_name, protocol_name FROM site_survey s, park prk, protocol p WHERE s.park_id = prk.park_id AND s.protocol_id = p.protocol_id');
+					for (var i = 0, m = matchArray.length; i < m; i++) {
+						var downloadedParkName = matchArray[i].park_name;
+						//var protocol = results.fieldByName('protocol_name');
+						if (parkName === downloadedParkName) {
+							rows.next();
+							break;
+						}
+					}
+					
+					var newRow = Ti.UI.createTableViewRow({
+						title : parkName
+					});
+					//Add row to the table view
+					autocomplete_table.appendRow(newRow);
+					
+					rows.next();
+				}
+			}
+			*/
 		} catch (e) {
 			var errorMessage = e.message;
 			Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});

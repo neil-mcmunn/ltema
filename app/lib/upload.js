@@ -124,7 +124,8 @@ function uploadPhotos (media, guid, callback){
 		
 		console.log('upload line 120 and blob.text: ' + blob);
 		//Base64 encode the file
-		var photo = Titanium.Utils.base64encode(blob);
+		//var photo = Titanium.Utils.base64encode(blob);
+		var photo = blob;
 		console.log('upload line 123');
 		
 		//Remove the file from memory
@@ -132,7 +133,7 @@ function uploadPhotos (media, guid, callback){
 		blob = null;
 
 		//Create a signature
-		var url = 'https://api.flickr.com/services/upload';
+		var url = 'https://api.flickr.com/services/upload/';
 
 		//DO: Grab these from the cloud instead of hardcoding
 		//access token
@@ -140,7 +141,7 @@ function uploadPhotos (media, guid, callback){
 		var access_secret = Ti.App.Properties.getString('access_secret');
 		
 		var consumer_key = Ti.App.Properties.getString('consumer_key');
-		var consumer_secret = Ti.App.Properties.getString('consumer_secret');
+		//var consumer_secret = Ti.App.Properties.getString('consumer_secret');
 
 		var timestamp = Date.now();
 		var nonce = uuid.generateUUID();
@@ -148,10 +149,10 @@ function uploadPhotos (media, guid, callback){
 		var parameters = {
 			hidden: 2,
 			oauth_consumer_key: consumer_key,
-			oauth_signature_method: 'HMAC-SHA1',
-			oauth_token: access_token,
-			oauth_timestamp: timestamp,
 			ouath_nonce: nonce,
+			oauth_signature_method: 'HMAC-SHA1',
+			oauth_timestamp: timestamp,
+			oauth_token: access_token,
 			oauth_version:'1.0'
 		};
 		
@@ -210,15 +211,15 @@ function uploadPhotos (media, guid, callback){
 		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 		console.log('Sending post request.');
 		xhr.send({
-			photo: photo,
 			hidden: parameters.hidden,
-			oauth_signature: signature,
 			oauth_consumer_key: consumer_key,
-			oauth_signature_method: 'HMAC-SHA1',
-			oauth_token: access_token,
-			oauth_timestamp: timestamp,
 			ouath_nonce: nonce,
-			oauth_version:'1.0'
+			oauth_signature: signature,
+			oauth_signature_method: 'HMAC-SHA1',
+			oauth_timestamp: timestamp,
+			oauth_token: access_token,
+			oauth_version:'1.0',
+			photo: photo
 		});
 
 	}
@@ -446,16 +447,20 @@ function varsAssigned(object){
 function createSignature(params, url){
 	function printParameters(params){
 		//var params = params || {one:1,two:2,three:3};
-
-		var keys = Object.getOwnPropertyNames(params).sort();
+		
+		console.log("Unsorted Sig Params: " + JSON.stringify(params));
+		var keys = Object.getOwnPropertyNames(params);
+		console.log('Sorted keys: ' + keys);
 
 		//Generate a string for each key-value pair
 		var pairs = [];
 		for(key in keys){
 			pairs.push(keys[key] + '=' + params[keys[key]]);
 		}
+		console.log('pairs: ');
+		console.log (pairs);
 
-		params = '&';
+		params = '';
 
 		//Combine all key-value pairs into a single string
 		for(pair in pairs){

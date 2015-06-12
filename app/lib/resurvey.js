@@ -66,6 +66,7 @@ function getOldSurvey(guid) {
 						species_code: observationRows.fieldByName('species_code')
 					};
 					survey.plot_observations.push(observation);
+					
 					observationRows.next();
 				}
 				plotRows.next();
@@ -84,11 +85,19 @@ function getOldSurvey(guid) {
 
 //delete old data associated with survey
 function deleteOldSurvey(survey, guid) {
-	try {
+	try {		
+		console.log('enter deleteOldSurvey');
 		var db = Ti.Database.open('ltemaDB');
 		
-		console.log('enter deleteOldSurvey');
+		var testDelete = db.execute('SELECT transect_guid FROM transect t, site_survey s WHERE t.site_survey_guid = s.site_survey_guid AND t.site_survey_guid = ?', guid);
+		var tGUID = testDelete.fieldByName('transect_guid');
+		console.log('transect GUID before delete: ' + tGUID);
+
 		db.execute('DELETE FROM site_survey WHERE site_survey_guid = ?', guid);
+		
+		var testDeleteAfter = db.execute('SELECT transect_guid FROM transect WHERE transect_guid = ?', tGUID);
+		var tGUIDAfter = testDeleteAfter.fieldByName('transect_guid');
+		console.log('transect GUID after delete: ' + tGUIDAfter);
 
 	} catch(e) {
 		var errorMessage = e.message;
@@ -112,8 +121,8 @@ function insertNewSurvey(survey) {
     	var plotObservationRows = survey.plot_observations;
     	var oldSurveyMeta = survey.survey_meta;
     	
-	    var protocolID = oldSurveyMeta.protocol_id;
-	    var parkID = oldSurveyMeta.park_id;
+	    var protocolID = oldSurveyMeta.protocol;
+	    var parkID = oldSurveyMeta.park;
 	    var versionNo = 1; // reset to 1 for new survey
 	    var year = new Date().getFullYear().toString();
 	    var newGUID = uuid.generateUUID();
@@ -122,7 +131,7 @@ function insertNewSurvey(survey) {
 											newGUID, year, protocolID, parkID, versionNo);
 
 		
-								
+		console.log('insert new values: ' + protocolID + ' ' + year + ' ' + newGUID);
 		// Copy and associate any existing transects
 		for (var i = 0; i < transectRows.length; i++) {
 
