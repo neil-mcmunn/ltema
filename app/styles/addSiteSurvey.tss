@@ -11,48 +11,47 @@
 	font: {fontSize: 20}
 },
 
-"#parkLbl": {
-	left: 40,
-	top: 40,
-},
-"#parkSrch": {
-	left: 200,
-	right: 40,
-	top: 30
-},
-"#parkSrchError": {
-	left: 205,
-	top: 75
-},
-
 "#biomeLbl": {
 	left: 40,
-	top: 100
+	top: 40
 },
 "#pickBiome": {
 	left: 200,
 	right: 40,
-	top: 100
+	top: 30
 },
 "#pickBiomeError": {
 	left: 205,
-	top: 130
+	top: 75
 },
 
 "#protocolLbl": {
 	left: 40,
-	top: 160
+	top: 100
 },
 "#pickProtocol": {
 	left: 200,
 	right: 40,
-	top: 160
+	top: 100
 },
 "#pickProtocolError": {
 	left: 205,
-	top: 190
+	top: 130
 },
 
+"#parkLbl": {
+	left: 40,
+	top: 160,
+},
+"#parkSrch": {
+	left: 200,
+	right: 40,
+	top: 160
+},
+"#parkSrchError": {
+	left: 205,
+	top: 190
+},
 "#footerLine": {
 	height: 1,
 	top: 220,

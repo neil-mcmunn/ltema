@@ -9,6 +9,50 @@ var pickProtocolLabels = [];
 var uuid = require('uuid');
 var resurvey = require('resurvey');
 
+var currentProtocol;
+var downloadedSurveys = Ti.App.Properties.getString('downloaded_local_surveys');
+var localSurveys = Ti.App.Properties.getString('local_surveys');
+var cloudSurveys = Ti.App.Properties.getString('cloud_surveys');
+console.log('addSiteurvey property strings');
+console.log(downloadedSurveys);
+
+/*
+// show downloaded surveys
+try {
+	console.log('creating picker rows');
+	var db = Ti.Database.open('ltemaDB');
+		
+	var column1 = Ti.UI.createPickerColumn();
+	
+	for (var i = 0, len = downloadedSurveys.length; i < len; i++) {
+		var siteGUID = downloadedSurveys[i].site_survey_guid;
+		var row = db.execute('SELECT park_name, protocol_name FROM park prk, site_survey s, protocol p \
+							WHERE prk.park_id = s.park_id \
+							AND p.protocol_id = s.protocol_id \
+							AND s.site_survey_guid = ?', siteGUID);
+		var parkName = row.fieldByName('park_name');
+		var protocolName = row.fieldByName('protocol_name');
+		
+		var newRow = Ti.UI.createPickerRow({
+					title : parkName + ' ' + protocolName,
+					color : 'black'
+				});
+				
+		column1.addRow(newRow);
+	}
+	
+	$.picker.add(column1);
+	
+	console.log('pickers should be created');
+} catch (e) {
+	var errorMessage = e.message;
+	Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+} finally {
+	db.close();
+}
+*/
+
+
 // Populate the biome TabbedBar with database-derived labels
 try {
 	var db = Ti.Database.open('ltemaDB');
@@ -86,6 +130,7 @@ $.pickProtocol.addEventListener('click', function(e) {
 		$.pickProtocolError.visible = true;
 	} else {
 		$.pickProtocolError.visible = false;
+		currentProtocol = pickProtocolLabels[e.index].title;
 	}
 });
 
@@ -181,80 +226,7 @@ function doneBtn(e){
 			// Get the transects associated with the survey
 			} else {
 				db.close();
-				resurvey.resurvey(prevSiteGUID, db);
-				
-				/*
-				console.log('enter else clause line 191 (addSiteSurvey)');
-				//updating existing site
-				var siteGUID = prevSiteGUID;
-				console.log('siteGUID: ' + typeof siteGUID + ' as ' + siteGUID);
-				db.execute('UPDATE site_survey SET year=? WHERE site_survey_guid=?', currentYear, siteGUID);
-
-				var transects = db.execute('SELECT * FROM transect WHERE site_survey_guid = ?', siteGUID);
-			
-				// Copy and associate any existing transects
-				while (transects.isValidRow()) {
-					var transectID = transects.fieldByName('transect_id');
-					var transectGUID = transects.fieldByName('transect_guid');
-					var transectName = transects.fieldByName('transect_name');
-					var surveyor = transects.fieldByName('surveyor');
-					var otherSurveyors = transects.fieldByName('other_surveyors');
-					var plotDistance = transects.fieldByName('plot_distance');
-					var stakeOrientation = transects.fieldByName('stake_orientation');
-					var utmZone = transects.fieldByName('utm_zone');
-					var utmEasting = transects.fieldByName('utm_easting');
-					var utmNorthing = transects.fieldByName('utm_northing');
-					var tComments = transects.fieldByName('comments');
-					
-					db.execute('INSERT INTO transect (transect_guid, transect_name, surveyor, other_surveyors, plot_distance, stake_orientation, \
-						utm_zone, utm_easting, utm_northing, comments, site_survey_guid) \
-						VALUES (?,?,?,?,?,?,?,?,?,?,?)', transectGUID, transectName, surveyor, otherSurveyors, plotDistance, stakeOrientation, utmZone,
-						utmEasting, utmNorthing, tComments, siteGUID);
-
-					// Get any plots associated with the transect
-					var plots = db.execute('SELECT * FROM plot WHERE transect_guid = ?', transectGUID);
-					
-					// Copy and associate any existing plots
-					while (plots.isValidRow()) {
-						var plotID = plots.fieldByName('plot_id');
-						var plotName = plots.fieldByName('plot_name');
-						var plotUtmZone = plots.fieldByName('utm_zone');
-						var plotUtmEasting = plots.fieldByName('utm_easting');
-						var plotUtmNorthing = plots.fieldByName('utm_northing');
-						var utc = plots.fieldByName('utc');
-						var stakeDeviation = plots.fieldByName('stake_deviation');
-						var distanceDeviation = plots.fieldByName('distance_deviation');
-						var comments = plots.fieldByName('comments');
-						var plotGUID = plots.fieldByName('plot_guid');
-						
-						db.execute('INSERT INTO plot (plot_guid, plot_name, utm_zone, utm_easting, utm_northing, utc, stake_deviation, distance_deviation, \
-							transect_guid, comments) VALUES (?,?,?,?,?,?,?,?,?,?)', plotGUID, plotName, plotUtmZone, plotUtmEasting, plotUtmNorthing,
-							utc, stakeDeviation, distanceDeviation, transectGUID, comments);
-
-						// Get any plot observations associated with the plot
-						var observations = db.execute('SELECT * FROM plot_observation WHERE plot_guid = ?', plotGUID);
-						
-						// Copy and associate any existing plot observations
-						while (observations.isValidRow()){
-							var observationGUID = observations.fieldByName('plot_observation_guid');
-							var observation = observations.fieldByName('observation');
-							var groundCover = 0;
-							var count = observations.fieldByName('count');
-							var observationComments = observations.fieldByName('comments');
-						
-							db.execute('INSERT INTO plot_observation (plot_observation_guid, observation, ground_cover, count, comments, plot_guid) \
-								VALUES (?,?,?,?,?,?)', observationGUID, observation, groundCover, count, observationComments, plotGUID);
-							
-							observations.next();
-						}	
-						plots.next();
-					}
-					transects.next();
-				}
-				//observations.close();
-				//plots.close();
-				//transects.close();
-				*/
+				resurvey.resurvey(prevSiteGUID);
 			}
 					
 		} catch (e){
@@ -284,7 +256,7 @@ var win = Ti.UI.createWindow({
 	height: 281,
 	left : 200,
 	right : 40,
-	top : 135,
+	top : 260,
 	borderRadius : 0,
 	borderWidth: 3,
 	title : 'park names'
@@ -333,10 +305,10 @@ function auto_complete(search_term) {
 					var park_id;
 					var results = db.execute('SELECT s.park_id, park_name, protocol_name FROM site_survey s, park prk, protocol p WHERE s.park_id = prk.park_id AND s.protocol_id = p.protocol_id');
 					while(results.isValidRow()){
-						var prk = results.fieldByName('park_name');
+						var downloadedPark = results.fieldByName('park_name');
 						var protocol = results.fieldByName('protocol_name');
-						if (parkName === prk) {
-							parkName += ' ***ON DEVICE as ' + protocol + '***';
+						if ((parkName === downloadedPark) && (protocol === currentProtocol)) {
+							//parkName += ' ***ON DEVICE as ' + protocol + '***';
 							var parkID = results.fieldByName('park_id');
 							newRow.title = parkName;
 							newRow.color = 'black';
@@ -428,7 +400,7 @@ function auto_complete(search_term) {
 			var errorMessage = e.message;
 			Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 		} finally {
-			rows.close();
+			//rows.close();
 			db.close();
 		}
 	}

@@ -13,7 +13,12 @@ Ti.Geolocation.removeEventListener('location', function(e) {});
 //Prompt the user to allow applicaiton to use location services
 Titanium.Geolocation.getCurrentPosition(function(e) {});
 
-
+var networkIsOnline, networkType;
+if (Ti.App.Properties.getString('secret')) {
+	$.login.title = "Logout";
+} else {
+	$.login.title = "Login";
+}
 
 /* example pull to refresh from github https://github.com/Nyvra/titanium-appcelerator-pull-to-refresh */
 /*Ti.include("date.js");
@@ -68,6 +73,7 @@ function checkSurveys() {
 
 	} else {
 		try {
+			networkIsOnline = true;
 			var url = "https://capstone-ltemac.herokuapp.com/surveys";
 			var httpClient = Ti.Network.createHTTPClient();
 			// the 'false' optional parameter makes this a synchronous call
@@ -213,6 +219,10 @@ function populateTable(cloudSurveys, localSurveys) {
 	// console.log ('localOnlySurveys line 185 index.js: ');
 	// console.log(localOnlySurveys);
 
+	Ti.App.Properties.setString('local_surveys',localOnlySurveys);
+	Ti.App.Properties.setString('downloaded_local_surveys',cloudAndLocalSurveys);
+	Ti.App.Properties.setString('cloud_surveys',cloudOnlySurveys);
+
 	createButtons(localOnlySurveys, true);
 	createButtons(cloudAndLocalSurveys, true);
 	createButtons(cloudOnlySurveys, false);
@@ -322,15 +332,20 @@ function createButtons(rows, isDownloaded) {
 			});
 			
 			newRow.add(infoButton);
-			newRow.add(downloadButton);
 			
-			if (isDownloaded && superUser) {
-				newRow.add(uploadButton);
-				newRow.add(exportButton);
-			} else if (isDownloaded) {
-				newRow.add(uploadButton);	
+			if (networkIsOnline) {
+				newRow.add(downloadButton);
 			}
 			
+			if (isDownloaded && superUser) {
+				if (networkIsOnline) { 
+					newRow.add(uploadButton);
+				}
+				//newRow.add(exportButton);
+			} else if (isDownloaded && networkIsOnline) {
+				newRow.add(uploadButton);	
+			}
+						
 			//Add row to the table view
 			$.tbl.appendRow(newRow);
 		}
@@ -422,16 +437,49 @@ $.tbl.addEventListener('click', function(e) {
 		//download button clicked
 	} else if (e.source.buttonid == 'download') {
 		//alert('Download button pressed! Calling download function with the following parameters...\n' + e.rowData.site + ' ' + e.rowData.protocol);
-
-		var download = require('download');
-		download.downloadSurvey(e.rowData.siteGUID);
-
+		var dialog = Ti.UI.createAlertDialog({
+			cancel: 1,
+			buttonNames: ['Confirm', 'Cancel'],
+			message: 'Download ' + e.rowData.site + '?',
+			title: 'Confirm Download'
+	  	});
+		dialog.addEventListener('click', function(f){
+			if (f.index === f.source.cancel){
+				Ti.API.info('The cancel button was clicked');
+			} else {
+				if (networkIsOnline) {
+					var download = require('download');
+					download.downloadSurvey(e.rowData.siteGUID);					
+				} else {
+					alert('network is not online');
+				}
+			}
+		});
+		dialog.show();
+		
 		//upload button clicked
 	} else if (e.source.buttonid == 'upload') {
-		alert('Upload button pressed! Calling upload function...');
+		//alert('Upload button pressed! Calling upload function...');
+		var dialog = Ti.UI.createAlertDialog({
+			cancel: 1,
+			buttonNames: ['Confirm', 'Cancel'],
+			message: 'Upload ' + e.rowData.site + '?',
+			title: 'Confirm Upload'
+	  	});
+		dialog.addEventListener('click', function(f){
+			if (f.index === f.source.cancel){
+				Ti.API.info('The cancel button was clicked');
+			} else {
+				if (networkIsOnline) {
+					var upload = require('upload');
+					upload.uploadSurvey(e.rowData.siteGUID);
+				} else {
+					alert('network is not online');
+				}
+			}
+		});
+		dialog.show();
 
-		var upload = require('upload');
-		upload.uploadSurvey(e.rowData.siteGUID);
 
 		//export button clicked
 	} else if (e.source.buttonid == 'export') {
@@ -495,6 +543,13 @@ Ti.App.addEventListener("app:enableIndexLoginButton", function(e) {
 
 Ti.App.addEventListener("app:enableIndexRefreshButton", function(e) {
 	$.refreshBtn.enabled = true;
+});
+
+Ti.Network.addEventListener('change', function(e) {
+	networkIsOnline = e.online;
+	//networkType = e.networkType;
+	console.log('Ti network listener occurred' + networkIsOnline);
+	Ti.App.fireEvent("app:refreshSiteSurveys");
 });
 
 
@@ -585,9 +640,27 @@ function loginBtn() {
 		dialog.show();
 	// already logged in
 	} else {
-		$.login.title = "Login";
-		Ti.App.Properties.setString('auth_level',null);
-		Ti.App.Properties.setString('secret',null);
+		var dialog = Ti.UI.createAlertDialog({
+			cancel: 1,
+			buttonNames: ['Confirm', 'Cancel'],
+			message: 'Are you sure you want to logout?',
+			title: 'Logout'
+	  	});
+		dialog.addEventListener('click', function(e){
+			if (e.index === e.source.cancel){
+				Ti.API.info('The cancel button was clicked');
+			} else {
+				Ti.API.info('device logged out');
+				$.login.title = "Login";
+				Ti.App.Properties.setString('auth_level',null);
+				Ti.App.Properties.setString('secret',null);
+				Ti.App.fireEvent("app:refreshSiteSurveys");
+			}
+			Ti.API.info('e.cancel: ' + e.cancel);
+			Ti.API.info('e.source.cancel: ' + e.source.cancel);
+			Ti.API.info('e.index: ' + e.index);
+		});
+		dialog.show();
 	}		
 }
 
@@ -651,7 +724,7 @@ function checkAuthLevel(json, secret) {
 		Ti.App.Properties.setString('secret',secret);
 		
 		//refresh survey list
-		refreshBtn();
+		Ti.App.fireEvent("app:refreshSiteSurveys");
 	} else {
 		console.log('authLevel not valid: ' + authLevel);
 		return;
@@ -685,7 +758,7 @@ function exportBtn(){
 }
 
 function refreshBtn() {
-	checkSurveys();
+	Ti.App.fireEvent("app:refreshSiteSurveys");
 }
 
 //This should always happen last

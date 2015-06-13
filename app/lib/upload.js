@@ -244,7 +244,7 @@ function selectProtocol (guid){
 		switch(protocol){
 			case 'Alpine':
 			case 'Grassland':
-				formAlpineGrasslandJSON(guid);
+				formAlpineGrasslandJSON(guid, uploadJSON);
 				break;
 			/*case 'Intertidal':
 				formIntertidalJSON();
@@ -266,7 +266,7 @@ function selectProtocol (guid){
 
 //Create a JSON object representing an alpine or grassland survey
 //and then serialize it
-function formAlpineGrasslandJSON(guid){
+function formAlpineGrasslandJSON(guid, callback){
 	try{
 		console.log('enter formAlpineGrasslandJSON');
 		
@@ -365,7 +365,7 @@ function formAlpineGrasslandJSON(guid){
 			survey.media.push(media);
 		}
 
-		uploadJSON(survey, guid);
+		callback(survey, guid);
 
 	} catch(e) {
 		var errorMessage = e.message;
@@ -398,7 +398,7 @@ function uploadJSON(survey, guid) {
 
 		httpClient.onload = function() {
 			if (this.status === 200) {
-				Ti.API.info("Upload Successful: " + this.responseData);
+				alert(this.responseData);
 			} else {
 				alert('Upload Failed: ' + this.status);
 			}
@@ -481,3 +481,4 @@ function createSignature(params, url){
 }
 
 exports.uploadSurvey = preparePhotos;
+exports.getExportData = formAlpineGrasslandJSON;
