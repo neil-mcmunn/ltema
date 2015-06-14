@@ -28,55 +28,54 @@ try {
 	
 		//if media does not exist
 	if(mediaID != null){
-
-	//get the media name
-	var mediaRow = db.execute('SELECT media_name \
-							FROM media \
-							WHERE media_id = ?', mediaID);
-	
-	var mediaName = mediaRow.fieldByName('media_name');
-	
-	mediaRow.close();
-	
-	//GET FOLDER NAME - Retrieve site survery, year, park
-	var rows = db.execute('SELECT year, protocol_name, park_name \
-							FROM site_survey s, protocol p, park prk \
-							WHERE s.protocol_id = p.protocol_id \
-							AND s.park_id = prk.park_id \
-							AND site_survey_guid = ?', siteGUID);
-							
-   //get the name of the directory	
-	var year = rows.fieldByName('year');
-	var protocolName = rows.fieldByName('protocol_name');
-	var parkName = rows.fieldByName('park_name');
-	
-	rows.close();
-	
-	var folderName = year + ' - ' + protocolName + ' - ' + parkName;
-	
-	var imageDir = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, folderName);
-	
-	if (imageDir.exists()) {		
-		// .resolve() provides the resolved native path for the directory.
-		var imageFile = Ti.Filesystem.getFile(imageDir.resolve(), mediaName);
-		if (imageFile.exists()) {
-			//Set thumbnail
-			$.plotObservationThumbnail.visible = true;
-			$.plotObservationThumbnail.image = imageFile;
-			$.thumbnailHintText.visible = true;
+		//get the media name
+		var mediaRow = db.execute('SELECT media_name \
+								FROM media \
+								WHERE media_id = ?', mediaID);
 		
-			//Save Photo for preview (temporary photo)
-			var temp = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.png');
-			temp.write(imageFile);
+		var mediaName = mediaRow.fieldByName('media_name');
+		
+		mediaRow.close();
+		
+		//GET FOLDER NAME - Retrieve site survery, year, park
+		var rows = db.execute('SELECT year, protocol_name, park_name \
+								FROM site_survey s, protocol p, park prk \
+								WHERE s.protocol_id = p.protocol_id \
+								AND s.park_id = prk.park_id \
+								AND site_survey_guid = ?', siteGUID);
+								
+	   //get the name of the directory	
+		var year = rows.fieldByName('year');
+		var protocolName = rows.fieldByName('protocol_name');
+		var parkName = rows.fieldByName('park_name');
+		
+		rows.close();
+		
+		var folderName = year + ' - ' + protocolName + ' - ' + parkName;
+		
+		var imageDir = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, folderName);
+		
+		if (imageDir.exists()) {		
+			// .resolve() provides the resolved native path for the directory.
+			var imageFile = Ti.Filesystem.getFile(imageDir.resolve(), mediaName);
+			if (imageFile.exists()) {
+				//Set thumbnail
+				$.plotObservationThumbnail.visible = true;
+				$.plotObservationThumbnail.image = imageFile;
+				$.thumbnailHintText.visible = true;
+			
+				//Save Photo for preview (temporary photo)
+				var temp = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.png');
+				temp.write(imageFile);
+			}
 		}
-	}
- }	
-	
-	
-} catch (e) {
+ 	}	
+}
+catch (e) {
 	var errorMessage = e.message;
 	Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-} finally {
+}
+finally {
 	resultRow.close();
 	db.close();
 }
@@ -103,7 +102,7 @@ $.comments.text = comments;
 function doneBtnClick(){
 	//remove the temp photo - used for photo preview 
 	var tempPhoto = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.png');
-	if(tempPhoto.exists){
+	if(tempPhoto.exists()){
 		tempPhoto.deleteFile();
 	}
 	$.modalNav.close();
@@ -114,7 +113,7 @@ function doneBtnClick(){
 function cancelBtnClick(){
 	//remove the temp photo - used for photo preview 
 	var tempPhoto = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.png');
-	if(tempPhoto.exists){
+	if(tempPhoto.exists()){
 		tempPhoto.deleteFile();
 	}
 	$.modalNav.close();

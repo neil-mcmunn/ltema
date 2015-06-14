@@ -153,7 +153,7 @@ var distanceOther = false;
 function backBtn(){
 	//remove the temp photo - used for photo preview 
 	var tempPhoto = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.png');
-	if(tempPhoto.exists){
+	if(tempPhoto.exists()){
 		tempPhoto.deleteFile();
 	}
 	Ti.App.fireEvent("app:refreshPlots");
@@ -290,7 +290,7 @@ function saveEdit(e){
 		if(photo != null){
 			//remove the temp photo - used for photo preview 
 			var tempPhoto = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.png');
-			if(tempPhoto.exists){
+			if(tempPhoto.exists()){
 				tempPhoto.deleteFile();
 			}
 			Ti.App.fireEvent("app:refreshPlots");

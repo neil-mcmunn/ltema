@@ -86,7 +86,7 @@ try {
 			$.thumbnailHintText.visible = true;
 		
 			//Save Photo for preview (temporary photo)
-			var temp = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.jpg');
+			var temp = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.png');
 			temp.write(imageFile);
 		}
 	}
@@ -276,7 +276,7 @@ function saveEdit(e){
 		if(photo != null){
 			//remove the temp photo - used for photo preview  //Ti.Filesystem.tempDirectory 
 			var tempPhoto = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.png');
-			if(tempPhoto.exists){
+			if(tempPhoto.exists()){
 				tempPhoto.deleteFile();
 			}
 			Ti.App.fireEvent("app:refreshTransects");
@@ -290,7 +290,7 @@ function saveEdit(e){
 function backBtnClick(){
 	//remove the temp photo - used for photo preview  //Ti.Filesystem.tempDirectory 
 	var tempPhoto = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.png');
-	if(tempPhoto.exists){
+	if(tempPhoto.exists()){
 		tempPhoto.deleteFile();
 	}
 	Ti.App.fireEvent("app:refreshTransects");

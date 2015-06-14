@@ -16,6 +16,10 @@
     <ios>
         <plist>
             <dict>
+            	<key>NSLocationAlwaysUsageDescription</key>
+            	<array>
+            		<string>LTEMA needs access to your location data.</string>
+            	</array>
                 <key>UIFileSharingEnabled</key>
                 <true/>
                 <key>UISupportedInterfaceOrientations~iphone</key>
