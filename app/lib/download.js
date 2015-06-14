@@ -1,6 +1,6 @@
 // download a survey
 // must specify the site_survey_guid
-function imageDownload(media){
+function imageDownload(media, guid){
 	console.log('Media Download');
 	console.log(media);
 	//go through media looking for object with a flickr id
@@ -22,15 +22,35 @@ function imageDownload(media){
 		var imageRecord = media[image];
 		var url = 'http://i.imgur.com/' + imageRecord.flickr_id + '.jpg';
 		//Download Image form Imgur
- 		var path = null;
- 		var fileName = imageRecord.flick_id + '.jpg';
-	    var file = Titanium.Filesystem.getFile(Titanium.Filesystem.applicationDataDirectory, fileName);
+ 		var fileName = imageRecord.flickr_id + '.jpg';
+ 		
+ 		var db = Ti.Database.open('ltemaDB');
+		var dirInfo = db.execute('SELECT s.year, p.protocol_name, prk.park_name \
+						FROM site_survey s, protocol p, park prk \
+						WHERE s.protocol_id = p.protocol_id \
+						AND s.park_id = prk.park_id \
+						AND site_survey_guid = ?', guid);
+						
+		console.log(JSON.stringify(dirInfo));
+		var year = dirInfo.fieldByName('year');
+		var protocolName = dirInfo.fieldByName('protocol_name');
+		var parkName = dirInfo.fieldByName('park_name');
+		var dir = year + ' - ' + protocolName + ' - ' + parkName;
+		var imageDir = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, dir);
+		var file = Ti.Filesystem.getFile(imageDir.resolve(), fileName);
+ 		db.close();
+ 		
+	    //var file = Titanium.Filesystem.getFile(Titanium.Filesystem.applicationDataDirectory, fileName);
 	    if ( file.exists() ) {
+	    	console.log('Media Download - media exists');
 	        //Update Database
 			var db = Ti.Database.open('ltemaDB');
-			var mediaName = media.flickr_id + '.jpg';
-			db.execute('UPDATE TABLE media SET media_name = ? WHERE flickr_id = ?', mediaName, imageRecord.flickr_id);
+			db.execute('UPDATE media SET media_name = ? WHERE flickr_id = ?', fileName, imageRecord.flickr_id);
+			imageRecord.media_name = fileName;
+			imageDownload(media, guid);
+			db.close();
 	    } else {
+	    	console.log('Media Download - media doesn\'t exist');
 	        if ( Titanium.Network.online ) {
 	            var xhr = Titanium.Network.createHTTPClient({
 		            onload : function(e) {
@@ -38,6 +58,7 @@ function imageDownload(media){
 							//Wite image from Imgur to iPad
 							console.log(this.responseData);
 							file.write(this.responseData);
+							imageRecord.media_name = fileName;
 							//Update Database
 							var db = Ti.Database.open('ltemaDB');
 							//Weird Bug where SQL won't update.
@@ -49,7 +70,7 @@ function imageDownload(media){
 						}
 						finally{
 							db.close();
-							imageDownload(media);
+							imageDownload(media, guid);
 						}
 					},
 					onerror : function(e) {
@@ -93,11 +114,10 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 		var previousID = db.execute('SELECT site_survey_guid FROM site_survey \
 										WHERE protocol_id = ? \
 										AND park_id = ?', protocolID, parkID);
-
-		var guidPassedFromDownloadFn = siteSurveyGUID;
+		
 		var prevSiteGUID = previousID.fieldByName('site_survey_guid');
 		var cloudSiteSurveyGUID = surveyMeta.site_survey_guid;
-		console.log('download: ' + guidPassedFromDownloadFn);
+		console.log('download: ' + siteSurveyGUID);
 		console.log('prevGUID: ' + prevSiteGUID);
 		console.log('cloudGUID:' + cloudSiteSurveyGUID);
 		
@@ -277,7 +297,7 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 					photoCloudMedia[m].media_name = null;
 				}
 				// download flickr media
-				imageDownload(photoCloudMedia);
+				imageDownload(photoCloudMedia, siteSurveyGUID);
 			}
 		}
 				
