@@ -86,7 +86,7 @@ try {
 			$.thumbnailHintText.visible = true;
 		
 			//Save Photo for preview (temporary photo)
-			var temp = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.png');
+			var temp = Ti.Filesystem.getFile(Titanium.Filesystem.tempDirectory,'temp.jpg');
 			temp.write(imageFile);
 		}
 	}

@@ -21,7 +21,7 @@ function preparePhotos(guid) {
 									 'AND su.site_survey_guid = ?', guid);
 
 		var park = surveyMeta.fieldByName('park_name');
-*/
+		*/
 		var mediaIDs = [];
 		var transects = db.execute('SELECT transect_guid, media_id FROM transect WHERE site_survey_guid = ?', guid);
 			
@@ -71,7 +71,8 @@ function preparePhotos(guid) {
 
 
 		//Upload all un-uploaded photos to flickr
-		uploadPhotos(uploadMedia, guid);
+		//uploadPhotos(uploadMedia, guid);
+		mediaUpload(uploadMedia, guid);
 
 	} catch(e) {
 		uploadMedia = undefined;
@@ -82,9 +83,18 @@ function preparePhotos(guid) {
 	}
 }
 
+function enterflickrIDs(media, guid){
+	console.log('Media After Upload');
+	console.log(media);
+	
+	
+	selectProtocol(guid);
+}
+
 function uploadPhotos (media, guid, callback){
 	console.log('enter uploadPhotos');
 	console.log(media);
+	var api_key = 'b83eff8511af696';
 	
 	try {
 		var db = Ti.Database.open('ltemaDB');
@@ -106,122 +116,157 @@ function uploadPhotos (media, guid, callback){
 		db.close();
 	}
 	
+	var numImages = media.length;
+	console.log(numImages);
+	
 	for(var n = 0; n < media.length; n++){
-		if ( ! media[n].media_name) {
+		if (!media[n].media_name) {
+			numImages--;
 			continue;
 		}
 		
 		var mediaName = media[n].media_name;
 		var mediaID = media[n].media_id;
-		
-		console.log(media[n].media_name);
 		//Get a photo as a string from the filesystem
 		var dir = year + ' - ' + protocolName + ' - ' + parkName; 
 		var imageDir = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, dir);
-		console.log(imageDir.resolve());
 		var file = Ti.Filesystem.getFile(imageDir.resolve(), mediaName);
-		var blob = file.read();
-		
-		console.log('upload line 120 and blob.text: ' + blob);
-		//Base64 encode the file
-		//var photo = Titanium.Utils.base64encode(blob);
-		var photo = blob;
-		console.log('upload line 123');
-		
+		var photo = Titanium.Utils.base64encode(file.read());
 		//Remove the file from memory
 		file = null;
-		blob = null;
-
-		//Create a signature
-		var url = 'https://api.flickr.com/services/upload/';
-
-		//DO: Grab these from the cloud instead of hardcoding
-		//access token
-		var access_token = Ti.App.Properties.getString('access_token');
-		var access_secret = Ti.App.Properties.getString('access_secret');
-		
-		var consumer_key = Ti.App.Properties.getString('consumer_key');
-		//var consumer_secret = Ti.App.Properties.getString('consumer_secret');
-
-		var timestamp = Date.now();
-		var nonce = uuid.generateUUID();
-
-		var parameters = {
-			hidden: 2,
-			oauth_consumer_key: consumer_key,
-			ouath_nonce: nonce,
-			oauth_signature_method: 'HMAC-SHA1',
-			oauth_timestamp: timestamp,
-			oauth_token: access_token,
-			oauth_version:'1.0'
-		};
-		
-		console.log('upload line 153');
-		
-		//Build the oauth_signature and hash it with HMAC-SHA1 & Base64 encoding
-		var signature = createSignature(parameters, url);
-		var shaObj = new jsSHA(signature, 'TEXT');
-		var hmac = shaObj.getHMAC(key, 'TEXT', 'SHA-1', 'B64');
-		console.log(hmac);
-		signature = hmac;
-
-		parameters.oauth_signature = signature;
-		parameters.photo = photo;
-
+		var url = 'https://api.imgur.com/3/upload';
 		var xhr = Titanium.Network.createHTTPClient({
 			onload : function(e) {
 				try{
-					console.log('upload onload line 168');
-					
-					// var xml = this.responseXML;
-					//var xml = Ti.XML.parseString(this.responseXML);
-					var xml = this.responseData;
-					console.log('Got XML from flickr: ' + xml);
-					// var photoID = xml.getAttribute('photoid');
-					var photoID = xml.getElementsByTagName('photoid');
-					console.log('photoID is: ' + photoID);
+					var response = JSON.parse(this.responseData);
+					console.log(response);
+					console.log('n: ' + n);
+					console.log(media);
+					console.log('This');
+					console.log(this);
+					var photoID = response.data.id;
+					media[n].flickr_id = photoID;
+					/*
 					var db = Ti.Database.open('ltemaDB');
-					var rows = db.execute( 'UPDATE media \
-											SET flickr_id = ? \
-											WHERE media_id = ?', photoID, mediaID); //TODO: MAKE SURE THESE NUMBERS ARE WHAT WE WANT
-					
-					console.log('end onload gracefully in uploadPhotos');
+					var rows = db.execute( 'UPDATE media SET flickr_id = ? WHERE media_id = ?', photoID, mediaID);
+					*/
+					numImages--;
+					console.log('Number of images left to go: ' + numImages);
+					if(numImages === 0){
+						enterflickrIDs(media, guid);
+					}
 				}
 				catch(e) {
 					var errorMessage = e.message;
+					console.log(errorMessage);
 					Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 				}
 				finally{
 					//db.close();
-					if(n === media.length){
-						selectProtocol(guid);
-					}
 				}
 			},
-			
 			onerror : function(e) {
-				console.log('Something bad happened.' + this.status);
+				console.log('Something bad happened: ' + this.status);
+			},
+			timeout : 60000
+		});
+		
+		console.log('Opening http connection.');
+		xhr.open('POST', url);
+		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+		xhr.setRequestHeader('Authorization', 'Client-ID ' + api_key);
+		console.log('Sending post request.');
+		xhr.send(photo);
+	}
+}
+
+function mediaUpload(media, guid){
+	console.log('Media Upload');
+	//go through media looking for object without a flickr id
+	var image = null;
+	for(var i = 0; i < media.length; i++){
+		if(media[i].flickr_id === null){
+			image = i;
+			break;
+		}
+	}
+	//no images are left to upload found and select protocol is
+	if(image === null){
+		console.log('Media Upload - All image have been uploaded');
+		selectProtocol(guid);
+	}
+	//otherwise an image is found and that image is then uploaded
+	else{
+		console.log('Media Upload - Image number ' + image + ' to be uploaded');
+		//Imgur API key
+		var api_key = 'b83eff8511af696';
+		//Get info on this medias survey
+		try {
+			var db = Ti.Database.open('ltemaDB');
+			var dirInfo = db.execute('SELECT s.year, p.protocol_name, prk.park_name \
+							FROM site_survey s, protocol p, park prk \
+							WHERE s.protocol_id = p.protocol_id \
+							AND s.park_id = prk.park_id \
+							AND site_survey_guid = ?', guid);
+							
+			var year = dirInfo.fieldByName('year');
+			var protocolName = dirInfo.fieldByName('protocol_name');
+			var parkName = dirInfo.fieldByName('park_name');
+		}
+		catch(e) {
+			var errorMessage = e.message;
+			Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+		}
+		finally{
+			db.close();
+		}
+		//Grab the image record being worked on
+		var imageRecord = media[image]; 
+		//Get a the photo as a string from the filesystem
+		var dir = year + ' - ' + protocolName + ' - ' + parkName;
+		var imageDir = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, dir);
+		var file = Ti.Filesystem.getFile(imageDir.resolve(), imageRecord.media_name);
+		var photo = Titanium.Utils.base64encode(file.read());
+		//Remove the file from memory
+		file = null;
+		//Imgur upload endpoint
+		var url = 'https://api.imgur.com/3/upload';
+		//Setup HTTP Client
+		var xhr = Titanium.Network.createHTTPClient({
+			onload : function(e) {
+				try{
+					//Get the ID back from Imgur
+					var response = JSON.parse(this.responseData);
+					var photoID = response.data.id;
+					media[image].flickr_id = photoID;
+					console.log('Image: ' + image + ', PhotoId: ' + photoID);
+					
+					var db = Ti.Database.open('ltemaDB');
+					var rows = db.execute( 'UPDATE media SET flickr_id = ? WHERE media_id = ?', photoID, media[image].media_id);
+				}
+				catch(e) {
+					var errorMessage = e.message;
+					console.log(errorMessage);
+					Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+				}
+				finally{
+					db.close();
+					mediaUpload(media, guid);
+				}
+			},
+			onerror : function(e) {
+				console.log('Something bad happened: ' + this.status);
 			},
 			timeout : 30000
 		});
 		
-		console.log('Opening http connection.');
-		
+		//Open the connection
 		xhr.open('POST', url);
+		//Setup the connection headers
 		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-		console.log('Sending post request.');
-		xhr.send({
-			hidden: parameters.hidden,
-			oauth_consumer_key: consumer_key,
-			ouath_nonce: nonce,
-			oauth_signature: signature,
-			oauth_signature_method: 'HMAC-SHA1',
-			oauth_timestamp: timestamp,
-			oauth_token: access_token,
-			oauth_version:'1.0',
-			photo: photo
-		});
-
+		xhr.setRequestHeader('Authorization', 'Client-ID ' + api_key);
+		//Send the photo
+		xhr.send(photo);
 	}
 }
 
@@ -392,7 +437,7 @@ function uploadJSON(survey, guid) {
 		var httpClient = Ti.Network.createHTTPClient();
 		httpClient.open("POST", url);
 		//httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'));
-		// httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
+		//httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
 		httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'));
 		httpClient.setRequestHeader('Content-Type', 'application/json');
 

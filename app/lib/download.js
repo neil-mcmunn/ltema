@@ -1,107 +1,74 @@
 // download a survey
 // must specify the site_survey_guid
-
-function savePhoto(photoObj){
-	// 
-	try {
-		var db = Ti.Database.open('ltemaDB');
-		
-		var flickrID = photoObj.file;
-		var mediaName = flickrID + '.png';
-		
-		db.execute('UPDATE TABLE media SET media_name = ? WHERE flickr_id = ?', mediaName, flickrID);
-		
-	} catch (e) {
-		var errorMessage = e.message;
-		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-	} finally {
-		db.close();
-	};
-}
-
-function processImageDownload(filename, url, fn_end, fn_progress ) {
-    var file_obj = {file:filename, url:url, path: null};
- 
-    var file = Titanium.Filesystem.getFile(Titanium.Filesystem.applicationDataDirectory,filename);
-    if ( file.exists() ) {
-        file_obj.path = Titanium.Filesystem.applicationDataDirectory+Titanium.Filesystem.separator;
-        fn_end(file_obj);
-    } else {
-        if ( Titanium.Network.online ) {
-            var c = Titanium.Network.createHTTPClient();
- 
-            c.setTimeout(10000);
-            c.onload = function() {
-                 if (c.status == 200 ) {
-
-                    var f = Titanium.Filesystem.getFile(Titanium.Filesystem.applicationDataDirectory,filename);
-                    f.write(this.responseData);
-                    file_obj.path = Titanium.Filesystem.applicationDataDirectory+Titanium.Filesystem.separator;
-                } else {
-                    file_obj.error = 'file not found'; // to set some errors codes
-                }
-                fn_end(file_obj);
-            };
-            
-            c.ondatastream = function(e) {
-                if ( fn_progress ) fn_progress(e.progress);
-            };
-            
-            c.error = function(e) {
-                file_obj.error = e.error;
-                fn_end(file_obj);
-            };
-            c.open('GET',url);
-		    c.send();           
-		    
-		} else {
-		    file_obj.error = 'no internet';
-            fn_end(file_obj);
-        }
-    }
-}
-
-function flickrDownload(media) {
-	 
-	 for (var i = 0, m = media.length; i < m; i++) {
-	 	var flickrID = media[i].flickr_id;
-	 	
-	 	if (flickrID) {
-	 		try{
-		 			
-		 		var url = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=" + Ti.App.Properties.getString('consumer_key') + "&photo_id=" + flickrID;
-		 		
-		 		var httpClient = Ti.Network.createHTTPClient();
-	
-	        	httpClient.open("GET", url);
-	        	
-	        	httpClient.onload = function() {
-	        		var xmlResponse = Ti.XML.parseString(this.responseData);
-	        		var xmlSizes = xmlResponse.getElementsByTagName('size');
-	        		for (var j = 0, x = xmlSizes.length; j < x; j++) {
-	        			var currentNode = xmlSizes.items(j).getAttributes();
-	        			
-	        			if (currentNode.getNamedItem('label').getNodeValue() === 'Large') {
-	        				var imgSource = currentNode.getNamedItem('source').getNodeValue();
-	        				console.log(imgSource);
-	        				processImageDownload(flickrID, imgSource, savePhoto);
-	        			}
-	        		}
-	        		console.log(xmlResponse);
-	        	};
-	        	
-	        	httpClient.onerror = function () {
-	        		console.log('flickrDownload onerror, ' + flickrID);
-	        	};
-	        	
-	        	httpClient.send();
-	        	
-	 		} catch (e) {
-		        var errorMessage = e.message;
-		        console.log('error in flickrDownload: ' + errorMessage);
-    		}
- 		}
- 	}
+function imageDownload(media){
+	console.log('Media Download');
+	console.log(media);
+	//go through media looking for object with a flickr id
+	var image = null;
+	for(var i = 0; i < media.length; i++){
+		if(media[i].media_name === null){
+			image = i;
+			break;
+		}
+	}
+	//no images are left to download
+	if(image === null){
+		console.log('Media Download - All image have been downloaded');
+		Ti.App.fireEvent("app:refreshSiteSurveys");
+	}
+	//otherwise an image is found and that image is then downloaded
+	else{
+		console.log('Media Downloaded - Image number ' + image + ' to be downloaded');
+		var imageRecord = media[image];
+		var url = 'http://i.imgur.com/' + imageRecord.flickr_id + '.jpg';
+		//Download Image form Imgur
+ 		var path = null;
+ 		var fileName = imageRecord.flick_id + '.jpg';
+	    var file = Titanium.Filesystem.getFile(Titanium.Filesystem.applicationDataDirectory, fileName);
+	    if ( file.exists() ) {
+	        //Update Database
+			var db = Ti.Database.open('ltemaDB');
+			var mediaName = media.flickr_id + '.jpg';
+			db.execute('UPDATE TABLE media SET media_name = ? WHERE flickr_id = ?', mediaName, imageRecord.flickr_id);
+	    } else {
+	        if ( Titanium.Network.online ) {
+	            var xhr = Titanium.Network.createHTTPClient({
+		            onload : function(e) {
+						try{
+							//Wite image from Imgur to iPad
+							console.log(this.responseData);
+							file.write(this.responseData);
+							//Update Database
+							var db = Ti.Database.open('ltemaDB');
+							//Weird Bug where SQL won't update.
+							db.execute('UPDATE media SET media_name = ? WHERE flickr_id = ?', fileName, imageRecord.flickr_id);
+						}
+						catch(e) {
+							var errorMessage = e.message;
+							Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+						}
+						finally{
+							db.close();
+							imageDownload(media);
+						}
+					},
+					onerror : function(e) {
+						console.log('Something bad happened: {status: ' + this.status + ', statusText: ' + this.statusText + '}');
+						console.log('This: ' + this);
+					},
+					timeout : 30000
+				});
+	            //Open connection
+	            xhr.open('GET',url);
+	            //Send request
+			    xhr.send();           
+			    
+			} else {
+			    file_obj.error = 'no internet';
+	            fn_end(file_obj);
+	        }
+	    }
+	}
 }
 
 function processDownload(cloudSurvey, siteSurveyGUID) {
@@ -111,21 +78,18 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
     
    try {
     	console.log ('enter try in download');
-    	var db = Ti.Database.open('ltemaDB');
-    	
+    	//Extract data from cloud survey
     	var surveyData = cloudSurvey.survey_data;
     	var surveyMeta = surveyData.survey_meta;
 		var cloudMedia = surveyData.media;
 		var cloudTransects = surveyData.transects;
     	var cloudPlots = surveyData.plots;
 		var plotObservations = surveyData.plot_observations;
-    	
-    	console.log('THE DOWNLOAD');
-		console.log(cloudSurvey);
 	    var protocolID = cloudSurvey.protocol_id;
 	    var parkID = cloudSurvey.park_id;
-	    			
-		// Check if this site has been previously surveyed
+	    
+	    // Check if this site has been previously surveyed
+	    var db = Ti.Database.open('ltemaDB');			
 		var previousID = db.execute('SELECT site_survey_guid FROM site_survey \
 										WHERE protocol_id = ? \
 										AND park_id = ?', protocolID, parkID);
@@ -194,7 +158,7 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 			}
 			
 			// copy of unmodified array to search through only if super-user
-			var photoCloudMedia = cloudMedia;
+			var photoCloudMedia = JSON.parse(JSON.stringify(cloudMedia));
 			
 			// Copy and associate any existing transects
 			for (var i = 0; i < cloudTransects.length; i++) {
@@ -309,9 +273,11 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 						
 					}	
 				}
-				
+				for(var m = 0; m < photoCloudMedia.length; m++){
+					photoCloudMedia[m].media_name = null;
+				}
 				// download flickr media
-				flickrDownload(photoCloudMedia);
+				imageDownload(photoCloudMedia);
 			}
 		}
 				
@@ -320,7 +286,6 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
 		db.close();
-		Ti.App.fireEvent("app:refreshSiteSurveys");
 	}
 
 }
@@ -328,31 +293,6 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 function downloadSurvey(siteSurveyGUID) {
     try {
         console.log('enter try in downloadSurvey');
-        /*
-		//Define the current window
-		var myWin = Ti.UI.currentWindow;
-
-		//Define progress bar
-		var progressBar = Titanium.UI.createProgressBar({
-			width:300,      //describes the width
-			height:50,      //describes the height
-			min:0,            //Minimum position
-			max:1,           //Maximum value for the progress
-			value:0,
-			message:'File downloading...',
-			font:{fontSize:12, fontWeight:'bold'}
-		});
-
-		//Add the progress bar to the current window
-		myWin.add(progressBar);
-		
-		
-		httpClient.ondatastream = function(e) {
-			progressBar.value = e.progress;
-		};
-
-		*/
-
         var url = "https://capstone-ltemac.herokuapp.com/surveys/" + siteSurveyGUID;
         //alert('download url: ' + url);
         var httpClient = Ti.Network.createHTTPClient();
@@ -388,7 +328,5 @@ function downloadSurvey(siteSurveyGUID) {
         console.log('error in downloadSurvey: ' + errorMessage);
     }
 }
-
-
 
 exports.downloadSurvey = downloadSurvey;
