@@ -67,6 +67,7 @@ function preparePhotos(guid) {
 	} catch(e) {
 		uploadMedia = undefined;
 		var errorMessage = e.message;
+		Ti.App.fireEvent("app:uploadFailed");
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally{
 		db.close();
@@ -237,6 +238,7 @@ function mediaUpload(media, guid){
 				catch(e) {
 					var errorMessage = e.message;
 					console.log(errorMessage);
+					Ti.App.fireEvent("app:uploadFailed");
 					Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 				}
 				finally{
@@ -245,7 +247,7 @@ function mediaUpload(media, guid){
 				}
 			},
 			onerror : function(e) {
-				Ti.App.fireEvent("app:uploadFinished");
+				Ti.App.fireEvent("app:uploadFailed");
 				console.log('Something bad happened: {HTTPStatusCode: ' + this.status + '}');
 			},
 			timeout : 30000
@@ -293,6 +295,7 @@ function selectProtocol (guid){
 	catch(e){
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+		Ti.App.fireEvent("app:uploadFailed");
 	}
 	finally{
 		db.close();
@@ -405,6 +408,7 @@ function formAlpineGrasslandJSON(guid, callback){
 	} catch(e) {
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+		Ti.App.fireEvent("app:uploadFailed");
 	} finally{
 		db.close();
 	}
@@ -432,15 +436,18 @@ function uploadJSON(survey, guid) {
 		httpClient.onload = function() {
 			if (this.status === 200) {
 				alert(this.responseData);
+				Ti.App.fireEvent("app:uploadFinished");
 			} else {
 				alert('Upload Failed: ' + this.status);
+				Ti.App.fireEvent("app:uploadFailed");
 			}
-			Ti.App.fireEvent("app:uploadFinished");
+			
 		};
 		httpClient.onerror = function(e) {
 			Ti.API.debug("STATUS: " + this.status);
 			Ti.API.debug("TEXT:   " + this.responseText);
 			Ti.API.debug("ERROR:  " + e.error);
+			Ti.App.fireEvent("app:uploadFailed");
 			alert('upload failed');
 		};
 		var currentDate = new Date();

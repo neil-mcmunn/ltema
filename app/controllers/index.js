@@ -226,6 +226,9 @@ function createButtons(rows, isDownloaded) {
 			var versionNo = rows[i].version_no;
 			var siteGUID = rows[i].site_survey_guid;
 			
+			var exp = db.execute('SELECT exported FROM site_survey WHERE site_survey_guid = ?', siteGUID);
+			var exported = exp.fieldByName('exported');
+		
 			// get park and protocol names based on siteGUID if confirmed on device
 			//    also create a new row (gray out if not downloaded)
 			if (isDownloaded) {
@@ -245,8 +248,13 @@ function createButtons(rows, isDownloaded) {
 					protocol: protocol, //not visible, but passed to transects screen
 					height: 60,
 					font: {fontSize: 20},
-					color: 'black'
+					color: 'black',
+					exported: false
 				});
+				
+				if (exported && !superUser) {
+					newRow.exported = true;
+				}
 			// otherwise use park and protocol id's from cloud
 			} else {
 				var protocolResults = db.execute('SELECT protocol_name FROM protocol WHERE protocol_id =?', rows[i].protocol_id);
@@ -292,15 +300,28 @@ function createButtons(rows, isDownloaded) {
 				width: 60,
 				buttonid: 'download'
 			});
-			var uploadButton = Ti.UI.createButton({
-				backgroundImage:'icons/upload.png',
-				backgroundFocusedImage: 'icons/upload_clicked.png',
-				backgroundSelectedImage: 'icons/upload_clicked.png',
-				right : 135,
-				height: 60,
-				width: 60,
-				buttonid: 'upload'
-			});
+			
+			if (exported && !superUser) {
+				var uploadButton = Ti.UI.createButton({
+					backgroundImage:'icons/lock.png',
+					backgroundFocusedImage: 'icons/lock.png',
+					backgroundSelectedImage: 'icons/lock.png',
+					right : 135,
+					height: 60,
+					width: 60,
+					buttonid: 'locked'
+				});
+			} else {
+				var uploadButton = Ti.UI.createButton({
+					backgroundImage:'icons/upload.png',
+					backgroundFocusedImage: 'icons/upload_clicked.png',
+					backgroundSelectedImage: 'icons/upload_clicked.png',
+					right : 135,
+					height: 60,
+					width: 60,
+					buttonid: 'upload'
+				});
+			}
 			var exportButton = Ti.UI.createButton({
 				backgroundImage:'icons/export.png',
 				backgroundFocusedImage: 'icons/export_clicked.png',
@@ -478,7 +499,9 @@ $.tbl.addEventListener('click', function(e) {
 			}
 		});
 		dialog.show();
-
+		
+	} else if (e.source.buttonid === 'locked') {
+		alert('This survey cannot be edited');
 
 		//export button clicked
 	} else if (e.source.buttonid == 'export') {
@@ -497,10 +520,11 @@ $.tbl.addEventListener('click', function(e) {
 		//row clicked, get transect view
 	} else {
 		// if downloaded open transect view
-		if (e.rowData.color == 'black') {
+		if ((e.rowData.color === 'black') && ( ! e.rowData.exported)) {
 			var transects = Alloy.createController("transects", {siteGUID:e.rowData.siteGUID, parkName:e.rowData.site}).getView();
 			$.navGroupWin.openWindow(transects);
-		
+		} else if (e.rowData.exported) {
+			alert('Survey cannot be edited after uploading');
 		// else do nothing
 		} else {
 			alert('must download first ------>');
@@ -528,6 +552,11 @@ Ti.App.addEventListener("app:downloadStarted", function(e){
 	downloadIndicator.show();
 });
 
+Ti.App.addEventListener("app:downloadFailed", function(e){
+	console.log('DownloadFailed - Event fired');
+	downloadIndicator.hide();
+});
+
 Ti.App.addEventListener("app:downloadFinished", function(e){
 	console.log('DownloadFinished - Event fired');
 	downloadIndicator.hide();
@@ -539,40 +568,61 @@ Ti.App.addEventListener("app:uploadStarted", function(e){
 	uploadIndicator.show();
 });
 
-Ti.App.addEventListener("app:uploadFinished", function(e){
-	console.log('UploadFinished - Event fired');
-	
-	var sections = $.tbl.data;
-	var currRowGUID = Ti.App.Properties.getString('current_row_guid');
-	for(var i = 0; i < sections.length; i++) {
-	    var section = sections[i];
-	 
-	    for(var j = 0; j < section.rowCount; j++) {
-	        var row = section.rows[j];
-	        var tableRowGUID = row.siteGUID;
-	        
-	        if (tableRowGUID === currRowGUID) {
-	    		$.tbl.data[i].rows[j].color = 'green';
-	    		disableUpload(i);
-	    		console.log($.tbl.data[i].rows[j].color);
-	    		break;
-	    	}
-	    }
-	}
-	console.log(Ti.App.Properties.getString('current_row_guid'));
-	
+Ti.App.addEventListener("app:uploadFailed", function(e){
+	console.log('UploadFailed - Event fired');
 	uploadIndicator.hide();
 });
 
-function disableUpload(dataIndex) {
-	var section = $.tbl.data[dataIndex];
+Ti.App.addEventListener("app:uploadFinished", function(e){
+	console.log('UploadFinished - Event fired');
 	
-	for(var i = 0; i < section.rowCount; i++) {
-        var row = section.rows[i];
-        var buttonID = row.buttonid;
-        
+	try{
+		var db = Ti.Database.open('ltemaDB');
+		
+		var sections = $.tbl.data;
+		var currRowGUID = Ti.App.Properties.getString('current_row_guid');
+		for(var i = 0; i < sections.length; i++) {
+		    var section = sections[i];
+		 
+		    for(var j = 0; j < section.rowCount; j++) {
+		        var row = section.rows[j];
+		        var tableRowGUID = row.siteGUID;
+		        console.log(row);
+		        
+		        if (tableRowGUID === currRowGUID) {
+		        	var d = new Date();
+					var exported = d.getTime();
+		        	db.execute('UPDATE site_survey SET exported = ? WHERE site_survey_guid = ?', exported, tableRowGUID);
+		        	Ti.App.fireEvent("app:refreshSiteSurveys");
+		    		//$.tbl.data[i].rows[j].color = 'green';
+		    		//disableUpload(i, j);
+		    		// console.log($.tbl.data[i].rows[j].color);
+		    		console.log('export set');
+		    		break;
+		    	}
+		    }
+		}
+	} catch (e) {
+		var errorMessage = e.message;
+		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+	} finally {
+		db.close();
+		uploadIndicator.hide();
+	}
+	console.log(Ti.App.Properties.getString('current_row_guid'));
+	
+});
+
+function disableUpload(dataIndex, rowIndex) {
+	var row = $.tbl.data[dataIndex].rows[rowIndex];
+	console.log('disableUpload row value: ' + row);
+	
+	for(var i = 0; i < row.rowCount; i++) {
+        var button = row[i];
+        console.log ('button info: ' + button);
+        var buttonID = button.buttonid;
         if (buttonID === 'upload') {
-    		console.log($.tbl.data[dataIndex].rows[i].buttonid);
+    		console.log($.tbl.data[dataIndex].rows[rowIndex][i].buttonid);
     		break;
     	}
     }
