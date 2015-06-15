@@ -32,7 +32,6 @@ function imageDownload(media, guid){
 						AND s.park_id = prk.park_id \
 						AND site_survey_guid = ?', guid);
 						
-		console.log(JSON.stringify(dirInfo));
 		var year = dirInfo.fieldByName('year');
 		var protocolName = dirInfo.fieldByName('protocol_name');
 		var parkName = dirInfo.fieldByName('park_name');
@@ -57,7 +56,6 @@ function imageDownload(media, guid){
 		            onload : function(e) {
 						try{
 							//Wite image from Imgur to iPad
-							console.log(this.responseData);
 							file.write(this.responseData);
 							imageRecord.media_name = fileName;
 							//Update Database

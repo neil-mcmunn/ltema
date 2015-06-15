@@ -199,14 +199,7 @@ function populateTable(cloudSurveys, localSurveys) {
 			localOnlySurveys.push(results);
 		}
 	}
-
-	// console.log ('cloudOnlySurveys line 181 index.js: ');
-	// console.log(cloudOnlySurveys);
-	// console.log ('cloudAndLocalSurveys line 183 index.js: ');
-	// console.log(cloudAndLocalSurveys);
-	// console.log ('localOnlySurveys line 185 index.js: ');
-	// console.log(localOnlySurveys);
-
+	
 	Ti.App.Properties.setString('local_surveys',localOnlySurveys);
 	Ti.App.Properties.setString('downloaded_local_surveys',cloudAndLocalSurveys);
 	Ti.App.Properties.setString('cloud_surveys',cloudOnlySurveys);
@@ -214,9 +207,6 @@ function populateTable(cloudSurveys, localSurveys) {
 	createButtons(localOnlySurveys, true);
 	createButtons(cloudAndLocalSurveys, true);
 	createButtons(cloudOnlySurveys, false);
-
-	//console.log('got through createButton functions line 411 index.js');
-
 }
 
 
@@ -277,6 +267,8 @@ function createButtons(rows, isDownloaded) {
 					font: {fontSize: 20},
 					color: 'gray'
 				});
+				
+				newRow.editable = false;
 			}
 			
 			//console.log('createButtons siteSurvey: ' + siteSurvey);
@@ -380,27 +372,45 @@ $.tbl.addEventListener('refreshstart', function(e) {
 $.tbl.addEventListener('delete', function(e) {
 	//get the site_id of the current row being deleted
 	var currentSiteGUID = e.rowData.siteGUID;
-	try{
-		//open database
-		var db = Ti.Database.open('ltemaDB');
-
-		// Delete any saved files associated with this site survey
-		var folder = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, e.rowData.title);
-		if (folder.exists()) {
-			// delete the folder and it's contents
-			folder.deleteDirectory(true);
+	var isCloudOnly = e.rowData.color === 'gray' ? true : false;
+	
+	if (!isCloudOnly) {
+		console.log('site being deleted. isCloudOnly = ' + isCloudOnly);
+		try{
+			//open database
+			var db = Ti.Database.open('ltemaDB');
+	
+			//GET FOLDER NAME - Retrieve site survery, year, park
+			var rows = db.execute('SELECT year, protocol_name, park_name \
+									FROM site_survey s, protocol p, park prk \
+									WHERE s.protocol_id = p.protocol_id \
+									AND s.park_id = prk.park_id \
+									AND site_survey_guid = ?', currentSiteGUID);
+									
+		   //get the name of the directory	
+			var year = rows.fieldByName('year');
+			var protocol = rows.fieldByName('protocol_name');
+			var site = rows.fieldByName('park_name');
+			
+			// Delete any saved files associated with this site survey
+			var dir = year + ' - ' + protocol + ' - ' + site;
+			var folder = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, dir);
+			if (folder.exists()) {
+				// delete the folder and it's contents
+				folder.deleteDirectory(true);
+			}
+	
+			//delete current row from the database
+			db.execute('DELETE FROM site_survey WHERE site_survey_guid = ?', currentSiteGUID);
+	
+		} catch(e) {
+			var errorMessage = e.message;
+			Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+		} finally {
+			// Dispose of file handles and db connections
+			folder = null;
+			db.close();
 		}
-
-		//delete current row from the database
-		db.execute('DELETE FROM site_survey WHERE site_survey_guid = ?', currentSiteGUID);
-
-	} catch(e) {
-		var errorMessage = e.message;
-		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-	} finally {
-		// Dispose of file handles and db connections
-		folder = null;
-		db.close();
 	}
 
 	//check if Edit button should be enabled/disabled - if no rows exist
@@ -460,6 +470,7 @@ $.tbl.addEventListener('click', function(e) {
 			} else {
 				if (networkIsOnline) {
 					var upload = require('upload');
+					Ti.App.Properties.setString('current_row_guid', e.rowData.siteGUID);
 					upload.uploadSurvey(e.rowData.siteGUID);
 				} else {
 					alert('network is not online');
@@ -530,8 +541,42 @@ Ti.App.addEventListener("app:uploadStarted", function(e){
 
 Ti.App.addEventListener("app:uploadFinished", function(e){
 	console.log('UploadFinished - Event fired');
+	
+	var sections = $.tbl.data;
+	var currRowGUID = Ti.App.Properties.getString('current_row_guid');
+	for(var i = 0; i < sections.length; i++) {
+	    var section = sections[i];
+	 
+	    for(var j = 0; j < section.rowCount; j++) {
+	        var row = section.rows[j];
+	        var tableRowGUID = row.siteGUID;
+	        
+	        if (tableRowGUID === currRowGUID) {
+	    		$.tbl.data[i].rows[j].color = 'green';
+	    		disableUpload(i);
+	    		console.log($.tbl.data[i].rows[j].color);
+	    		break;
+	    	}
+	    }
+	}
+	console.log(Ti.App.Properties.getString('current_row_guid'));
+	
 	uploadIndicator.hide();
 });
+
+function disableUpload(dataIndex) {
+	var section = $.tbl.data[dataIndex];
+	
+	for(var i = 0; i < section.rowCount; i++) {
+        var row = section.rows[i];
+        var buttonID = row.buttonid;
+        
+        if (buttonID === 'upload') {
+    		console.log($.tbl.data[dataIndex].rows[i].buttonid);
+    		break;
+    	}
+    }
+}
 
 Ti.App.addEventListener("app:enableIndexAddButton", function(e) {
 	$.addSite.enabled = true;
@@ -622,6 +667,7 @@ function editBtn(e){
 		//enable the add and export button
 		$.addSite.enabled = true;
 		$.exportData.enabled = true;
+		Ti.App.fireEvent("app:refreshSiteSurveys");
 	}
 }
 
