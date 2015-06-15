@@ -20,34 +20,25 @@ if (Ti.App.Properties.getString('secret')) {
 	$.login.title = "Login";
 }
 
-/* example pull to refresh from github https://github.com/Nyvra/titanium-appcelerator-pull-to-refresh */
-/*Ti.include("date.js");
-Ti.include("pulltorefresh.js");
-
-var pullToRefresh = PullToRefresh.createPullToRefresh({
-	backgroundColor:"#CCC",
-	labelColor:"#000",
-	action: function() {
-		setTimeout(function() {
-			refreshBtn();
-		}, 500)
-	}
+//Download Indicator code
+var downloadIndicator = Ti.UI.createActivityIndicator({
+	width: 'auto',
+	height: 'auto',
+	message: 'Survey is downloading...',
+	style: Ti.UI.iPhone.ActivityIndicatorStyle.DARK
 });
+downloadIndicator.hide();
+$.navGroupWin.add(downloadIndicator);
 
-$.tbl.headerPullView = pullToRefresh;
-
-$.tbl.addEventListener("scroll",function(e) {
-	PullToRefresh._scroll(e);
+//Upload Indicator code
+var uploadIndicator = Ti.UI.createActivityIndicator({
+	width: 'auto',
+	height: 'auto',
+	message: 'Survey is uploading...',
+	style: Ti.UI.iPhone.ActivityIndicatorStyle.DARK
 });
-
-$.tbl.addEventListener("scrollEnd",function(e) {
-	PullToRefresh._begin(e, this);
-});
-
-PullToRefresh._end(function() {
-	$.tbl.setContentInsets({top:0},{animated:true});
-});
-*/
+uploadIndicator.hide();
+$.navGroupWin.add(uploadIndicator);
 
 console.log('getString');
 console.log(Ti.App.Properties.getString('secret'));
@@ -76,10 +67,8 @@ function checkSurveys() {
 			networkIsOnline = true;
 			var url = "https://capstone-ltemac.herokuapp.com/surveys";
 			var httpClient = Ti.Network.createHTTPClient();
-			// the 'false' optional parameter makes this a synchronous call
 			httpClient.open("GET", url);
 
-			//httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
 			httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'));
 			
 			httpClient.setRequestHeader('Content-Type', 'application/json');
@@ -89,7 +78,6 @@ function checkSurveys() {
 				Ti.API.info("Received text (index L39): " + this.responseData);
 				var returnArray = JSON.parse(this.responseData).rows;
 				checkLocalSurveys(returnArray);
-				//alert('successful checksurveys');
 			};
 			httpClient.onerror = function(e) {
 				Ti.API.debug("STATUS: " + this.status);
@@ -98,7 +86,7 @@ function checkSurveys() {
 				var cloudSurveys = [];
 				checkLocalSurveys(cloudSurveys);
 				if (this.status === 400) {
-					alert('please login')
+					alert('please login');
 				} else {
 					alert('error retrieving survey list, server offline');
 				}
@@ -521,6 +509,28 @@ Ti.App.addEventListener("app:fileSystemError", function(e) {
 
 Ti.App.addEventListener("app:refreshSiteSurveys", function(e) {
 	checkSurveys();
+});
+
+//Download Indicator Events
+Ti.App.addEventListener("app:downloadStarted", function(e){
+	console.log('DownloadStarted - Event fired');
+	downloadIndicator.show();
+});
+
+Ti.App.addEventListener("app:downloadFinished", function(e){
+	console.log('DownloadFinished - Event fired');
+	downloadIndicator.hide();
+});
+
+//Upload Indicator Events
+Ti.App.addEventListener("app:uploadStarted", function(e){
+	console.log('UploadStarted - Event fired');
+	uploadIndicator.show();
+});
+
+Ti.App.addEventListener("app:uploadFinished", function(e){
+	console.log('UploadFinished - Event fired');
+	uploadIndicator.hide();
 });
 
 Ti.App.addEventListener("app:enableIndexAddButton", function(e) {

@@ -14,6 +14,7 @@ function imageDownload(media, guid){
 	//no images are left to download
 	if(image === null){
 		console.log('Media Download - All image have been downloaded');
+		Ti.App.fireEvent("app:downloadFinished");
 		Ti.App.fireEvent("app:refreshSiteSurveys");
 	}
 	//otherwise an image is found and that image is then downloaded
@@ -22,7 +23,7 @@ function imageDownload(media, guid){
 		var imageRecord = media[image];
 		var url = 'http://i.imgur.com/' + imageRecord.flickr_id + '.jpg';
 		//Download Image form Imgur
- 		var fileName = imageRecord.flickr_id + '.jpg';
+ 		var fileName = imageRecord.flickr_id + '.png';
  		
  		var db = Ti.Database.open('ltemaDB');
 		var dirInfo = db.execute('SELECT s.year, p.protocol_name, prk.park_name \
@@ -149,11 +150,11 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 		
 		if (deviceVersion >= cloudVersion) {
 			// Inform user that device version is newer and don't change database'
-			alert('version on DEVICE is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
+			//alert('version on DEVICE is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
 
 		} else {			
 			//Insert the updated survey
-			alert('version on CLOUD is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
+			//alert('version on CLOUD is newer!\n old is ' + deviceVersion + ' new is ' + cloudVersion);
 			
 			var siteGUID = cloudSiteSurveyGUID;
 			//delete existing data
@@ -304,6 +305,7 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 	} catch (e){
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+		//Ti.App.fireEvent("app:downloadFinished");
 	} finally {
 		db.close();
 	}
@@ -312,6 +314,7 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 
 function downloadSurvey(siteSurveyGUID) {
     try {
+    	Ti.App.fireEvent("app:downloadStarted");
         console.log('enter try in downloadSurvey');
         var url = "https://capstone-ltemac.herokuapp.com/surveys/" + siteSurveyGUID;
         //alert('download url: ' + url);
@@ -328,7 +331,7 @@ function downloadSurvey(siteSurveyGUID) {
             Ti.API.info("Downloading...");
             var returnArray = JSON.parse(this.responseData);
             processDownload(returnArray, siteSurveyGUID);
-            alert('download processed');
+            //alert('download processed');
         };
         httpClient.onerror = function(e) {
             Ti.API.debug("STATUS: " + this.status);

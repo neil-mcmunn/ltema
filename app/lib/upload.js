@@ -9,19 +9,10 @@ Ti.App.addEventListener("app:dataBaseError", function(e) {
 
 function preparePhotos(guid) {
 	try{
+		Ti.App.fireEvent("app:uploadStarted");
 		console.log('enter preparePhotos');
 		
 		var db = Ti.Database.open('ltemaDB');
-		/*
-		//Get park and protocol names
-		var surveyMeta = db.execute('SELECT pa.park_id, pa.park_name, pr.protocol_id, pr.protocol_name ' +
-									 'FROM park pa, protocol pr, site_survey su ' +
-									 'WHERE pa.park_id = su.park_id ' +
-									 'AND pr.protocol_id = su.park_id ' +
-									 'AND su.site_survey_guid = ?', guid);
-
-		var park = surveyMeta.fieldByName('park_name');
-		*/
 		var mediaIDs = [];
 		var transects = db.execute('SELECT transect_guid, media_id FROM transect WHERE site_survey_guid = ?', guid);
 			
@@ -70,8 +61,7 @@ function preparePhotos(guid) {
 		}
 
 
-		//Upload all un-uploaded photos to flickr
-		//uploadPhotos(uploadMedia, guid);
+		//Upload all un-uploaded photos to Imgur
 		mediaUpload(uploadMedia, guid);
 
 	} catch(e) {
@@ -255,7 +245,8 @@ function mediaUpload(media, guid){
 				}
 			},
 			onerror : function(e) {
-				console.log('Something bad happened: ' + this.status);
+				Ti.App.fireEvent("app:uploadFinished");
+				console.log('Something bad happened: {HTTPStatusCode: ' + this.status + '}');
 			},
 			timeout : 30000
 		});
@@ -306,7 +297,6 @@ function selectProtocol (guid){
 	finally{
 		db.close();
 	}
-	//POST data to cloud
 }
 
 //Create a JSON object representing an alpine or grassland survey
@@ -436,8 +426,6 @@ function uploadJSON(survey, guid) {
 		var url = 'https://capstone-ltemac.herokuapp.com/surveys';
 		var httpClient = Ti.Network.createHTTPClient();
 		httpClient.open("POST", url);
-		//httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'));
-		//httpClient.setRequestHeader('secret', '12345-12345-12345-12345-12345');
 		httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'));
 		httpClient.setRequestHeader('Content-Type', 'application/json');
 
@@ -447,6 +435,7 @@ function uploadJSON(survey, guid) {
 			} else {
 				alert('Upload Failed: ' + this.status);
 			}
+			Ti.App.fireEvent("app:uploadFinished");
 		};
 		httpClient.onerror = function(e) {
 			Ti.API.debug("STATUS: " + this.status);

@@ -212,7 +212,7 @@ function populateTable() {
 			//add the total ground cover label
 				var groundCoverLabel = Ti.UI.createLabel({
 					text: totalGroundCover + '%',
-					right: 55,
+					right: 75,
 					font: {fontSize: 20}
 				});
 				newRow.add(groundCoverLabel);
@@ -221,13 +221,16 @@ function populateTable() {
 				if(mediaID != null){
 					//create and add info icon for the row
 					var infoButton = Ti.UI.createButton({
-						style : Titanium.UI.iPhone.SystemButton.DISCLOSURE,
+						backgroundImage:'icons/info.png',
+						backgroundFocusedImage: 'icons/info_clicked.png',
+						backgroundSelectedImage: 'icons/info_clicked.png',
 						right : 15,
 						height: 60,
-						width: 60
+						width: 60,
+						buttonid: 'info'
 					});
 				}else{
-					//create and add info icon for the row
+					//create and add info edit for the row
 					var infoButton = Ti.UI.createButton({
 						image : "icons/edit_file.png",
 						right : 15,

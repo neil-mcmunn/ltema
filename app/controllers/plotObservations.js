@@ -55,17 +55,20 @@ function populateTable() {
 			//add the ground cover label
 			var groundCoverLabel = Ti.UI.createLabel({
 				text: groundCover + '%',
-				right: 55,
+				right: 75,
 				font: {fontSize: 20}
 			});
 			newRow.add(groundCoverLabel);
 			
 			//add an info icon to the row
 			var infoButton = Ti.UI.createButton({
-				style: Ti.UI.iPhone.SystemButton.DISCLOSURE,
-				right: 15,
+				backgroundImage:'icons/info.png',
+				backgroundFocusedImage: 'icons/info_clicked.png',
+				backgroundSelectedImage: 'icons/info_clicked.png',
+				right : 15,
 				height: 60,
-				width: 60
+				width: 60,
+				buttonid: 'info'
 			});
 			newRow.add(infoButton);
 			
