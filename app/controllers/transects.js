@@ -57,13 +57,6 @@ function populateTable() {
 					
 					//create and add info icon for the row
 					var infoButton = Ti.UI.createButton({
-						style : Titanium.UI.iPhone.SystemButton.DISCLOSURE,
-						right : 15,
-						height: 60,
-						width: 60
-					});
-					/*
-					var infoButton = Ti.UI.createButton({
 						backgroundImage:'icons/info.png',
 						backgroundFocusedImage: 'icons/info_clicked.png',
 						backgroundSelectedImage: 'icons/info_clicked.png',
@@ -72,7 +65,7 @@ function populateTable() {
 						width: 60,
 						buttonid: 'info'
 					});
-					*/
+					
 				}else{
 					//create and add info icon for the row
 					var infoButton = Ti.UI.createButton({

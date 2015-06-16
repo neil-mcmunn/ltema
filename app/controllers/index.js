@@ -39,17 +39,13 @@ var uploadIndicator = Ti.UI.createActivityIndicator({
 });
 uploadIndicator.hide();
 $.navGroupWin.add(uploadIndicator);
+console.log('index line 42');
+console.log($.navGroupWin.children);
 
-console.log('getString');
-console.log(Ti.App.Properties.getString('secret'));
-console.log('authLevel getString');
-console.log(Ti.App.Properties.getString('auth_level'));
 
 checkSurveys();
 
 function checkSurveys() {
-	console.log('enter checkSurveys');
-
 	// check for network
 	if (Titanium.Network.networkType == Titanium.Network.NETWORK_NONE){
 		var alertDialog = Titanium.UI.createAlertDialog({
@@ -65,12 +61,11 @@ function checkSurveys() {
 	} else {
 		try {
 			networkIsOnline = true;
+			
 			var url = "https://capstone-ltemac.herokuapp.com/surveys";
 			var httpClient = Ti.Network.createHTTPClient();
 			httpClient.open("GET", url);
-
 			httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'));
-			
 			httpClient.setRequestHeader('Content-Type', 'application/json');
 
 			httpClient.onload = function() {
@@ -92,9 +87,7 @@ function checkSurveys() {
 				}
 			};
 
-			//console.log('setRequestHeader secret, now sending');
 			httpClient.send();
-			//console.log('httpClient object has been sent');
 		}
 		catch (e) {
 			var errorMessage = e.message;
@@ -104,7 +97,6 @@ function checkSurveys() {
 }
 
 function checkLocalSurveys (cloudSurveys) {
-	console.log('enter checkLocalSurveys');
 	try {
 		//open database
 		var db = Ti.Database.open('ltemaDB');//Query - Retrieve existing sites from sqlite database
@@ -124,8 +116,6 @@ function checkLocalSurveys (cloudSurveys) {
 
 			rows.next();
 		}
-		// console.log('index L100 localSurveys: ');
-		// console.log(localSurveys);
 
 		populateTable(cloudSurveys, localSurveys);
 
@@ -140,7 +130,6 @@ function checkLocalSurveys (cloudSurveys) {
 
 
 function populateTable(cloudSurveys, localSurveys) {
-	console.log('enter populateTable (index)');
 	$.addSite.enabled = true;
 	//Clear the table if there is anything in it
 	var rd = [];
@@ -204,14 +193,13 @@ function populateTable(cloudSurveys, localSurveys) {
 	Ti.App.Properties.setString('downloaded_local_surveys',cloudAndLocalSurveys);
 	Ti.App.Properties.setString('cloud_surveys',cloudOnlySurveys);
 
-	createButtons(localOnlySurveys, true);
-	createButtons(cloudAndLocalSurveys, true);
-	createButtons(cloudOnlySurveys, false);
+	createButtons(localOnlySurveys, true, true);
+	createButtons(cloudAndLocalSurveys, true, false);
+	createButtons(cloudOnlySurveys, false, false);
 }
 
 
-function createButtons(rows, isDownloaded) {
-	//console.log('enter createButtons');
+function createButtons(rows, isDownloaded, localOnly) {
 	try {
 		var db = Ti.Database.open('ltemaDB');
 		
@@ -239,7 +227,6 @@ function createButtons(rows, isDownloaded) {
 				var site = siteResults.fieldByName('park_name');
 				
 				//create a string from each entry
-				//var siteSurvey = year.slice(0,4) + ' - ' + protocol + ' - ' + site;
 				var siteSurvey = protocol + ' - ' + site.slice(0, 30);
 				var newRow = Ti.UI.createTableViewRow({
 					title: siteSurvey,
@@ -264,7 +251,6 @@ function createButtons(rows, isDownloaded) {
 				var site = siteResults.fieldByName('park_name');
 				
 				//create a string from each entry
-				//var siteSurvey = year.slice(0,4) + ' - ' + protocol + ' - ' + site;
 				var siteSurvey = protocol + ' - ' + site.slice(0, 30);
 				var newRow = Ti.UI.createTableViewRow({
 					title: siteSurvey,
@@ -278,8 +264,6 @@ function createButtons(rows, isDownloaded) {
 				
 				newRow.editable = false;
 			}
-			
-			//console.log('createButtons siteSurvey: ' + siteSurvey);
 	
 			//create and add info icon for the row
 			var infoButton = Ti.UI.createButton({
@@ -322,28 +306,14 @@ function createButtons(rows, isDownloaded) {
 					buttonid: 'upload'
 				});
 			}
-			var exportButton = Ti.UI.createButton({
-				backgroundImage:'icons/export.png',
-				backgroundFocusedImage: 'icons/export_clicked.png',
-				backgroundSelectedImage: 'icons/export_clicked.png',
-				right : 195,
-				height: 60,
-				width: 60,
-				buttonid: 'export'
-			});
 			
 			newRow.add(infoButton);
 			
-			if (networkIsOnline) {
+			if (networkIsOnline && !localOnly) {
 				newRow.add(downloadButton);
 			}
 			
-			if (isDownloaded && superUser) {
-				if (networkIsOnline) { 
-					newRow.add(uploadButton);
-				}
-				//newRow.add(exportButton);
-			} else if (isDownloaded && networkIsOnline) {
+			if (isDownloaded && networkIsOnline) {
 				newRow.add(uploadButton);	
 			}
 						
@@ -376,27 +346,13 @@ var titleLabel = Titanium.UI.createLabel({
 // Associate label to title
 $.siteSurveysWin.setTitleControl(titleLabel);
 
-
-/* Event Listeners */
-
-/*
-// pull down to refresh
-$.tbl.addEventListener('refreshstart', function(e) {
-	Ti.API.info('refreshstart');
-
-	section.appendItems(genData());
-	control.endRefreshing();
-});
-*/
-
 //Delete event listener
 $.tbl.addEventListener('delete', function(e) {
 	//get the site_id of the current row being deleted
 	var currentSiteGUID = e.rowData.siteGUID;
-	var isCloudOnly = e.rowData.color === 'gray' ? true : false;
+	var cloudOnly = e.rowData.color === 'gray' ? true : false;
 	
-	if (!isCloudOnly) {
-		console.log('site being deleted. isCloudOnly = ' + isCloudOnly);
+	if (!cloudOnly) {
 		try{
 			//open database
 			var db = Ti.Database.open('ltemaDB');
@@ -533,12 +489,10 @@ $.tbl.addEventListener('click', function(e) {
 });
 
 Ti.App.addEventListener("app:dataBaseError", function(e) {
-	//TODO: handle a database error for the app
 	Titanium.API.error("Database error: " + e.error);
 });
 
 Ti.App.addEventListener("app:fileSystemError", function(e) {
-	//TODO: handle a file system error for the app
 	Titanium.API.error("File system error: " + e.error);
 });
 
@@ -587,17 +541,12 @@ Ti.App.addEventListener("app:uploadFinished", function(e){
 		    for(var j = 0; j < section.rowCount; j++) {
 		        var row = section.rows[j];
 		        var tableRowGUID = row.siteGUID;
-		        console.log(row);
 		        
 		        if (tableRowGUID === currRowGUID) {
 		        	var d = new Date();
 					var exported = d.getTime();
 		        	db.execute('UPDATE site_survey SET exported = ? WHERE site_survey_guid = ?', exported, tableRowGUID);
 		        	Ti.App.fireEvent("app:refreshSiteSurveys");
-		    		//$.tbl.data[i].rows[j].color = 'green';
-		    		//disableUpload(i, j);
-		    		// console.log($.tbl.data[i].rows[j].color);
-		    		console.log('export set');
 		    		break;
 		    	}
 		    }
@@ -609,24 +558,7 @@ Ti.App.addEventListener("app:uploadFinished", function(e){
 		db.close();
 		uploadIndicator.hide();
 	}
-	console.log(Ti.App.Properties.getString('current_row_guid'));
-	
 });
-
-function disableUpload(dataIndex, rowIndex) {
-	var row = $.tbl.data[dataIndex].rows[rowIndex];
-	console.log('disableUpload row value: ' + row);
-	
-	for(var i = 0; i < row.rowCount; i++) {
-        var button = row[i];
-        console.log ('button info: ' + button);
-        var buttonID = button.buttonid;
-        if (buttonID === 'upload') {
-    		console.log($.tbl.data[dataIndex].rows[rowIndex][i].buttonid);
-    		break;
-    	}
-    }
-}
 
 Ti.App.addEventListener("app:enableIndexAddButton", function(e) {
 	$.addSite.enabled = true;
@@ -652,15 +584,9 @@ Ti.App.addEventListener("app:enableIndexRefreshButton", function(e) {
 
 Ti.Network.addEventListener('change', function(e) {
 	networkIsOnline = e.online;
-	//networkType = e.networkType;
-	console.log('Ti network listener occurred' + networkIsOnline);
 	Ti.App.fireEvent("app:refreshSiteSurveys");
 });
 
-
-//Ti.login.addEventListener('click', function(e) {
-//	loginBtn();
-//})
 
 /* Functions */
 
@@ -723,7 +649,6 @@ function editBtn(e){
 
 function loginBtn() {
 	// get user to input secret (authentication)
-	
 	var loggedIn = Ti.App.Properties.getString('secret') === null ? false : true;
 	
 	if ( ! loggedIn) {
@@ -762,17 +687,12 @@ function loginBtn() {
 				Ti.App.Properties.setString('secret',null);
 				Ti.App.fireEvent("app:refreshSiteSurveys");
 			}
-			Ti.API.info('e.cancel: ' + e.cancel);
-			Ti.API.info('e.source.cancel: ' + e.source.cancel);
-			Ti.API.info('e.index: ' + e.index);
 		});
 		dialog.show();
 	}		
 }
 
 function authenticate(secret){
-	console.log('enter authenticate function');
-
 	// check for network
 	if (Titanium.Network.networkType == Titanium.Network.NETWORK_NONE){
 		var alertDialog = Titanium.UI.createAlertDialog({
@@ -787,7 +707,6 @@ function authenticate(secret){
 			var url = "https://capstone-ltemac.herokuapp.com/imageStorageKey";
 			var httpClient = Ti.Network.createHTTPClient();
 			httpClient.open("GET", url);
-
 			httpClient.setRequestHeader('secret', secret);
 			httpClient.setRequestHeader('Content-Type', 'application/json');
 

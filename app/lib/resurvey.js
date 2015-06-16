@@ -135,6 +135,7 @@ function insertNewSurvey(survey) {
 		// Copy and associate any existing transects
 		for (var i = 0; i < transectRows.length; i++) {
 
+			var oldTransectGUID = transectRows[i].transect_guid;
 			var transectGUID = uuid.generateUUID();
 			var transectName = transectRows[i].transect_name;
 			var plotDistance = transectRows[i].plot_distance;
@@ -149,7 +150,12 @@ function insertNewSurvey(survey) {
 			
 			// Copy and associate any existing plots
 			for (var j = 0; j < plotRows.length; j++) {
+				var plotTransectGUID = plotRows[j].transect_guid;
+				if (plotTransectGUID !== oldTransectGUID) {
+					continue;
+				}
 				
+				var oldPlotGUID = plotRows[j].plot_guid;
 				var plotGUID = uuid.generateUUID();
 				var plotName = plotRows[j].plot_name;
 				var plotUtmZone = plotRows[j].utm_zone;
@@ -165,6 +171,10 @@ function insertNewSurvey(survey) {
 					
 				// Copy and associate any existing plot observations
 				for (var k = 0; k < plotObservationRows.length; k++) {
+					var plotObsPlotGUID = plotObservationRows[k].plot_guid;
+					if (plotObsPlotGUID !== oldPlotGUID) {
+						continue;
+					}
 
 					var observationGUID = uuid.generateUUID();
 					var observation = plotObservationRows[k].observation;
@@ -178,28 +188,6 @@ function insertNewSurvey(survey) {
 				}
 			}	
 		}
-		
-		// var test = db.execute('select s.site_survey_guid, t.transect_guid, p.plot_guid, po.plot_observation_guid \
-								// from site_survey s, transect t, plot p, plot_observation po \
-								// where s.site_survey_guid = t.site_survey_guid \
-								// and t.transect_guid = p.transect_guid \
-								// and p.plot_guid = po.plot_guid\
-								// and s.site_survey_guid = ?', newGUID);
-// 								
-		// var testArray = [];
-		// while (test.isValidRow()) {
-			// var s = test.fieldByName('site_survey_guid');
-			// var t = test.fieldByName('transect_guid');
-			// var p = test.fieldByName('plot_guid');
-			// var po = test.fieldByName('plot_observation_guid');
-// 			
-			// var results = {'site':s, 'transect':t, 'plot':p, 'plobs':po}; 
-// 			
-			// testArray.push(results);
-		// }
-// 		
-		// console.log ('test array insert resurvey');
-		// console.log(testArray);
 	} catch (e){
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});

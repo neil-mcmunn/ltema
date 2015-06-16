@@ -9,8 +9,8 @@ Ti.App.addEventListener("app:dataBaseError", function(e) {
 
 function preparePhotos(guid) {
 	try{
-		Ti.App.fireEvent("app:uploadStarted");
 		console.log('enter preparePhotos');
+		Ti.App.fireEvent("app:uploadStarted");
 		
 		var db = Ti.Database.open('ltemaDB');
 		var mediaIDs = [];
@@ -60,26 +60,16 @@ function preparePhotos(guid) {
 			uploadMedia.push(results);
 		}
 
-
 		//Upload all un-uploaded photos to Imgur
 		mediaUpload(uploadMedia, guid);
 
 	} catch(e) {
 		uploadMedia = undefined;
 		var errorMessage = e.message;
-		Ti.App.fireEvent("app:uploadFailed");
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally{
 		db.close();
 	}
-}
-
-function enterflickrIDs(media, guid){
-	console.log('Media After Upload');
-	console.log(media);
-	
-	
-	selectProtocol(guid);
 }
 
 function uploadPhotos (media, guid, callback){
@@ -108,7 +98,6 @@ function uploadPhotos (media, guid, callback){
 	}
 	
 	var numImages = media.length;
-	console.log(numImages);
 	
 	for(var n = 0; n < media.length; n++){
 		if (!media[n].media_name) {
@@ -157,22 +146,20 @@ function uploadPhotos (media, guid, callback){
 				}
 			},
 			onerror : function(e) {
+				Ti.App.fireEvent("app:uploadFailed");
 				console.log('Something bad happened: ' + this.status);
 			},
 			timeout : 60000
 		});
 		
-		console.log('Opening http connection.');
 		xhr.open('POST', url);
 		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 		xhr.setRequestHeader('Authorization', 'Client-ID ' + api_key);
-		console.log('Sending post request.');
 		xhr.send(photo);
 	}
 }
 
 function mediaUpload(media, guid){
-	console.log('Media Upload');
 	//go through media looking for object without a flickr id
 	var image = null;
 	for(var i = 0; i < media.length; i++){
@@ -454,16 +441,14 @@ function uploadJSON(survey, guid) {
 		var now = currentDate.toISOString();
 
 		httpClient.send(
-				JSON.stringify(
-					{
-						guid: survey.survey_meta.site_survey_guid,
-						park: survey.survey_meta.park,
-						protocol: survey.survey_meta.protocol,
-						survey_data: survey,
-						date_surveyed: survey.survey_meta.date_surveyed,
-						version_no: survey.survey_meta.version_no
-					}
-				)
+			JSON.stringify({
+				guid: survey.survey_meta.site_survey_guid,
+				park: survey.survey_meta.park,
+				protocol: survey.survey_meta.protocol,
+				survey_data: survey,
+				date_surveyed: survey.survey_meta.date_surveyed,
+				version_no: survey.survey_meta.version_no
+			})
 		);
 		
 		console.log('uploadJSON httpClient sent');
@@ -471,54 +456,8 @@ function uploadJSON(survey, guid) {
 	catch(e){
 		var errorMessage = e.message;
 		console.log('error in authentication function: ' + errorMessage);
+		Ti.App.fireEvent("app:uploadFailed");
 	}
-}
-
-//Assess if all the propertiees of an object have been assigned
-function varsAssigned(object){
-	for (var prop in object){
-		if(prop === undefined){
-			return false;
-		}
-	}
-
-	return true;
-}
-
-function createSignature(params, url){
-	function printParameters(params){
-		//var params = params || {one:1,two:2,three:3};
-		
-		console.log("Unsorted Sig Params: " + JSON.stringify(params));
-		var keys = Object.getOwnPropertyNames(params);
-		console.log('Sorted keys: ' + keys);
-
-		//Generate a string for each key-value pair
-		var pairs = [];
-		for(key in keys){
-			pairs.push(keys[key] + '=' + params[keys[key]]);
-		}
-		console.log('pairs: ');
-		console.log (pairs);
-
-		params = '';
-
-		//Combine all key-value pairs into a single string
-		for(pair in pairs){
-			params = params + pairs[pair] + '&';
-		}
-		//Remove the extra "&" from the above loop
-		params = params.slice(0, -1);
-		//console.log('Signature Params: ' + params)
-		return params;
-	}
-
-	//Combine the 3 signature component and URI encode them
-	var sig = encodeURIComponent('POST')	+"&" + encodeURIComponent(url) + '&' + encodeURIComponent(printParameters(params));
-	//sig = hmacsha1encode(sig);
-	//sig = base64encode(sig);
-	console.log('createSignature: ' + sig);
-	return sig;
 }
 
 exports.uploadSurvey = preparePhotos;
