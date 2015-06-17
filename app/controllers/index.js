@@ -13,34 +13,15 @@ Ti.Geolocation.removeEventListener('location', function(e) {});
 //Prompt the user to allow applicaiton to use location services
 Titanium.Geolocation.getCurrentPosition(function(e) {});
 
+var uie = require('UiElements');
+var indicator = uie.createIndicatorWindow();
+
 var networkIsOnline, networkType;
 if (Ti.App.Properties.getString('secret')) {
 	$.login.title = "Logout";
 } else {
 	$.login.title = "Login";
 }
-
-//Download Indicator code
-var downloadIndicator = Ti.UI.createActivityIndicator({
-	width: 'auto',
-	height: 'auto',
-	message: 'Survey is downloading...',
-	style: Ti.UI.iPhone.ActivityIndicatorStyle.DARK
-});
-downloadIndicator.hide();
-$.navGroupWin.add(downloadIndicator);
-
-//Upload Indicator code
-var uploadIndicator = Ti.UI.createActivityIndicator({
-	width: 'auto',
-	height: 'auto',
-	message: 'Survey is uploading...',
-	style: Ti.UI.iPhone.ActivityIndicatorStyle.DARK
-});
-uploadIndicator.hide();
-$.navGroupWin.add(uploadIndicator);
-console.log('index line 42');
-console.log($.navGroupWin.children);
 
 
 checkSurveys();
@@ -194,12 +175,12 @@ function populateTable(cloudSurveys, localSurveys) {
 	Ti.App.Properties.setString('cloud_surveys',cloudOnlySurveys);
 
 	createButtons(localOnlySurveys, true, true);
-	createButtons(cloudAndLocalSurveys, true, false);
+	createButtons(cloudAndLocalSurveys, true, true);
 	createButtons(cloudOnlySurveys, false, false);
 }
 
 
-function createButtons(rows, isDownloaded, localOnly) {
+function createButtons(rows, isDownloaded, local) {
 	try {
 		var db = Ti.Database.open('ltemaDB');
 		
@@ -309,7 +290,7 @@ function createButtons(rows, isDownloaded, localOnly) {
 			
 			newRow.add(infoButton);
 			
-			if (networkIsOnline && !localOnly) {
+			if (networkIsOnline && !local) {
 				newRow.add(downloadButton);
 			}
 			
@@ -446,9 +427,29 @@ $.tbl.addEventListener('click', function(e) {
 				Ti.API.info('The cancel button was clicked');
 			} else {
 				if (networkIsOnline) {
-					var upload = require('upload');
-					Ti.App.Properties.setString('current_row_guid', e.rowData.siteGUID);
-					upload.uploadSurvey(e.rowData.siteGUID);
+					try {
+						var db = Ti.Database.open('ltemaDB');
+						var t = db.execute('SELECT transect_guid FROM transect WHERE site_survey_guid = ?', e.rowData.siteGUID);
+						var transectGUID = t.fieldByName('transect_guid');
+						var p = db.execute('SELECT plot_guid FROM plot WHERE transect_guid = ?', transectGUID);
+						var plotGUID = p.fieldByName('plot_guid');
+						var o = db.execute('SELECT plot_observation_guid FROM plot_observation WHERE plot_guid = ?', plotGUID);
+						var observationCount = o.rowCount;
+						
+						if (observationCount > 0) {
+							var upload = require('upload');
+							Ti.App.Properties.setString('current_row_guid', e.rowData.siteGUID);
+							upload.uploadSurvey(e.rowData.siteGUID);
+						} else {
+							alert('the survey is too short');
+						}
+						
+					} catch (e) {
+						db.close();
+						var errorMessage = e.message;
+						Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+						alert('survey too short');
+					}
 				} else {
 					alert('network is not online');
 				}
@@ -503,28 +504,33 @@ Ti.App.addEventListener("app:refreshSiteSurveys", function(e) {
 //Download Indicator Events
 Ti.App.addEventListener("app:downloadStarted", function(e){
 	console.log('DownloadStarted - Event fired');
-	downloadIndicator.show();
+	//downloadIndicator.show();
+	indicator.openIndicator();
 });
 
 Ti.App.addEventListener("app:downloadFailed", function(e){
 	console.log('DownloadFailed - Event fired');
-	downloadIndicator.hide();
+	//downloadIndicator.hide();
+	indicator.closeIndicator();
 });
 
 Ti.App.addEventListener("app:downloadFinished", function(e){
 	console.log('DownloadFinished - Event fired');
-	downloadIndicator.hide();
+	//downloadIndicator.hide();
+	indicator.closeIndicator();
 });
 
 //Upload Indicator Events
 Ti.App.addEventListener("app:uploadStarted", function(e){
 	console.log('UploadStarted - Event fired');
-	uploadIndicator.show();
+	//uploadIndicator.show();
+	indicator.openIndicator();
 });
 
 Ti.App.addEventListener("app:uploadFailed", function(e){
 	console.log('UploadFailed - Event fired');
-	uploadIndicator.hide();
+	//uploadIndicator.hide();
+	indicator.closeIndicator();
 });
 
 Ti.App.addEventListener("app:uploadFinished", function(e){
@@ -556,7 +562,8 @@ Ti.App.addEventListener("app:uploadFinished", function(e){
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 	} finally {
 		db.close();
-		uploadIndicator.hide();
+		//uploadIndicator.hide();
+		indicator.closeIndicator();
 	}
 });
 

@@ -32,6 +32,7 @@ function downloadSurvey(siteSurveyGUID) {
     catch (e) {
         var errorMessage = e.message;
         console.log('error in downloadSurvey: ' + errorMessage);
+        Ti.App.fireEvent("app:downloadFailed");
     }
 }
 
@@ -234,7 +235,7 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 	} catch (e){
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-		//Ti.App.fireEvent("app:downloadFinished");
+		Ti.App.fireEvent("app:downloadFailed");
 	} finally {
 		db.close();
 	}
@@ -244,7 +245,7 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 
 function imageDownload(media, guid){
 	console.log('Media Download');
-	//console.log(media);
+	console.log(media);
 	//go through media looking for object with a flickr id
 	var image = null;
 	for(var i = 0; i < media.length; i++){
@@ -278,7 +279,13 @@ function imageDownload(media, guid){
 		var protocolName = dirInfo.fieldByName('protocol_name');
 		var parkName = dirInfo.fieldByName('park_name');
 		var dir = year + ' - ' + protocolName + ' - ' + parkName;
+		//Check to see if survey folder exists
 		var imageDir = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, dir);
+		//Create if it doesn't
+		if (! imageDir.exists()) {
+			imageDir.createDirectory();
+		}
+		
 		var file = Ti.Filesystem.getFile(imageDir.resolve(), fileName);
  		db.close();
  		
@@ -298,6 +305,7 @@ function imageDownload(media, guid){
 		            onload : function(e) {
 						try{
 							//Wite image from Imgur to iPad
+							console.log('Imgur response: ' + this.responseData);
 							file.write(this.responseData);
 							imageRecord.media_name = fileName;
 							//Update Database
