@@ -93,6 +93,8 @@ try{
 		var imageFile = Ti.Filesystem.getFile(imageDir.resolve(), mediaName);
 		if (imageFile.exists()) {
 			//Set thumbnail
+			Ti.App.Properties.setString('media_name', mediaName);
+			Ti.App.Properties.setString('folder_name', folderName);
 			$.plotThumbnail.visible = true;
 			$.plotThumbnail.image = imageFile;
 			$.thumbnailHintText.visible = true;

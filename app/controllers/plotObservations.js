@@ -33,7 +33,7 @@ function populateTable() {
 		//Query - Observations of a plot
 		var rows = db.execute('SELECT plot_observation_guid, observation, ground_cover, comments, media_id \
 						FROM plot_observation \
-						WHERE plot_guid = ?', $.tbl.plotGUID); 
+						WHERE plot_guid = ?', plotGUID); 
 		
 		while (rows.isValidRow()) {
 			var observationGUID = rows.fieldByName('plot_observation_guid');	

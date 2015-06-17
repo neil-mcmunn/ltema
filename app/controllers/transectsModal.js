@@ -80,6 +80,8 @@ try {
 		// .resolve() provides the resolved native path for the directory.
 		var imageFile = Ti.Filesystem.getFile(imageDir.resolve(), mediaName);
 		if (imageFile.exists()) {
+			Ti.App.Properties.setString('media_name', mediaName);
+			Ti.App.Properties.setString('folder_name', folderName);
 			//Set thumbnail
 			$.transectThumbnail.visible = true;
 			$.transectThumbnail.image = imageFile;
