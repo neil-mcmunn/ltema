@@ -512,12 +512,14 @@ Ti.App.addEventListener("app:downloadFailed", function(e){
 	console.log('DownloadFailed - Event fired');
 	//downloadIndicator.hide();
 	indicator.closeIndicator();
+	alert('Download Failed');
 });
 
 Ti.App.addEventListener("app:downloadFinished", function(e){
 	console.log('DownloadFinished - Event fired');
 	//downloadIndicator.hide();
 	indicator.closeIndicator();
+	alert('Download Complete');
 });
 
 //Upload Indicator Events
@@ -531,6 +533,7 @@ Ti.App.addEventListener("app:uploadFailed", function(e){
 	console.log('UploadFailed - Event fired');
 	//uploadIndicator.hide();
 	indicator.closeIndicator();
+	alert('Upload Failed');
 });
 
 Ti.App.addEventListener("app:uploadFinished", function(e){
@@ -564,6 +567,7 @@ Ti.App.addEventListener("app:uploadFinished", function(e){
 		db.close();
 		//uploadIndicator.hide();
 		indicator.closeIndicator();
+		alert('Upload Complete');
 	}
 });
 

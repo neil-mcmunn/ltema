@@ -4,7 +4,7 @@ var uuid = require('uuid');
 
 Ti.App.addEventListener("app:dataBaseError", function(e) {
 	//TODO: handle a database error for the app
-	Titanium.API.error("Database error: " + e.error);
+	Titanium.API.error("Database error (upload): " + e.error);
 });
 
 function preparePhotos(guid) {
@@ -67,95 +67,9 @@ function preparePhotos(guid) {
 		uploadMedia = undefined;
 		var errorMessage = e.message;
 		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+		Ti.App.fireEvent("app:uploadFailed");
 	} finally{
 		db.close();
-	}
-}
-
-function uploadPhotos (media, guid, callback){
-	console.log('enter uploadPhotos');
-	console.log(media);
-	var api_key = 'b83eff8511af696';
-	
-	try {
-		var db = Ti.Database.open('ltemaDB');
-		
-		var dirInfo = db.execute('SELECT s.year, p.protocol_name, prk.park_name \
-						FROM site_survey s, protocol p, park prk \
-						WHERE s.protocol_id = p.protocol_id \
-						AND s.park_id = prk.park_id \
-						AND site_survey_guid = ?', guid);
-						
-		var year = dirInfo.fieldByName('year');
-		var protocolName = dirInfo.fieldByName('protocol_name');
-		var parkName = dirInfo.fieldByName('park_name');
-		
-	} catch(e) {
-		var errorMessage = e.message;
-		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-	} finally{
-		db.close();
-	}
-	
-	var numImages = media.length;
-	
-	for(var n = 0; n < media.length; n++){
-		if (!media[n].media_name) {
-			numImages--;
-			continue;
-		}
-		
-		var mediaName = media[n].media_name;
-		var mediaID = media[n].media_id;
-		//Get a photo as a string from the filesystem
-		var dir = year + ' - ' + protocolName + ' - ' + parkName; 
-		var imageDir = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, dir);
-		var file = Ti.Filesystem.getFile(imageDir.resolve(), mediaName);
-		var photo = Titanium.Utils.base64encode(file.read());
-		//Remove the file from memory
-		file = null;
-		var url = 'https://api.imgur.com/3/upload';
-		var xhr = Titanium.Network.createHTTPClient({
-			onload : function(e) {
-				try{
-					var response = JSON.parse(this.responseData);
-					console.log(response);
-					console.log('n: ' + n);
-					console.log(media);
-					console.log('This');
-					console.log(this);
-					var photoID = response.data.id;
-					media[n].flickr_id = photoID;
-					/*
-					var db = Ti.Database.open('ltemaDB');
-					var rows = db.execute( 'UPDATE media SET flickr_id = ? WHERE media_id = ?', photoID, mediaID);
-					*/
-					numImages--;
-					console.log('Number of images left to go: ' + numImages);
-					if(numImages === 0){
-						enterflickrIDs(media, guid);
-					}
-				}
-				catch(e) {
-					var errorMessage = e.message;
-					console.log(errorMessage);
-					Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-				}
-				finally{
-					//db.close();
-				}
-			},
-			onerror : function(e) {
-				Ti.App.fireEvent("app:uploadFailed");
-				console.log('Something bad happened: ' + this.status);
-			},
-			timeout : 60000
-		});
-		
-		xhr.open('POST', url);
-		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-		xhr.setRequestHeader('Authorization', 'Client-ID ' + api_key);
-		xhr.send(photo);
 	}
 }
 
@@ -194,6 +108,7 @@ function mediaUpload(media, guid){
 		catch(e) {
 			var errorMessage = e.message;
 			Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+			Ti.App.fireEvent("app:uploadFailed");
 		}
 		finally{
 			db.close();
@@ -202,8 +117,11 @@ function mediaUpload(media, guid){
 		var imageRecord = media[image]; 
 		//Get a the photo as a string from the filesystem
 		var dir = year + ' - ' + protocolName + ' - ' + parkName;
+		console.log('getting photo directory from filesystem');
 		var imageDir = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, dir);
+		console.log('loading photo from filesystem');
 		var file = Ti.Filesystem.getFile(imageDir.resolve(), imageRecord.media_name);
+		console.log('encoding binary photo from filesystem');
 		var photo = Titanium.Utils.base64encode(file.read());
 		//Remove the file from memory
 		file = null;
@@ -221,6 +139,7 @@ function mediaUpload(media, guid){
 					
 					var db = Ti.Database.open('ltemaDB');
 					var rows = db.execute( 'UPDATE media SET flickr_id = ? WHERE media_id = ?', photoID, media[image].media_id);
+					mediaUpload(media, guid);
 				}
 				catch(e) {
 					var errorMessage = e.message;
@@ -230,7 +149,6 @@ function mediaUpload(media, guid){
 				}
 				finally{
 					db.close();
-					mediaUpload(media, guid);
 				}
 			},
 			onerror : function(e) {
@@ -294,6 +212,9 @@ function selectProtocol (guid){
 function formAlpineGrasslandJSON(guid, callback){
 	try{
 		console.log('enter formAlpineGrasslandJSON');
+		var callbackName = callback.name;
+		console.log(callbackName);
+		
 		
 		var db = Ti.Database.open('ltemaDB');
 	
