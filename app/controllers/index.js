@@ -14,7 +14,9 @@ Ti.Geolocation.removeEventListener('location', function(e) {});
 Titanium.Geolocation.getCurrentPosition(function(e) {});
 
 var uie = require('UiElements');
-var indicator = uie.createIndicatorWindow();
+var indicator = uie.createIndicatorWindow({text:'Updating List ...', width:220});
+var uploadIndicator = uie.createIndicatorWindow({text:'Uploading ...'});
+var downloadIndicator = uie.createIndicatorWindow({text:'Downloading ...'});
 
 var networkIsOnline, networkType;
 if (Ti.App.Properties.getString('secret')) {
@@ -28,6 +30,8 @@ checkSurveys();
 
 function checkSurveys() {
 	// check for network
+	Ti.App.fireEvent("app:checkStarted");
+	
 	if (Titanium.Network.networkType == Titanium.Network.NETWORK_NONE){
 		var alertDialog = Titanium.UI.createAlertDialog({
 			title: 'WARNING!',
@@ -56,9 +60,6 @@ function checkSurveys() {
 				checkLocalSurveys(returnArray);
 			};
 			httpClient.onerror = function(e) {
-				Ti.API.debug("STATUS: " + this.status);
-				Ti.API.debug("TEXT:   " + this.responseText);
-				Ti.API.debug("ERROR:  " + e.error);
 				var cloudSurveys = [];
 				checkLocalSurveys(cloudSurveys);
 				if (this.status === 400) {
@@ -72,6 +73,7 @@ function checkSurveys() {
 		}
 		catch (e) {
 			var errorMessage = e.message;
+			Ti.App.fireEvent("app:checkFinished");
 			console.log('error in checkSurveys: ' + errorMessage);
 		}
 	}
@@ -307,6 +309,7 @@ function createButtons(rows, isDownloaded, local) {
 	} finally {
 		db.close();
 		toggleEditBtn();
+		Ti.App.fireEvent("app:checkFinished");
 	}
 	
 }
@@ -501,24 +504,38 @@ Ti.App.addEventListener("app:refreshSiteSurveys", function(e) {
 	checkSurveys();
 });
 
+//Check Surveys Indicator Events
+Ti.App.addEventListener("app:checkStarted", function(e){
+	console.log('checkStarted - Event fired');
+	//downloadIndicator.show();
+	indicator.openIndicator();
+});
+
+Ti.App.addEventListener("app:checkFinished", function(e){
+	console.log('checkFinished - Event fired');
+	//downloadIndicator.hide();
+	indicator.closeIndicator();
+});
+
+
 //Download Indicator Events
 Ti.App.addEventListener("app:downloadStarted", function(e){
 	console.log('DownloadStarted - Event fired');
 	//downloadIndicator.show();
-	indicator.openIndicator();
+	downloadIndicator.openIndicator();
 });
 
 Ti.App.addEventListener("app:downloadFailed", function(e){
 	console.log('DownloadFailed - Event fired');
 	//downloadIndicator.hide();
-	indicator.closeIndicator();
+	downloadIndicator.closeIndicator();
 	alert('Download Failed');
 });
 
 Ti.App.addEventListener("app:downloadFinished", function(e){
 	console.log('DownloadFinished - Event fired');
 	//downloadIndicator.hide();
-	indicator.closeIndicator();
+	downloadIndicator.closeIndicator();
 	alert('Download Complete');
 });
 
@@ -526,13 +543,13 @@ Ti.App.addEventListener("app:downloadFinished", function(e){
 Ti.App.addEventListener("app:uploadStarted", function(e){
 	console.log('UploadStarted - Event fired');
 	//uploadIndicator.show();
-	indicator.openIndicator();
+	uploadIndicator.openIndicator();
 });
 
 Ti.App.addEventListener("app:uploadFailed", function(e){
 	console.log('UploadFailed - Event fired');
 	//uploadIndicator.hide();
-	indicator.closeIndicator();
+	uploadIndicator.closeIndicator();
 	alert('Upload Failed');
 });
 
@@ -566,7 +583,7 @@ Ti.App.addEventListener("app:uploadFinished", function(e){
 	} finally {
 		db.close();
 		//uploadIndicator.hide();
-		indicator.closeIndicator();
+		uploadIndicator.closeIndicator();
 		alert('Upload Complete');
 	}
 });

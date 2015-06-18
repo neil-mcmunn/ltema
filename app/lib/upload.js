@@ -49,6 +49,10 @@ function preparePhotos(guid) {
 		var uploadMedia = [];
 		for (var i = 0, m = mediaIDs.length; i < m; i++) {
 			//console.log('media IDs: ' + mediaIDs[i].media_id);
+			if (mediaIDs[i] === null) {
+				continue;
+			}
+			
 			var mediaResults = db.execute('SELECT * FROM media WHERE media_id = ?', mediaIDs[i]);
 			
 			var mediaID = mediaResults.fieldByName('media_id');
@@ -74,6 +78,8 @@ function preparePhotos(guid) {
 }
 
 function mediaUpload(media, guid){
+	console.log('mediaUPLOAD');
+	console.log(media);
 	//go through media looking for object without a flickr id
 	var image = null;
 	for(var i = 0; i < media.length; i++){

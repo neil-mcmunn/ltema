@@ -4,10 +4,9 @@
  * @param {Object} args
  */
 function createIndicatorWindow(args) {
-    var width = 180,
-        height = 50;
-
     var args = args || {};
+    var width = args.width || 180;
+    var height = 50;
     var top = args.top || 140;
     var text = args.text || 'Loading ...';
 

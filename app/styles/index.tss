@@ -19,6 +19,12 @@
 	height: 60,
 	width: 180
 },
+"#refreshBtn": {
+	bottom: 0,
+	right: 20,
+	height: 60,
+	width: 180
+},
 
 //FooterView
 "#footerView": {

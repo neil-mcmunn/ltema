@@ -100,6 +100,11 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 				var oldMediaID = cloudMedia[i].media_id;
 				var flickrID = cloudMedia[i].flickr_id;
 				
+				if (! flickrID) {
+					cloudMedia.splice(i, 1);
+					continue;
+				}
+				
 				// insert flickr_id and extract auto-incremented media_id and store in media blob
 				db.execute('INSERT INTO media (flickr_id) VALUES (?);', flickrID);
 				var results = db.execute('SELECT last_insert_rowid() as mediaID');
@@ -331,7 +336,7 @@ function imageDownload(media, guid){
 	            //Open connection
 	            xhr.open('GET',url);
 	            //Send request
-			    xhr.send();           
+			    xhr.send();
 			    
 			} else {
 			    file_obj.error = 'no internet';
