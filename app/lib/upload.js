@@ -3,13 +3,11 @@ var jsSHA = require('sha1');
 var uuid = require('uuid');
 
 Ti.App.addEventListener("app:dataBaseError", function(e) {
-	//TODO: handle a database error for the app
 	Titanium.API.error("Database error (upload): " + e.error);
 });
 
 function preparePhotos(guid) {
 	try{
-		console.log('enter preparePhotos');
 		Ti.App.fireEvent("app:uploadStarted");
 		
 		var db = Ti.Database.open('ltemaDB');
@@ -20,7 +18,10 @@ function preparePhotos(guid) {
 		while (transects.isValidRow()) {
 			var transectGUID = transects.fieldByName('transect_guid');
 			var transectMediaID = transects.fieldByName('media_id');
-			mediaIDs.push(transectMediaID);
+			
+			if (transectMediaID) {
+				mediaIDs.push(transectMediaID);
+			}
 			
 			// Get any plots associated with the transect
 			var plots = db.execute('SELECT plot_guid, media_id FROM plot WHERE transect_guid = ?', transectGUID);
@@ -29,15 +30,21 @@ function preparePhotos(guid) {
 			while (plots.isValidRow()) {
 				var plotMediaID = plots.fieldByName('media_id');
 				var plotGUID = plots.fieldByName('plot_guid');
-				mediaIDs.push(plotMediaID);
 				
+				if (plotMediaID) {
+					mediaIDs.push(plotMediaID);	
+				}
+								
 				// Get any plot observations associated with the plot
 				var observations = db.execute('SELECT media_id FROM plot_observation WHERE plot_guid = ?', plotGUID);
 				
 				// Copy and associate any existing plot observations media
 				while (observations.isValidRow()){
 					var observationMediaID = observations.fieldByName('media_id');
-					mediaIDs.push(observationMediaID);
+				
+					if (observationMediaID) {
+						mediaIDs.push(observationMediaID);
+					}
 					
 					observations.next();
 				}	
@@ -48,18 +55,22 @@ function preparePhotos(guid) {
 		
 		var uploadMedia = [];
 		for (var i = 0, m = mediaIDs.length; i < m; i++) {
-			//console.log('media IDs: ' + mediaIDs[i].media_id);
 			if (mediaIDs[i] === null) {
 				continue;
 			}
 			
 			var mediaResults = db.execute('SELECT * FROM media WHERE media_id = ?', mediaIDs[i]);
 			
-			var mediaID = mediaResults.fieldByName('media_id');
 			var mediaName = mediaResults.fieldByName('media_name');
-			var flickrID = mediaResults.fieldByName('flickr_id');
 			
-			var results = {'media_id':mediaID, 'media_name':mediaName, 'flickr_id':flickrID};
+			if (!mediaName) {
+				continue;
+			}
+			
+			var cloudMediaID = mediaResults.fieldByName('cloud_media_id');
+			var mediaID = mediaResults.fieldByName('media_id');
+						
+			var results = {'media_id':mediaID, 'media_name':mediaName, 'cloud_media_id':cloudMediaID};
 			
 			uploadMedia.push(results);
 		}
@@ -78,26 +89,22 @@ function preparePhotos(guid) {
 }
 
 function mediaUpload(media, guid){
-	console.log('mediaUPLOAD');
-	console.log(media);
-	//go through media looking for object without a flickr id
+	//go through media looking for object without a cloud media id
 	var image = null;
 	for(var i = 0; i < media.length; i++){
-		if(media[i].flickr_id === null){
+		if(media[i].cloud_media_id === null){
 			image = i;
 			break;
 		}
 	}
 	//no images are left to upload found and select protocol is
 	if(image === null){
-		console.log('Media Upload - All image have been uploaded');
 		selectProtocol(guid);
 	}
 	//otherwise an image is found and that image is then uploaded
 	else{
-		console.log('Media Upload - Image number ' + image + ' to be uploaded');
 		//Imgur API key
-		var api_key = 'b83eff8511af696';
+		var api_key = Ti.App.Properties.getString('api_key');
 		//Get info on this medias survey
 		try {
 			var db = Ti.Database.open('ltemaDB');
@@ -110,75 +117,78 @@ function mediaUpload(media, guid){
 			var year = dirInfo.fieldByName('year');
 			var protocolName = dirInfo.fieldByName('protocol_name');
 			var parkName = dirInfo.fieldByName('park_name');
-		}
-		catch(e) {
+			
+		} catch(e) {
 			var errorMessage = e.message;
 			Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
 			Ti.App.fireEvent("app:uploadFailed");
-		}
-		finally{
+			
+		} finally {
 			db.close();
 		}
+		
 		//Grab the image record being worked on
 		var imageRecord = media[image]; 
+		
 		//Get a the photo as a string from the filesystem
 		var dir = year + ' - ' + protocolName + ' - ' + parkName;
-		console.log('getting photo directory from filesystem');
 		var imageDir = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, dir);
-		console.log('loading photo from filesystem');
 		var file = Ti.Filesystem.getFile(imageDir.resolve(), imageRecord.media_name);
-		console.log('encoding binary photo from filesystem');
 		var photo = Titanium.Utils.base64encode(file.read());
+		
 		//Remove the file from memory
 		file = null;
+		
 		//Imgur upload endpoint
 		var url = 'https://api.imgur.com/3/upload';
-		//Setup HTTP Client
-		var xhr = Titanium.Network.createHTTPClient({
-			onload : function(e) {
-				try{
-					//Get the ID back from Imgur
-					var response = JSON.parse(this.responseData);
-					var photoID = response.data.id;
-					media[image].flickr_id = photoID;
-					console.log('Image: ' + image + ', PhotoId: ' + photoID);
-					
-					var db = Ti.Database.open('ltemaDB');
-					var rows = db.execute( 'UPDATE media SET flickr_id = ? WHERE media_id = ?', photoID, media[image].media_id);
-					mediaUpload(media, guid);
-				}
-				catch(e) {
-					var errorMessage = e.message;
-					console.log(errorMessage);
-					Ti.App.fireEvent("app:uploadFailed");
-					Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-				}
-				finally{
-					db.close();
-				}
-			},
-			onerror : function(e) {
-				Ti.App.fireEvent("app:uploadFailed");
-				console.log('Something bad happened: {HTTPStatusCode: ' + this.status + '}');
-			},
-			timeout : 30000
-		});
 		
-		//Open the connection
-		xhr.open('POST', url);
-		//Setup the connection headers
-		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-		xhr.setRequestHeader('Authorization', 'Client-ID ' + api_key);
-		//Send the photo
-		xhr.send(photo);
+		//Setup HTTP Client
+		if ( Titanium.Network.online ) {
+			var xhr = Titanium.Network.createHTTPClient({
+				onload : function(e) {
+					try{
+						//Get the ID back from Imgur
+						var response = JSON.parse(this.responseData);
+						var photoID = response.data.id;
+						media[image].cloud_media_id = photoID;
+						
+						var db = Ti.Database.open('ltemaDB');
+						db.execute( 'UPDATE media SET cloud_media_id = ? WHERE media_id = ?', photoID, media[image].media_id);
+						media.splice(image, 1);
+						
+					} catch(e) {
+						var errorMessage = e.message;
+						Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+						
+					} finally {
+						db.close();
+						mediaUpload(media, guid);
+					}
+				},
+				onerror : function(e) {
+					mediaUpload(media, guid);
+					console.log('Something bad happened: {HTTPStatusCode: ' + this.status + '}');
+				},
+				timeout : 60000
+			});
+			
+			//Open the connection
+			xhr.open('POST', url);
+			//Setup the connection headers
+			xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+			xhr.setRequestHeader('Authorization', 'Client-ID ' + api_key);
+			//Send the photo
+			xhr.send(photo);
+		} else {
+		    file_obj.error = 'no internet';
+            fn_end(file_obj);
+        }
 	}
 }
 
 function selectProtocol (guid){
 	//Determine the protocol of the survey being uploaded
 	try{
-		console.log('enter selectProtocol');
-		
 		var db = Ti.Database.open('ltemaDB');
 		
 		//Get park and protocol names
@@ -217,10 +227,7 @@ function selectProtocol (guid){
 //and then serialize it
 function formAlpineGrasslandJSON(guid, callback){
 	try{
-		console.log('enter formAlpineGrasslandJSON');
 		var callbackName = callback.name;
-		console.log(callbackName);
-		
 		
 		var db = Ti.Database.open('ltemaDB');
 	
@@ -312,7 +319,7 @@ function formAlpineGrasslandJSON(guid, callback){
 			var media = {
 				media_id: mediaInfo.fieldByName('media_id'),
 				media_name: mediaInfo.fieldByName('media_name'),
-				flickr_id: mediaInfo.fieldByName('flickr_id')
+				cloud_media_id: mediaInfo.fieldByName('cloud_media_id')
 			};
 			survey.media.push(media);
 		}
@@ -342,6 +349,7 @@ function uploadJSON(survey, guid) {
 		console.log('enter uploadJSON');
 		
 		var url = 'https://capstone-ltemac.herokuapp.com/surveys';
+		
 		var httpClient = Ti.Network.createHTTPClient();
 		httpClient.open("POST", url);
 		httpClient.setRequestHeader('secret', Ti.App.Properties.getString('secret'));
@@ -349,24 +357,17 @@ function uploadJSON(survey, guid) {
 
 		httpClient.onload = function() {
 			if (this.status === 200) {
-				alert(this.responseData);
 				Ti.App.fireEvent("app:uploadFinished");
 			} else {
-				alert('Upload Failed: ' + this.status);
 				Ti.App.fireEvent("app:uploadFailed");
 			}
 			
 		};
 		httpClient.onerror = function(e) {
-			Ti.API.debug("STATUS: " + this.status);
-			Ti.API.debug("TEXT:   " + this.responseText);
-			Ti.API.debug("ERROR:  " + e.error);
+			console.log('status: ' + this.status + ' message: ' + e.message);
 			Ti.App.fireEvent("app:uploadFailed");
-			alert('upload failed');
 		};
-		var currentDate = new Date();
-		var now = currentDate.toISOString();
-
+		
 		httpClient.send(
 			JSON.stringify({
 				guid: survey.survey_meta.site_survey_guid,
@@ -378,9 +379,7 @@ function uploadJSON(survey, guid) {
 			})
 		);
 		
-		console.log('uploadJSON httpClient sent');
-	}
-	catch(e){
+	} catch(e){
 		var errorMessage = e.message;
 		console.log('error in authentication function: ' + errorMessage);
 		Ti.App.fireEvent("app:uploadFailed");

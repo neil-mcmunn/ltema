@@ -117,7 +117,6 @@ $.tbl.addEventListener('click', function(e){
 	
 	//check if media exists -if no photo has been taken (re-visited transect)
 	if(e.rowData.mediaID == null){
-		//alert("No Photo Found!");
 		var modal = Alloy.createController("transectsModal", {transectGUID:e.rowData.transectGUID, title:e.rowData.title}).getView();
 		modal.open({
 			modal : true,
@@ -281,7 +280,6 @@ function addBtn(){
 	//disable add button until screen is returned to focus.  Issue #28
 	$.addTransect.enabled = false;
 	
-	console.log('about to enter addTransect with siteGUID: ' + $.tbl.siteGUID);
 	var addTransect = Alloy.createController("addTransect", {siteGUID: $.tbl.siteGUID}).getView();
 	var nav = Alloy.Globals.navMenu;
 	nav.openWindow(addTransect);

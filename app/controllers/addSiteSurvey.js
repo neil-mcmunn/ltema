@@ -13,45 +13,6 @@ var currentProtocol;
 var downloadedSurveys = Ti.App.Properties.getString('downloaded_local_surveys');
 var localSurveys = Ti.App.Properties.getString('local_surveys');
 var cloudSurveys = Ti.App.Properties.getString('cloud_surveys');
-console.log('addSiteurvey property strings');
-console.log(downloadedSurveys);
-
-/*
-// show downloaded surveys
-try {
-	console.log('creating picker rows');
-	var db = Ti.Database.open('ltemaDB');
-		
-	var column1 = Ti.UI.createPickerColumn();
-	
-	for (var i = 0, len = downloadedSurveys.length; i < len; i++) {
-		var siteGUID = downloadedSurveys[i].site_survey_guid;
-		var row = db.execute('SELECT park_name, protocol_name FROM park prk, site_survey s, protocol p \
-							WHERE prk.park_id = s.park_id \
-							AND p.protocol_id = s.protocol_id \
-							AND s.site_survey_guid = ?', siteGUID);
-		var parkName = row.fieldByName('park_name');
-		var protocolName = row.fieldByName('protocol_name');
-		
-		var newRow = Ti.UI.createPickerRow({
-					title : parkName + ' ' + protocolName,
-					color : 'black'
-				});
-				
-		column1.addRow(newRow);
-	}
-	
-	$.picker.add(column1);
-	
-	console.log('pickers should be created');
-} catch (e) {
-	var errorMessage = e.message;
-	Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-} finally {
-	db.close();
-}
-*/
-
 
 // Populate the biome TabbedBar with database-derived labels
 try {
@@ -214,13 +175,10 @@ function doneBtn(e){
 
 			var prevSiteID = previousID.fieldByName('site_id');
 			var prevSiteGUID = previousID.fieldByName('site_survey_guid');
-
-			console.log('id line 171 (addSiteSurvey): ' + prevSiteID + ' and guid: ' + prevSiteGUID);
-
+			
 			if (!prevSiteGUID) {
 				// Insert the new survey
 				var siteGUID = String(uuid.generateUUID());
-				//var results = db.execute('SELECT last_insert_rowid() as siteID');
 				db.execute('INSERT INTO site_survey (site_survey_guid, year, protocol_id, park_id, version_no) VALUES (?,?,?,?,?)', siteGUID, currentYear, protocolID, parkID, 1);
 
 			// Get the transects associated with the survey
@@ -322,83 +280,10 @@ function auto_complete(search_term) {
 				}
 			}
 			
-			/*
-			//Query - Retrieve all parks to match with downloaded parks
-			var rows = db.execute('SELECT park_name FROM park');
-			
-			// store matches to avoid duplicating
-			var matchArray = [];
-			
-			//check if any results are returned
-			if (rows.getRowCount() <= 0) {
-				//TODO: determine if the user can create a new park name, and how to implement
-				//for now, the next line is commented out, close() allows the user to enter an invalid park name
-				//win.close();
-			} else {
-				win.open();
-	
-				while (rows.isValidRow()) {
-					var parkName = rows.fieldByName('park_name');
-					
-					//var park_id;
-					//var alreadyDownloadedSurveys = db.execute('SELECT s.park_id, park_name, protocol_name FROM site_survey s, park prk, protocol p WHERE s.park_id = prk.park_id AND s.protocol_id = p.protocol_id');
-					var alreadyDownloadedSurveys = db.execute('SELECT park_name FROM site_survey s, park prk WHERE s.park_id = prk.park_id AND s.site_survey_guid IS NOT NULL');
-					while(alreadyDownloadedSurveys.isValidRow()){
-						var downloadedParkName = alreadyDownloadedSurveys.fieldByName('park_name');
-						//var protocol = results.fieldByName('protocol_name');
-						if (parkName === downloadedParkName) {
-							//parkName += ' (ON DEVICE as ' + protocol + ')';
-							//var parkID = results.fieldByName('park_id');//create a new row
-							var newRow = Ti.UI.createTableViewRow({
-								title : parkName,
-								fontWeight : 'bold',
-								color : 'black'
-							});
-							//Add row to the table view
-							autocomplete_table.appendRow(newRow);
-						} 
-						alreadyDownloadedSurveys.next();
-					} 
-					rows.next();
-				}
-			}
-			
-			var rows = db.execute('SELECT park_name ' + 'FROM park ' + 'WHERE park_name LIKE ?', search_term + '%');
-
-			//check if any results are returned
-			if (rows.getRowCount() <= 0) {
-				//TODO: determine if the user can create a new park name, and how to implement
-				//for now, the next line is commented out, close() allows the user to enter an invalid park name
-				//win.close();
-			} else {
-				win.open();
-	
-				while (rows.isValidRow()) {
-					var parkName = rows.fieldByName('park_name');
-					
-					//var results = db.execute('SELECT s.park_id, park_name, protocol_name FROM site_survey s, park prk, protocol p WHERE s.park_id = prk.park_id AND s.protocol_id = p.protocol_id');
-					for (var i = 0, m = matchArray.length; i < m; i++) {
-						var downloadedParkName = matchArray[i].park_name;
-						//var protocol = results.fieldByName('protocol_name');
-						if (parkName === downloadedParkName) {
-							rows.next();
-							break;
-						}
-					}
-					
-					var newRow = Ti.UI.createTableViewRow({
-						title : parkName
-					});
-					//Add row to the table view
-					autocomplete_table.appendRow(newRow);
-					
-					rows.next();
-				}
-			}
-			*/
 		} catch (e) {
 			var errorMessage = e.message;
 			Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+			
 		} finally {
 			//rows.close();
 			db.close();

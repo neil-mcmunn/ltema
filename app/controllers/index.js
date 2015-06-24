@@ -55,7 +55,6 @@ function checkSurveys() {
 
 			httpClient.onload = function() {
 				//call checkLocalSurveys, pass in results
-				Ti.API.info("Received text (index L39): " + this.responseData);
 				var returnArray = JSON.parse(this.responseData).rows;
 				checkLocalSurveys(returnArray);
 			};
@@ -63,9 +62,9 @@ function checkSurveys() {
 				var cloudSurveys = [];
 				checkLocalSurveys(cloudSurveys);
 				if (this.status === 400) {
-					alert('please login');
+					alert('You are not logged in.');
 				} else {
-					alert('error retrieving survey list, server offline');
+					alert('Error retrieving survey list, server offline');
 				}
 			};
 
@@ -210,7 +209,7 @@ function createButtons(rows, isDownloaded, local) {
 				var site = siteResults.fieldByName('park_name');
 				
 				//create a string from each entry
-				var siteSurvey = protocol + ' - ' + site.slice(0, 30);
+				var siteSurvey = protocol + ' - ' + site.slice(0, 45);
 				var newRow = Ti.UI.createTableViewRow({
 					title: siteSurvey,
 					site: site,
@@ -234,7 +233,7 @@ function createButtons(rows, isDownloaded, local) {
 				var site = siteResults.fieldByName('park_name');
 				
 				//create a string from each entry
-				var siteSurvey = protocol + ' - ' + site.slice(0, 30);
+				var siteSurvey = protocol + ' - ' + site.slice(0, 45);
 				var newRow = Ti.UI.createTableViewRow({
 					title: siteSurvey,
 					site: site,
@@ -395,7 +394,6 @@ $.tbl.addEventListener('click', function(e) {
 		});
 		//download button clicked
 	} else if (e.source.buttonid == 'download') {
-		//alert('Download button pressed! Calling download function with the following parameters...\n' + e.rowData.site + ' ' + e.rowData.protocol);
 		var dialog = Ti.UI.createAlertDialog({
 			cancel: 1,
 			buttonNames: ['Confirm', 'Cancel'],
@@ -410,7 +408,7 @@ $.tbl.addEventListener('click', function(e) {
 					var download = require('download');
 					download.downloadSurvey(e.rowData.siteGUID);					
 				} else {
-					alert('network is not online');
+					alert('Network Offline');
 				}
 			}
 		});
@@ -418,7 +416,6 @@ $.tbl.addEventListener('click', function(e) {
 		
 		//upload button clicked
 	} else if (e.source.buttonid == 'upload') {
-		//alert('Upload button pressed! Calling upload function...');
 		var dialog = Ti.UI.createAlertDialog({
 			cancel: 1,
 			buttonNames: ['Confirm', 'Cancel'],
@@ -444,24 +441,24 @@ $.tbl.addEventListener('click', function(e) {
 							Ti.App.Properties.setString('current_row_guid', e.rowData.siteGUID);
 							upload.uploadSurvey(e.rowData.siteGUID);
 						} else {
-							alert('the survey is too short');
+							alert('The survey is too short');
 						}
 						
 					} catch (e) {
 						db.close();
 						var errorMessage = e.message;
 						Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-						alert('survey too short');
+						alert('Survey too short');
 					}
 				} else {
-					alert('network is not online');
+					alert('Network Offline');
 				}
 			}
 		});
 		dialog.show();
 		
 	} else if (e.source.buttonid === 'locked') {
-		alert('This survey cannot be edited');
+		alert('Survey cannot be edited. \n Click \'Add Site Survey\' and find \n the same survey and protocol combination \n to reuse the data.');
 
 		//export button clicked
 	} else if (e.source.buttonid == 'export') {
@@ -484,10 +481,10 @@ $.tbl.addEventListener('click', function(e) {
 			var transects = Alloy.createController("transects", {siteGUID:e.rowData.siteGUID, parkName:e.rowData.site}).getView();
 			$.navGroupWin.openWindow(transects);
 		} else if (e.rowData.exported) {
-			alert('Survey cannot be edited after uploading');
+			alert('Survey cannot be edited. \n Click \'Add Site Survey\' and find \n the same survey and protocol combination \n to reuse the data.');
 		// else do nothing
 		} else {
-			alert('must download first ------>');
+			alert('Please Download first ------------>');
 		}
 	}
 });
@@ -506,49 +503,35 @@ Ti.App.addEventListener("app:refreshSiteSurveys", function(e) {
 
 //Check Surveys Indicator Events
 Ti.App.addEventListener("app:checkStarted", function(e){
-	console.log('checkStarted - Event fired');
-	//downloadIndicator.show();
 	indicator.openIndicator();
 });
 
 Ti.App.addEventListener("app:checkFinished", function(e){
-	console.log('checkFinished - Event fired');
-	//downloadIndicator.hide();
 	indicator.closeIndicator();
 });
 
 
 //Download Indicator Events
 Ti.App.addEventListener("app:downloadStarted", function(e){
-	console.log('DownloadStarted - Event fired');
-	//downloadIndicator.show();
 	downloadIndicator.openIndicator();
 });
 
 Ti.App.addEventListener("app:downloadFailed", function(e){
-	console.log('DownloadFailed - Event fired');
-	//downloadIndicator.hide();
 	downloadIndicator.closeIndicator();
 	alert('Download Failed');
 });
 
 Ti.App.addEventListener("app:downloadFinished", function(e){
-	console.log('DownloadFinished - Event fired');
-	//downloadIndicator.hide();
 	downloadIndicator.closeIndicator();
 	alert('Download Complete');
 });
 
 //Upload Indicator Events
 Ti.App.addEventListener("app:uploadStarted", function(e){
-	console.log('UploadStarted - Event fired');
-	//uploadIndicator.show();
 	uploadIndicator.openIndicator();
 });
 
 Ti.App.addEventListener("app:uploadFailed", function(e){
-	console.log('UploadFailed - Event fired');
-	//uploadIndicator.hide();
 	uploadIndicator.closeIndicator();
 	alert('Upload Failed');
 });
@@ -750,9 +733,6 @@ function authenticate(secret){
 				}
 			};
 			httpClient.onerror = function(e) {
-				Ti.API.debug("STATUS: " + this.status);
-				Ti.API.debug("TEXT:   " + this.responseText);
-				Ti.API.debug("ERROR:  " + e.error);
 				alert('error validating credentials, server offline');
 			};
 			httpClient.send();
@@ -766,10 +746,7 @@ function authenticate(secret){
 // check with cloud and then set persistent variables
 function checkAuthLevel(json, secret) {
 	var authLevel = json.auth_level;
-	var flickrAccessToken = json.access_token;
-	var flickrAccessSecret = json.access_secret;
-	var flickrConsumerKey = json.consumer_key;
-	var flickrConsumerSecret = json.consumer_secret;
+	var cloudMediaID = json.api_key || 'b83eff8511af696';
 	
 	if (authLevel == 1 || authLevel == 9){
 		//set authLevel into Titanium variable, accessable by getString('auth_level')
@@ -782,10 +759,7 @@ function checkAuthLevel(json, secret) {
 		console.log('authLevel not valid: ' + authLevel);
 		return;
 	}
-	Ti.App.Properties.setString('access_token',flickrAccessToken);
-	Ti.App.Properties.setString('access_secret',flickrAccessSecret);
-	Ti.App.Properties.setString('consumer_key',flickrConsumerKey);
-	Ti.App.Properties.setString('consumer_secret',flickrConsumerSecret);
+	Ti.App.Properties.setString('api_key',cloudMediaID);
 }
 
 //Navigate to site survey creation screen

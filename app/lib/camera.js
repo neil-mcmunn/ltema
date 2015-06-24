@@ -4,7 +4,7 @@ function getPhoto(callback) {
 	Titanium.Media.showCamera({
 		success : function(event) {
 			// called when media returned from the camera
-			Ti.API.debug('Our type was: ' + event.mediaType);
+			//Ti.API.debug('Our type was: ' + event.mediaType);
 			if (event.mediaType == Ti.Media.MEDIA_TYPE_PHOTO) {
 				
 			// THE PHOTO TAKEN

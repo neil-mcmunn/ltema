@@ -10,8 +10,15 @@ var titleLabel = Titanium.UI.createLabel({
 });
 $.exportWin.setTitleControl(titleLabel);
 
-// User Instructions	
-var instructions = 
+// User Instructions
+var instructions = "";
+
+if (Ti.App.Properties.getString('auth_level') != 9) {
+	instructions += 
+		"As a Field Officer, please use the 'Upload' function instead of 'Export' when submitting surveys " +
+		"whenever possible. 'Upload' will automatically inform the Supervisor that your survey is complete.\n\n";
+}	
+instructions += 
 	"Please press the Select button above.\n\n" + 
 	"Use the picker below to select the Site Survey you wish to prepare for export and press Done.\n\n" +
 	"Press the Export button and wait for the confirmation that the Survey is ready for export.\n\n" +
@@ -116,124 +123,48 @@ function makeCSV(survey, guid) {
 	}
 	console.log('export line 117: ' + parkName);
 	
-	// try{
-		// // Query the database based on the siteGUID selected
-		// var db = Ti.Database.open('ltemaDB');
-// 		
-		// // Get the transects for the site
-		// var transects = db.execute('SELECT prk.park_name, tct.transect_guid, tct.transect_name, tct.surveyor, med.media_name AS transect_photo \
-			// FROM transect tct, media med, park prk, site_survey svy \
-			// WHERE tct.media_id = med.media_id AND \
-			// prk.park_id = svy.park_id AND \
-			// svy.site_survey_guid = tct.site_survey_guid AND \
-			// tct.site_survey_guid = ?', siteGUID);
-// 		
-		// var results = [];
-		// var fieldCount = transects.fieldCount;
-		// var transectGUIDs = [];
-		// while (transects.isValidRow()) {
-			// // Get the transectIDs
-			// transectGUIDs.push(transects.fieldByName('transect_guid'));
-// 			
-			// // Create transect objects
-			// var row = {};
-			// for (var j = 0; j < fieldCount; j++) {
-				// row[transects.getFieldName(j)] = transects.field(j);
-			// }
-			// results.push(row);
-// 			
-			// transects.next();
-		// }
-// 
-		// // Get the plots for the transects		
-		// var tids = '(\'' + transectGUIDs + '\')';
-		// console.log('tids: ');
-		// console.log(tids);
-		// var plots = db.execute('SELECT plt.plot_guid, plt.plot_name, plt.utm_zone, plt.utm_easting, plt.transect_guid, \
-			// plt.utm_northing, plt.stake_deviation, plt.distance_deviation, plt.utc, med.media_name AS plot_photo\
-			// FROM plot plt, media med \
-			// WHERE plt.media_id = med.media_id AND \
-			// plt.transect_guid IN ' + tids);
-// 		
-		// fieldCount = plots.fieldCount;
-		// var plotGUIDs = [];
-		// var plotIndex = 0;
-		// while (plots.isValidRow()) {
-			// // Get the plotIDs
-			// plotGUIDs.push(plotIndex);
-// 			
-			// // Create plot objects
-			// var row = {};
-			// for (var j = 0; j < fieldCount; j++) {
-				// row[plots.getFieldName(j)] = plots.field(j);
-			// }
-// 			
-			// // Associate with the correct transect
-			// for (var i in results) {
-				// if (results[i].transect_guid === row.transect_guid) {
-					// results[i][plotIndex] = row;
-				// }
-			// }
-			// plotIndex++;
-			// plots.next();
-		// }
-// 		
-		// // Get the plot observations for the plots
-		// var pids = '(\'' + plotGUIDs + '\')';
-		// var plotObservations = db.execute('SELECT plot_observation_guid, pob.species_code, pob."count", pob.comments, pob.plot_guid, pob.ground_cover, med.media_name AS observation_photo \
-			// FROM plot_observation pob \
-			// LEFT JOIN media med \
-			// ON pob.media_id = med.media_id AND \
-			// pob.plot_guid IN '+ pids);
-// 		
-		// fieldCount = plotObservations.fieldCount;	
-		// while (plotObservations.isValidRow()) {
-			// // Create observation objects
-			// var row = {};
-			// for (var j = 0; j < fieldCount; j++) {
-				// row[plotObservations.getFieldName(j)] = plotObservations.field(j);
-			// }
-// 			
-			// // Associate with the correct plot			
-			// for (var i in results) {
-				// for(var j in results[i]) {				
-					// if(results[i][j].plot_guid === row.plot_guid) {
-						// var pobid = plotObservations.fieldByName('plot_observation_guid');
-						// results[i][j][pobid] = row;
-					// }
-				// }
-			// }
-			// plotObservations.next();
-		// }		
-	// } catch(e) {
-		// var errorMessage = e.message;
-		// Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-	// } finally {
-		// db.close();
-	// }
-		
 	// Prepare the CSV files
 	
 	var nl = '\n';
 	var c = ',';
 	var dq = '"';
-	var sampleStationTxt = 	dq + 'Transect Name' + dq + c +
-							dq + 'Plot Name' + dq + c + 
-							dq + 'UTM ZONE' + dq + c +
-							dq + 'UTM EASTING' + dq + c + 
-							dq + 'UTM NORTHING' + dq + c + 
-							dq + 'Image Name' + dq + nl;
+	// var sampleStationTxt = 	dq + 'Transect Name' + dq + c +
+							// dq + 'Plot Name' + dq + c + 
+							// dq + 'UTM ZONE' + dq + c +
+							// dq + 'UTM EASTING' + dq + c + 
+							// dq + 'UTM NORTHING' + dq + c + 
+							// dq + 'Image Name' + dq + nl;
 							
-	var generalSurveyTxt = 	dq + 'Park Name' + dq + c +
-							dq + 'Transect/Plot Name' + dq + c + 
+	var sampleStationTxt = 	dq + 'Study Area Name' + dq + c +
+							dq + 'Sample Station Label' + dq + c + 
+							dq + 'UTM Zone Sample Station' + dq + c +
+							dq + 'Easting Sample Station' + dq + c + 
+							dq + 'Northing Sample Station' + dq + nl;
+							
+	// var generalSurveyTxt = 	dq + 'Park Name' + dq + c +
+							// dq + 'Transect/Plot Name' + dq + c + 
+							// dq + 'Date' + dq + c +
+							// dq + 'Time' + dq + c +
+							// dq + 'Surveyor' + dq + c + 
+							// dq + 'Species' + dq + c + 
+							// dq + 'Count' + dq + c + 
+							// dq + 'Comment' + dq + c + 
+							// dq + 'Ground Cover' + dq + c + 
+							// dq + 'Image' + dq + nl;
+							
+	var generalSurveyTxt = 	dq + 'Study Area Name' + dq + c +
+							dq + 'Sample Station Label' + dq + c + 
 							dq + 'Date' + dq + c +
 							dq + 'Time' + dq + c +
+							dq + 'End Time' + dq + c +
 							dq + 'Surveyor' + dq + c + 
 							dq + 'Species' + dq + c + 
 							dq + 'Count' + dq + c + 
-							dq + 'Comment' + dq + c + 
-							dq + 'Ground Cover' + dq + c + 
-							dq + 'Image' + dq + nl;
+							dq + 'UTM Zone' + dq + c + 
+							dq + 'Easting' + dq + c + 
+							dq + 'Northing' + dq + c + 
+							dq + 'Comments' + dq + c + 
+							dq + '% foliar cover' + dq + nl;
 	
 	//console.log(survey);
 	
@@ -256,7 +187,7 @@ function makeCSV(survey, guid) {
 					if (ssTransectName != null) {
 						ssTransectName = ssTransectName.replace(/\"/g, "");
 					}
-					sampleStationTxt += dq + ssTransectName + " ";
+					sampleStationTxt += dq + ssTransectName + " - ";
 					
 					sampleStationTxt += plots[j].plot_name + dq + c;
 					sampleStationTxt += dq + plots[j].utm_zone + dq + c;
@@ -289,6 +220,7 @@ function makeCSV(survey, guid) {
 						
 						var time = d.toTimeString().split(":");
 						var plotTime = dq + time[0] + ":" + time[1] + dq;
+						var plotEndTime = '';
 						
 						// CSV for General Survey output
 						generalSurveyTxt += dq + parkName + dq + c;
@@ -297,10 +229,10 @@ function makeCSV(survey, guid) {
 						if (gsTransectName != null) {
 							gsTransectName = gsTransectName.replace(/\"/g, "");
 						}
-						generalSurveyTxt += dq + gsTransectName + " ";
+						generalSurveyTxt += dq + gsTransectName + " - ";
 						
 						generalSurveyTxt += plots[j].plot_name + dq + c;
-						generalSurveyTxt += plotDate + c + plotTime + c;
+						generalSurveyTxt += plotDate + c + plotTime + c + plotEndTime + c;
 						
 						var surveyor = transects[i].surveyor;
 						if (surveyor != null) {
@@ -315,6 +247,10 @@ function makeCSV(survey, guid) {
 						generalSurveyTxt += dq + speciesCode + dq + c;
 						
 						generalSurveyTxt += dq + plotObs[k].count + dq + c;
+						// utm zone, easting, northing
+						generalSurveyTxt += dq + plots[j].utm_zone + dq + c;
+						generalSurveyTxt += dq + plots[j].utm_easting + dq + c;
+						generalSurveyTxt += dq + plots[j].utm_northing + dq + c;
 						
 						var comments = plotObs[k].comments;
 						if (comments != null) {

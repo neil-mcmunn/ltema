@@ -21,9 +21,6 @@ function downloadSurvey(siteSurveyGUID) {
             //alert('download processed');
         };
         httpClient.onerror = function(e) {
-            Ti.API.debug("STATUS: " + this.status);
-            Ti.API.debug("TEXT:   " + this.responseText);
-            Ti.API.debug("ERROR:  " + e.error);
             alert('error retrieving remote data');
         };
 
@@ -98,15 +95,15 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 			// Copy and associate any existing transects media and id's'
 			for (var i = 0; i < cloudMedia.length; i++) {
 				var oldMediaID = cloudMedia[i].media_id;
-				var flickrID = cloudMedia[i].flickr_id;
+				var cloudMediaID = cloudMedia[i].cloud_media_id;
 				
-				if (! flickrID) {
+				if (! cloudMediaID) {
 					cloudMedia.splice(i, 1);
 					continue;
 				}
 				
-				// insert flickr_id and extract auto-incremented media_id and store in media blob
-				db.execute('INSERT INTO media (flickr_id) VALUES (?);', flickrID);
+				// insert cloud_media_id and extract auto-incremented media_id and store in media blob
+				db.execute('INSERT INTO media (cloud_media_id) VALUES (?);', cloudMediaID);
 				var results = db.execute('SELECT last_insert_rowid() as mediaID');
 				var newMediaID = results.fieldByName('mediaID');
 				
@@ -118,14 +115,6 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 			
 			// Copy and associate any existing transects
 			for (var i = 0; i < cloudTransects.length; i++) {
-				/*
-				var siteGUID_FK = cloudTransects[i].site_survey_guid;
-				if (siteGUID_FK != siteGUID) {
-					continue;
-				}
-				*/
-				console.log('this is transect #: ' + i);
-				
 				var transectGUID = cloudTransects[i].transect_guid;
 				var transectName = cloudTransects[i].transect_name;
 				var surveyor = cloudTransects[i].surveyor;
@@ -156,13 +145,10 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 				
 				// Copy and associate any existing plots
 				for (var j = 0; j < cloudPlots.length; j++) {
-					
 					var transectGUID_FK = cloudPlots[j].transect_guid;
 					if (transectGUID_FK != transectGUID) {
 						continue;
 					}
-					
-					console.log('this is plot #: ' + j);
 					
 					var plotGUID = cloudPlots[j].plot_guid;
 					var plotName = cloudPlots[j].plot_name;
@@ -182,7 +168,6 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 						if (plotOldMediaID == cloudMedia[m].media_id) {
 							plotNewMediaID = cloudMedia[m].new_media_id;
 							//remove this row to save time for future iterations
-							console.log('inserting media ' + cloudMedia[m].new_media_id + ' into plot: ' + j);
 							cloudMedia.splice(m, 1);
 							break;
 						}
@@ -200,8 +185,6 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 							continue;
 						}
 						
-						console.log('this is plot obs #: ' + k);
-						
 						var observationGUID = plotObservations[k].plot_observation_guid;
 						var observation = plotObservations[k].observation;
 						var groundCover = plotObservations[k].ground_cover;
@@ -217,7 +200,6 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 							if (plotObsOldMediaID == cloudMedia[m].media_id) {
 								plotObsNewMediaID = cloudMedia[m].new_media_id;
 								//remove this row to save time for future iterations
-								console.log('inserting media ' + cloudMedia[m].new_media_id + ' into plot observation: ' + k);
 								
 								cloudMedia.splice(m, 1);
 								break;
@@ -229,10 +211,17 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 						
 					}	
 				}
+				
 				for(var m = 0; m < photoCloudMedia.length; m++){
-					photoCloudMedia[m].media_name = null;
+					var cloudMediaID = photoCloudMedia[m].cloud_media_id;
+					
+					if (!cloudMediaID) {
+						photoCloudMedia.splice(m, 1);
+					} else {
+						photoCloudMedia[m].media_name = null;
+					}
 				}
-				// download flickr media
+				// download cloud media
 				imageDownload(photoCloudMedia, siteSurveyGUID);
 			}
 		}
@@ -249,9 +238,8 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
 
 
 function imageDownload(media, guid){
-	console.log('Media Download');
-	console.log(media);
-	//go through media looking for object with a flickr id
+	
+	//go through media looking for object with a cloud media id
 	var image = null;
 	for(var i = 0; i < media.length; i++){
 		if(media[i].media_name === null){
@@ -261,17 +249,15 @@ function imageDownload(media, guid){
 	}
 	//no images are left to download
 	if(image === null){
-		console.log('Media Download - All image have been downloaded');
 		Ti.App.fireEvent("app:downloadFinished");
 		Ti.App.fireEvent("app:refreshSiteSurveys");
 	}
 	//otherwise an image is found and that image is then downloaded
 	else{
-		console.log('Media Downloaded - Image number ' + image + ' to be downloaded');
 		var imageRecord = media[image];
-		var url = 'http://i.imgur.com/' + imageRecord.flickr_id + '.jpg';
+		var url = 'http://i.imgur.com/' + imageRecord.cloud_media_id + '.jpg';
 		//Download Image form Imgur
- 		var fileName = imageRecord.flickr_id + '.png';
+ 		var fileName = imageRecord.cloud_media_id + '.png';
  		
  		var db = Ti.Database.open('ltemaDB');
 		var dirInfo = db.execute('SELECT s.year, p.protocol_name, prk.park_name \
@@ -294,29 +280,24 @@ function imageDownload(media, guid){
 		var file = Ti.Filesystem.getFile(imageDir.resolve(), fileName);
  		db.close();
  		
-	    //var file = Titanium.Filesystem.getFile(Titanium.Filesystem.applicationDataDirectory, fileName);
 	    if ( file.exists() ) {
-	    	console.log('Media Download - media exists');
 	        //Update Database
 			var db = Ti.Database.open('ltemaDB');
-			db.execute('UPDATE media SET media_name = ? WHERE flickr_id = ?', fileName, imageRecord.flickr_id);
+			db.execute('UPDATE media SET media_name = ? WHERE cloud_media_id = ?', fileName, imageRecord.cloud_media_id);
 			imageRecord.media_name = fileName;
 			imageDownload(media, guid);
 			db.close();
 	    } else {
-	    	console.log('Media Download - media doesn\'t exist');
 	        if ( Titanium.Network.online ) {
 	            var xhr = Titanium.Network.createHTTPClient({
 		            onload : function(e) {
 						try{
 							//Wite image from Imgur to iPad
-							console.log('Imgur response: ' + this.responseData);
 							file.write(this.responseData);
 							imageRecord.media_name = fileName;
 							//Update Database
 							var db = Ti.Database.open('ltemaDB');
-							//Weird Bug where SQL won't update.
-							db.execute('UPDATE media SET media_name = ? WHERE flickr_id = ?', fileName, imageRecord.flickr_id);
+							db.execute('UPDATE media SET media_name = ? WHERE cloud_media_id = ?', fileName, imageRecord.cloud_media_id);
 						}
 						catch(e) {
 							var errorMessage = e.message;
@@ -329,7 +310,6 @@ function imageDownload(media, guid){
 					},
 					onerror : function(e) {
 						console.log('Something bad happened: {status: ' + this.status + ', statusText: ' + this.statusText + '}');
-						console.log('This: ' + this);
 					},
 					timeout : 30000
 				});
