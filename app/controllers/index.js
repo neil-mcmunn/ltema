@@ -537,8 +537,6 @@ Ti.App.addEventListener("app:uploadFailed", function(e){
 });
 
 Ti.App.addEventListener("app:uploadFinished", function(e){
-	console.log('UploadFinished - Event fired');
-	
 	try{
 		var db = Ti.Database.open('ltemaDB');
 		
@@ -671,7 +669,6 @@ function loginBtn() {
 			
 		dialog.addEventListener('click', function(e){
 			var secret = e.text;
-			Ti.API.info('e.text: ' + secret);
 			var regex = /^[01]{1}\w{4}-\w{5}-\w{5}-\w{5}-\w{5}$/;
 			if (secret.match(regex)){
 				authenticate(secret);
@@ -692,7 +689,6 @@ function loginBtn() {
 			if (e.index === e.source.cancel){
 				Ti.API.info('The cancel button was clicked');
 			} else {
-				Ti.API.info('device logged out');
 				$.login.title = "Login";
 				Ti.App.Properties.setString('auth_level',null);
 				Ti.App.Properties.setString('secret',null);

@@ -3,7 +3,6 @@
 function downloadSurvey(siteSurveyGUID) {
     try {
     	Ti.App.fireEvent("app:downloadStarted");
-        console.log('enter try in downloadSurvey');
         var url = "https://capstone-ltemac.herokuapp.com/surveys/" + siteSurveyGUID;
         
         var httpClient = Ti.Network.createHTTPClient();
@@ -15,10 +14,8 @@ function downloadSurvey(siteSurveyGUID) {
 
         httpClient.onload = function() {
             //call checkLocalSurveys, pass in results
-            Ti.API.info("Downloading...");
             var returnArray = JSON.parse(this.responseData);
             processDownload(returnArray, siteSurveyGUID);
-            //alert('download processed');
         };
         httpClient.onerror = function(e) {
             alert('error retrieving remote data');
@@ -38,8 +35,6 @@ function processDownload(cloudSurvey, siteSurveyGUID) {
     // expected survey object format: survey_data {transects[], plots[], plot_observations[], media[], survey_meta}
     
    try {
-    	console.log ('enter try in process download');
-    	
 	    var db = Ti.Database.open('ltemaDB');			
 	    
     	//Extract data from cloud survey

@@ -7,84 +7,91 @@ Ti.App.addEventListener("app:dataBaseError", function(e) {
 });
 
 function preparePhotos(guid) {
-	try{
-		Ti.App.fireEvent("app:uploadStarted");
-		
-		var db = Ti.Database.open('ltemaDB');
-		var mediaIDs = [];
-		var transects = db.execute('SELECT transect_guid, media_id FROM transect WHERE site_survey_guid = ?', guid);
+	var authLevel = Ti.App.Properties.getString('auth_level');
+	
+	if ((authLevel == 1) || (authLevel == 9)) { 
+		try{
+			Ti.App.fireEvent("app:uploadStarted");
 			
-		// Copy and associate any existing transects media
-		while (transects.isValidRow()) {
-			var transectGUID = transects.fieldByName('transect_guid');
-			var transectMediaID = transects.fieldByName('media_id');
-			
-			if (transectMediaID) {
-				mediaIDs.push(transectMediaID);
-			}
-			
-			// Get any plots associated with the transect
-			var plots = db.execute('SELECT plot_guid, media_id FROM plot WHERE transect_guid = ?', transectGUID);
-			
-			// Copy and associate any existing plots media
-			while (plots.isValidRow()) {
-				var plotMediaID = plots.fieldByName('media_id');
-				var plotGUID = plots.fieldByName('plot_guid');
+			var db = Ti.Database.open('ltemaDB');
+			var mediaIDs = [];
+			var transects = db.execute('SELECT transect_guid, media_id FROM transect WHERE site_survey_guid = ?', guid);
 				
-				if (plotMediaID) {
-					mediaIDs.push(plotMediaID);	
+			// Copy and associate any existing transects media
+			while (transects.isValidRow()) {
+				var transectGUID = transects.fieldByName('transect_guid');
+				var transectMediaID = transects.fieldByName('media_id');
+				
+				if (transectMediaID) {
+					mediaIDs.push(transectMediaID);
 				}
-								
-				// Get any plot observations associated with the plot
-				var observations = db.execute('SELECT media_id FROM plot_observation WHERE plot_guid = ?', plotGUID);
 				
-				// Copy and associate any existing plot observations media
-				while (observations.isValidRow()){
-					var observationMediaID = observations.fieldByName('media_id');
+				// Get any plots associated with the transect
+				var plots = db.execute('SELECT plot_guid, media_id FROM plot WHERE transect_guid = ?', transectGUID);
 				
-					if (observationMediaID) {
-						mediaIDs.push(observationMediaID);
-					}
+				// Copy and associate any existing plots media
+				while (plots.isValidRow()) {
+					var plotMediaID = plots.fieldByName('media_id');
+					var plotGUID = plots.fieldByName('plot_guid');
 					
-					observations.next();
-				}	
-				plots.next();
+					if (plotMediaID) {
+						mediaIDs.push(plotMediaID);	
+					}
+									
+					// Get any plot observations associated with the plot
+					var observations = db.execute('SELECT media_id FROM plot_observation WHERE plot_guid = ?', plotGUID);
+					
+					// Copy and associate any existing plot observations media
+					while (observations.isValidRow()){
+						var observationMediaID = observations.fieldByName('media_id');
+					
+						if (observationMediaID) {
+							mediaIDs.push(observationMediaID);
+						}
+						
+						observations.next();
+					}	
+					plots.next();
+				}
+				transects.next();
 			}
-			transects.next();
+			
+			var uploadMedia = [];
+			for (var i = 0, m = mediaIDs.length; i < m; i++) {
+				if (mediaIDs[i] === null) {
+					continue;
+				}
+				
+				var mediaResults = db.execute('SELECT * FROM media WHERE media_id = ?', mediaIDs[i]);
+				
+				var mediaName = mediaResults.fieldByName('media_name');
+				
+				if (!mediaName) {
+					continue;
+				}
+				
+				var cloudMediaID = mediaResults.fieldByName('cloud_media_id');
+				var mediaID = mediaResults.fieldByName('media_id');
+							
+				var results = {'media_id':mediaID, 'media_name':mediaName, 'cloud_media_id':cloudMediaID};
+				
+				uploadMedia.push(results);
+			}
+	
+			//Upload all un-uploaded photos to Imgur
+			mediaUpload(uploadMedia, guid);
+	
+		} catch(e) {
+			uploadMedia = undefined;
+			var errorMessage = e.message;
+			Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
+			Ti.App.fireEvent("app:uploadFailed");
+		} finally{
+			db.close();
 		}
 		
-		var uploadMedia = [];
-		for (var i = 0, m = mediaIDs.length; i < m; i++) {
-			if (mediaIDs[i] === null) {
-				continue;
-			}
-			
-			var mediaResults = db.execute('SELECT * FROM media WHERE media_id = ?', mediaIDs[i]);
-			
-			var mediaName = mediaResults.fieldByName('media_name');
-			
-			if (!mediaName) {
-				continue;
-			}
-			
-			var cloudMediaID = mediaResults.fieldByName('cloud_media_id');
-			var mediaID = mediaResults.fieldByName('media_id');
-						
-			var results = {'media_id':mediaID, 'media_name':mediaName, 'cloud_media_id':cloudMediaID};
-			
-			uploadMedia.push(results);
-		}
-
-		//Upload all un-uploaded photos to Imgur
-		mediaUpload(uploadMedia, guid);
-
-	} catch(e) {
-		uploadMedia = undefined;
-		var errorMessage = e.message;
-		Ti.App.fireEvent("app:dataBaseError", {error: errorMessage});
-		Ti.App.fireEvent("app:uploadFailed");
-	} finally{
-		db.close();
+	} else {
+		alert('Please Login to upload a Survey');
 	}
 }
 
@@ -346,7 +353,6 @@ function formIntertidalJSON(){
 //Push a survey object to the cloud using its guid
 function uploadJSON(survey, guid) {
 	try{
-		console.log('enter uploadJSON');
 		
 		var url = 'https://capstone-ltemac.herokuapp.com/surveys';
 		

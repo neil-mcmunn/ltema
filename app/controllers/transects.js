@@ -189,10 +189,10 @@ $.tbl.addEventListener('delete', function(e) {
 			plotFiles.next();
 		}
 		
-		var pids = '(' + plotGUIDs + ')';
+		var pids = '(\'' + plotGUIDs + '\')';
 		var observationFiles = db.execute('SELECT med.media_name FROM media med, plot_observation pob \
 										WHERE med.media_id = pob.media_id \
-										AND pob.plot_guid IN' + pids);
+										AND pob.plot_guid IN ' + pids);
 		
 		while (observationFiles.isValidRow()) {
 			var fileName = observationFiles.fieldByName('media_name');
